@@ -1,0 +1,47 @@
+{
+  "_comment": "AXXX affiliation-logo registry. Each entry's `file` is an asset in the assets-vN release (see config.json). fetch_assets.py downloads the selected logos from the pinned release tag and commits them into the poster repo's images/. size_class/chip are posterly Gate-E starting defaults (verify on the rendered header crop). bullet_arrow is the brand bullet graphic, not a header logo.",
+  "default_affiliations": ["fusionbrain", "airi", "hse", "innopolis"],
+  "brand_assets": ["bullet_arrow"],
+  "logos": {
+    "airi": {
+      "file": "airi_logo.svg",
+      "alt": "AIRI",
+      "aspect_ratio": 3.45,
+      "size_class": "logo-wide",
+      "chip": "none"
+    },
+    "hse": {
+      "file": "hse_logo.svg",
+      "alt": "HSE University",
+      "aspect_ratio": 4.18,
+      "size_class": "logo-wide",
+      "chip": "none"
+    },
+    "innopolis": {
+      "file": "innopolis_logo.svg",
+      "alt": "Innopolis University",
+      "aspect_ratio": 5.15,
+      "size_class": "logo-wide",
+      "chip": "none"
+    },
+    "fusionbrain": {
+      "file": "fusionbrain_combined.svg",
+      "alt": "FusionBrain Lab",
+      "aspect_ratio": 4.22,
+      "size_class": "logo-wide",
+      "chip": "none",
+      "variants": {
+        "symbol": "fusionbrain_symbol_colored.svg",
+        "symbol_mono": "fusionbrain_symbol.svg",
+        "name": "fusionbrain_name.svg",
+        "logo": "fusion_brain_logo_color.svg",
+        "logo_mono": "fusion_brain_logo.svg"
+      }
+    }
+  },
+  "bullet_arrow": {
+    "file": "bullet_arrow.svg",
+    "role": "brand-bullet",
+    "used_by": "axxx/brand.css (.card li::before)"
+  }
+}

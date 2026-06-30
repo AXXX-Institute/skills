@@ -1,0 +1,17 @@
+{
+  "_comment": "Contents of the `assets-v1` GitHub release of AXXX-Institute/skills. Upload every file listed here as a release asset under tag assets-v1. This staged copy is also the offline fallback fetch_assets.py uses when the release is unreachable.",
+  "tag": "assets-v1",
+  "files": [
+    "airi_logo.svg",
+    "hse_logo.svg",
+    "innopolis_logo.svg",
+    "fusionbrain_combined.svg",
+    "fusion_brain_logo.svg",
+    "fusion_brain_logo_color.svg",
+    "fusionbrain_name.svg",
+    "fusionbrain_symbol.svg",
+    "fusionbrain_symbol_colored.svg",
+    "bullet_arrow.svg"
+  ],
+  "provenance": "Sourced from compression_horizon/poster/images (the AXXX reference poster)."
+}

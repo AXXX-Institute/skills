@@ -1,0 +1,21 @@
+# AXXX paper-to-poster — GitLab Pages deploy for a single poster repo.
+# Copy the `pages` job into the POSTER repo's `.gitlab-ci.yml` when the user
+# answers "GitLab CI" to the post-build deploy prompt. Publishes ./poster/
+# (poster.html + images/ + rendered PDF) as the static site. Logos are committed
+# locally (fetch-then-vendor), so no network is needed at deploy time.
+pages:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - mkdir -p public
+    - cp -r poster/* public/
+    # serve poster.html as the site index
+    - if [ -f public/poster.html ]; then cp public/poster.html public/index.html; fi
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - poster/**/*
+    - if: $CI_PIPELINE_SOURCE == "web"

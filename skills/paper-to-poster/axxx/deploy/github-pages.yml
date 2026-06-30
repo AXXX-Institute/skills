@@ -1,0 +1,41 @@
+# AXXX paper-to-poster — GitHub Pages deploy for a single poster repo.
+# Copy to `.github/workflows/poster-pages.yml` in the POSTER repo when the user
+# answers "GitHub Actions" to the post-build deploy prompt. Publishes ./poster/
+# (poster.html + images/ + rendered PDF) as the static site. Logos are committed
+# locally (fetch-then-vendor), so no network is needed at deploy time.
+name: Deploy poster to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ["poster/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage poster as site root (index.html)
+        run: |
+          mkdir -p _site
+          cp -r poster/* _site/
+          # serve poster.html as the site index
+          [ -f _site/poster.html ] && cp _site/poster.html _site/index.html || true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

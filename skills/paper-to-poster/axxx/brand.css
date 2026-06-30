@@ -1,0 +1,53 @@
+/* =========================================================================
+   AXXX brand rules — appended after a template's own <style> by
+   apply_theme.py. These are the AXXX-specific graphics layered on top of the
+   token override in theme_tokens.css: the Inter webfont, the top accent bar,
+   arrow-glyph bullets, and the affiliation-logo header strip. Selectors mirror
+   posterly's structural classes so the measure/polish gates still apply.
+   ========================================================================= */
+
+/* Inter — AXXX brand typeface. (apply_theme.py also injects the <link>
+   preconnect/stylesheet into <head>; this @import is the offline-safe echo.) */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+
+/* Top accent bar across the full poster width (AXXX brand device). */
+.poster::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0;
+  height: calc(6 * var(--u));
+  background: var(--accent);
+}
+
+/* Black-arrow bullets (AXXX brand graphic). Uses the local
+   images/bullet_arrow.svg that fetch_assets.py commits into the poster. */
+.card ul, .card ol { padding-left: 0; list-style: none; }
+.card li {
+  margin-bottom: calc(2 * var(--u));
+  position: relative;
+  padding-left: calc(16 * var(--u));
+}
+.card li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc(3 * var(--u));
+  width: calc(11 * var(--u));
+  height: calc(10 * var(--u));
+  background: url("images/bullet_arrow.svg") no-repeat center center;
+  background-size: contain;
+}
+
+/* Affiliation-logo header strip (AXXX institutions). Keep the .logo-slot /
+   .logo-chip class names so posterly's Gate E logo checks still see them. */
+.affiliations-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(16 * var(--u));
+  margin-top: calc(3 * var(--u));
+}
+.affiliations-logos img {
+  height: calc(18 * var(--u));
+  width: auto;
+  object-fit: contain;
+}

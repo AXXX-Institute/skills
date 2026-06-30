@@ -1,0 +1,8 @@
+{
+  "_comment": "Single source of truth for the AXXX asset release. The skill reads owner/repo/tag from here; change here to retarget. See docs/adr/0002.",
+  "owner": "AXXX-Institute",
+  "repo": "skills",
+  "assets_tag": "assets-v1",
+  "pages_url": "https://axxx-institute.github.io/skills",
+  "release_download_base": "https://github.com/AXXX-Institute/skills/releases/download/assets-v1"
+}

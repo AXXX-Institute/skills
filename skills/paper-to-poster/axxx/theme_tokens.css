@@ -1,0 +1,42 @@
+/* =========================================================================
+   AXXX theme — :root design tokens (canonical source of truth)
+   Ported verbatim from the AXXX reference poster
+   (compression_horizon/poster/poster.html). apply_theme.py rewrites a
+   neutral posterly template's :root token VALUES to these. AXXX-only skill:
+   there is no neutral fallback (see docs/adr/0001).
+   ========================================================================= */
+:root {
+  /* AXXX brand palette — blue + grey (one semantic red kept for negatives) */
+  --accent:          #0689D4;   /* AXXX blue */
+  --accent-deep:     #053957;   /* AXXX dark blue */
+  --accent-light:    #E6F4FD;   /* light-blue tint */
+  --accent-soft:     #EAF6FE;   /* light-blue tint (soft) */
+  --accent-mid:      #0689D4;   /* AXXX blue (forward highlight) */
+
+  /* Secondary accent ("ours / best" emphasis). AXXX uses a light blue in
+     place of posterly's warm gold so the brand stays cool-monochrome. */
+  --gold:            #50C0FF;   /* AXXX light blue (ex-gold accent) */
+  --gold-soft:       #EAF6FE;   /* light-blue tint (ex-gold highlight rows) */
+  --gold-light:      #EAF6FE;
+
+  --red-alert:       #C0392B;   /* the single semantic red — negatives only */
+
+  /* Text */
+  --text-primary:    #111111;   /* near-black */
+  --text-secondary:  #687A86;   /* AXXX dark grey */
+  --text-muted:      #A7B3BB;   /* AXXX grey */
+
+  /* Backgrounds */
+  --bg-page:         #FFFFFF;   /* AXXX white */
+  --bg-card:         #FFFFFF;
+  --bg-card-tint:    #F4F8FB;
+  --bg-emphasis:     #E6F4FD;   /* light blue */
+
+  /* Borders */
+  --border-soft:     #CDD5DA;   /* light grey */
+  --border-strong:   #0689D4;   /* AXXX blue */
+
+  /* Fonts — AXXX is Inter everywhere (no serif). */
+  --font-serif:      "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-sans:       "Inter", "Helvetica Neue", Arial, sans-serif;
+}

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXXX paper-to-poster — examples gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#0689D4; --accent-deep:#053957; --accent-light:#E6F4FD;
+    --text:#111; --text-2:#687A86; --border:#CDD5DA; --bg:#F4F8FB;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Inter","Helvetica Neue",Arial,sans-serif;color:var(--text);background:var(--bg);line-height:1.5}
+  .bar{height:6px;background:var(--accent)}
+  header{max-width:1100px;margin:0 auto;padding:48px 24px 8px}
+  h1{font-size:34px;font-weight:800;color:var(--accent-deep);letter-spacing:-.5px}
+  h1 .ac{color:var(--accent)}
+  .sub{color:var(--text-2);font-size:16px;margin-top:8px;max-width:760px}
+  .meta{color:var(--text-2);font-size:13px;margin-top:14px}
+  .meta a{color:var(--accent);text-decoration:none}
+  main{max-width:1100px;margin:0 auto;padding:24px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;margin-top:8px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s}
+  .card:hover{box-shadow:0 8px 30px rgba(5,57,87,.12);transform:translateY(-2px)}
+  .thumb{background:var(--accent-light);border-bottom:1px solid var(--border);aspect-ratio:5/3;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:contain}
+  .body{padding:16px 18px 18px}
+  .title{font-weight:700;font-size:17px;color:var(--accent-deep)}
+  .venue{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--accent);background:var(--accent-light);border-radius:6px;padding:2px 8px;margin-top:6px}
+  .desc{color:var(--text-2);font-size:13.5px;margin-top:10px}
+  .links{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+  .links a{font-size:13px;font-weight:600;text-decoration:none;color:#fff;background:var(--accent);padding:7px 12px;border-radius:7px}
+  .links a.alt{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+  footer{max-width:1100px;margin:24px auto 60px;padding:0 24px;color:var(--text-2);font-size:13px}
+  footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<header>
+  <h1>AXXX <span class="ac">paper&#8209;to&#8209;poster</span> — examples gallery</h1>
+  <p class="sub">Upstream <a href="https://github.com/Chenruishuo/posterly">posterly</a> examples, re-rendered in the AXXX brand
+  (blue palette, Inter, top accent bar, arrow bullets, affiliation logos). Each poster passes posterly's
+  <code>measure</code> + <code>polish</code> gates.</p>
+  <p class="meta">Skill: <a href="https://github.com/AXXX-Institute/skills/tree/main/skills/paper-to-poster">AXXX-Institute/skills · paper-to-poster</a>
+  &nbsp;·&nbsp; AGPL-3.0 (derivative of posterly)</p>
+</header>
+<main>
+  <div class="grid">
+
+    <div class="card">
+      <a class="thumb" href="powerflow_icml2026/poster.html"><img src="powerflow_icml2026/thumb.png" alt="PowerFlow ICML 2026 poster"></a>
+      <div class="body">
+        <div class="title">PowerFlow</div>
+        <span class="venue">ICML 2026 · 60×36 landscape</span>
+        <p class="desc">Four-column landscape with a framework banner and a beside-text training-dynamics card.</p>
+        <div class="links"><a href="powerflow_icml2026/poster.html">Open poster</a><a class="alt" href="powerflow_icml2026/poster_preview.pdf">PDF</a></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <a class="thumb" href="tdgfn_icml2026/poster.html"><img src="tdgfn_icml2026/thumb.png" alt="TD-GFN ICML 2026 poster"></a>
+      <div class="body">
+        <div class="title">TD-GFN</div>
+        <span class="venue">ICML 2026 · 60×36 landscape</span>
+        <p class="desc">Four-column landscape; GFlowNet diversity results with a two-panel comparison figure.</p>
+        <div class="links"><a href="tdgfn_icml2026/poster.html">Open poster</a><a class="alt" href="tdgfn_icml2026/poster_preview.pdf">PDF</a></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <a class="thumb" href="optail_neurips2024/poster.html"><img src="optail_neurips2024/thumb.png" alt="OPT-AIL NeurIPS 2024 poster"></a>
+      <div class="body">
+        <div class="title">OPT-AIL</div>
+        <span class="venue">NeurIPS 2024 · 60×36 landscape</span>
+        <p class="desc">Theory-forward landscape with complexity tables, a generalized eluder-coefficient result.</p>
+        <div class="links"><a href="optail_neurips2024/poster.html">Open poster</a><a class="alt" href="optail_neurips2024/poster_preview.pdf">PDF</a></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <a class="thumb" href="hello_world/poster.html"><img src="hello_world/thumb.png" alt="Hello world reference poster"></a>
+      <div class="body">
+        <div class="title">hello_world</div>
+        <span class="venue">A2 portrait · reference</span>
+        <p class="desc">Minimal single-column reference poster — the all-gates-green smoke test for the toolchain.</p>
+        <div class="links"><a href="hello_world/poster.html">Open poster</a><a class="alt" href="hello_world/poster_preview.pdf">PDF</a></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+<footer>
+  Built by the <a href="https://github.com/AXXX-Institute/skills/tree/main/skills/paper-to-poster">paper-to-poster</a> skill ·
+  posters render offline (logos fetched-then-committed) ·
+  <a href="https://github.com/AXXX-Institute/skills">source</a>
+</footer>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Ephemeral run artifacts (deep-interview specs, agent sessions, etc.)
+run/
+
+# Python caches
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Editor / OS
+.DS_Store
+*.swp
+
+# Local build outputs (poster previews are committed in poster repos, not here)
+*.tmp

@@ -1,0 +1,17 @@
+AXXX-Institute/skills — licensing
+=================================
+
+This repository is a COLLECTION of independent Claude Code skills under
+per-skill license isolation. There is no single repo-wide code license; each
+skill is licensed by the LICENSE file inside its own directory.
+
+  skills/paper-to-poster/   AGPL-3.0-only  (c) 2026 Ruishuo Chen and contributors
+                            derivative of posterly; see that skill's LICENSE and
+                            NOTICE.md for full terms and third-party (MIT/ARIS)
+                            attributions.
+
+Repository-level documentation, glossary (CONTEXT.md), and ADRs (docs/) are
+provided as-is for reference. Adding a new skill? Place its own LICENSE under
+skills/<name>/ — do not assume it inherits another skill's terms.
+
+See docs/adr/0003-agpl-license-isolation.md for the rationale.

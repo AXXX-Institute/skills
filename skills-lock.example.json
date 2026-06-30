@@ -1,0 +1,11 @@
+{
+  "_comment": "Example: pin a single AXXX skill in another repo. Copy to that repo as skills-lock.json (add a computedHash once published).",
+  "version": 1,
+  "skills": {
+    "paper-to-poster": {
+      "source": "AXXX-Institute/skills",
+      "sourceType": "github",
+      "skillPath": "skills/paper-to-poster/SKILL.md"
+    }
+  }
+}
