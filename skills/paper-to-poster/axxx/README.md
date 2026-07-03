@@ -22,7 +22,7 @@ delivery), `0003` (AGPL licensing).
 
 ```bash
 cp <skill>/templates/landscape_4col_axxx.html poster/poster.html
-python <skill>/axxx/fetch_assets.py --dest poster/images        # logos -> committed
+python <skill>/axxx/fetch_assets.py --dest poster/images --logos airi hse  # ONLY this paper's affiliations
 python <skill>/axxx/apply_theme.py  poster/poster.html          # idempotent re-theme
 # ... fill content, then posterly gates:
 python <skill>/tools/poster_check.py measure poster/poster.html

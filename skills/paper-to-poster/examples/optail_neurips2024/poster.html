@@ -308,7 +308,7 @@
     border-radius: calc(3 * var(--u));
     background: white;
   }
-  .figure.big img { width: 81%; }
+  .figure.big img { width: 85%; }
 
   .figure .caption {
     font-family: var(--font-sans);
@@ -529,12 +529,6 @@
         <span class="aff">National Key Laboratory for Novel Software Technology, Nanjing University &middot; Polixir.ai</span>
         <span class="eqnote"><sup>*</sup>Equal contribution &nbsp;&middot;&nbsp; <sup>&#9993;</sup>Contact: xut@lamda.nju.edu.cn</span>
       </div>
-      <div class="affiliations-logos">
-        <img src="images/fusionbrain_combined.svg" alt="FusionBrain Lab">
-        <img src="images/airi_logo.svg"            alt="AIRI">
-        <img src="images/hse_logo.svg"             alt="HSE University">
-        <img src="images/innopolis_logo.svg"       alt="Innopolis University">
-      </div>
     </div>
 
     <div class="right-block">
@@ -611,18 +605,18 @@
           Aim: a small <span class="keyword">imitation gap</span> $V^{\pi^E}-V^{\pi}$ from few <span class="keyword">expert trajectories</span> (expert sample complexity) and few <span class="keyword">environment interactions</span> (interaction complexity).
         </p>
         <p class="body-text" style="margin-top: calc(3 * var(--u));">
-          <strong>General function approximation:</strong> a reward class $\mathcal{R}$ and Q-value class $\mathcal{Q}$, under standard <span class="keyword">realizability</span> (of $\mathcal{R}$ and $\mathcal{Q}$) and <span class="keyword">Bellman completeness</span> of $\mathcal{Q}$.
+          <strong>General function approximation:</strong> a reward class $\mathcal{R}$ and Q-value class $\mathcal{Q}$, under standard <span class="keyword">realizability</span> (of $\mathcal{R}$ and $\mathcal{Q}$) and <span class="keyword">Bellman completeness</span> of $\mathcal{Q}$ — the same mild assumptions used across modern RL theory, and broad enough to subsume the tabular and linear settings as special cases.
         </p>
       </div>
 
-      <div class="card" data-measure-role="card" style="margin-top: calc(5 * var(--u)); padding-bottom: calc(12 * var(--u));">
+      <div class="card" data-measure-role="card" style="margin-top: calc(3 * var(--u)); padding-bottom: calc(5 * var(--u));">
         <div class="section-title"><span class="num">3</span> Contributions</div>
         <ul style="margin-top: calc(1 * var(--u));">
           <li><strong>First provably efficient</strong> online AIL with <span class="keyword">general function approximation</span>.</li>
           <li>Polynomial expert-sample &amp; interaction complexity; provably beats <span class="keyword">BC</span> by $\mathcal{O}(H^2)$ in expert samples.</li>
-          <li>Reduces to just <span class="keyword">two optimization objectives</span> &rarr; a direct&nbsp;neural-network&nbsp;implementation.</li>
+          <li>Reduces to just <span class="keyword">two optimization objectives</span> &rarr; a direct&nbsp;neural-network&nbsp;implementation, no count- or covariance-based bonuses.</li>
           <li>The guarantee holds whenever the <span class="keyword">generalized eluder coefficient</span> $d_{\mathrm{GEC}}$ is small — covering tabular, linear &amp; low Bellman-eluder MDPs.</li>
-          <li>Matches or beats prior deep AIL methods (<span class="keyword">IQLearn, PPIL, FILTER, HyPE</span>) and BC on <span class="keyword">8 DMControl</span> tasks.</li>
+          <li>Matches or beats prior deep AIL methods (<span class="keyword">IQLearn, PPIL, FILTER, HyPE</span>) and BC on <span class="keyword">8 DMControl</span> tasks, even from a single expert trajectory.</li>
         </ul>
       </div>
 
@@ -636,14 +630,14 @@
         <p class="body-text">
           Imitation gap $=$ <span class="keyword">reward error</span> $+$ <span class="keyword">policy error</span>; control each:
         </p>
-        <div class="eqn" style="margin: calc(1.5 * var(--u)) 0;">
+        <div class="eqn" style="margin: 0;">
           <span class="label">&#9312; Reward error &rarr; online optimization</span>
           $$\textstyle\mathcal{L}^i(r)=\widehat V^{\pi^i}_{r}-\widehat V^{\pi^E}_{r},\quad r^k=\text{no-regret}\big(\{\mathcal{L}^i\}_{i\lt k}\big)$$
         </div>
         <p class="body-text">
 <span class="keyword">Off-policy</span> reward learning, justified via FTRL.
         </p>
-        <div class="eqn" style="margin: calc(1.5 * var(--u)) 0;">
+        <div class="eqn" style="margin: 0;">
           <span class="label">&#9313; Policy error &rarr; optimism-regularized Bellman min</span>
           $$\min_{Q\in\mathcal{Q}}\;\mathrm{BE}^k(Q)-\lambda\max_{a}Q_1(s_1,a)$$
         </div>
@@ -667,7 +661,7 @@ $d_{\mathrm{GEC}}$ (Zhong et al., 2022) covers tabular, linear &amp; low Bellman
         </p>
       </div>
 
-      <div class="card" data-measure-role="card" style="padding-bottom: calc(10 * var(--u));">
+      <div class="card" data-measure-role="card">
         <div class="section-title"><span class="num">6</span> Complexity vs. Prior Work</div>
         <table class="result-table">
           <thead>
@@ -685,6 +679,9 @@ $d_{\mathrm{GEC}}$ (Zhong et al., 2022) covers tabular, linear &amp; low Bellman
             <tr class="ours"><td class="setting">Gen. func.</td><td class="method">OPT-AIL</td><td>$\widetilde{\mathcal{O}}(H^2\log\mathcal{N}(\mathcal{R})/\varepsilon^2)$</td><td>$\widetilde{\mathcal{O}}(H^4 d_{\mathrm{GEC}}\log(\mathcal{N}(\mathcal{Q})\mathcal{N}(\mathcal{R}))/\varepsilon^2)$</td></tr>
           </tbody>
         </table>
+        <p class="body-text" style="margin-top: calc(2 * var(--u)); font-size: calc(11.5 * var(--u));">
+          Prior provable AIL is <span class="keyword">tabular/linear</span> only; OPT-AIL is the first to reach <span class="keyword">general function approximation</span> with polynomial sample cost.
+        </p>
       </div>
 
     </div>

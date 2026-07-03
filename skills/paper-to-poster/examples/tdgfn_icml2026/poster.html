@@ -84,10 +84,10 @@
     border: calc(1 * var(--u)) solid var(--border-soft);
     border-left: calc(6 * var(--u)) solid var(--tsinghua-purple);
     border-radius: calc(6 * var(--u));
-    padding: calc(4 * var(--u)) calc(14 * var(--u));
+    padding: calc(6 * var(--u)) calc(14 * var(--u));
   }
   .framework-banner img {
-    height: calc(86 * var(--u));
+    height: calc(120 * var(--u));
     width: auto;
     display: block;
   }
@@ -665,20 +665,6 @@
   background-size: contain;
 }
 
-/* Affiliation-logo header strip (AXXX institutions). Keep the .logo-slot /
-   .logo-chip class names so posterly's Gate E logo checks still see them. */
-.affiliations-logos {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: calc(16 * var(--u));
-  margin-top: calc(3 * var(--u));
-}
-.affiliations-logos img {
-  height: calc(18 * var(--u));
-  width: auto;
-  object-fit: contain;
-}
 </style>
 </head>
 <body>
@@ -701,17 +687,14 @@
         <span class="author">Rui Hu</span> &middot;
         <span class="author">Zhuoran Li</span> &middot;
         <span class="author">Longbo Huang<sup>&#9993;</sup></span>
-        <span class="aff">FusionBrain Lab &middot; AIRI &middot; HSE University &middot; Innopolis University</span>
-      </div>
-      <div class="affiliations-logos">
-        <img src="images/fusionbrain_combined.svg" alt="FusionBrain Lab">
-        <img src="images/airi_logo.svg" alt="AIRI">
-        <img src="images/hse_logo.svg" alt="HSE University">
-        <img src="images/innopolis_logo.svg" alt="Innopolis University">
+        <span class="aff">Institute for Interdisciplinary Information Sciences &middot; Tsinghua University &middot; Beijing, China</span>
       </div>
     </div>
 
     <div class="right-stack">
+      <div class="iiis-logo">
+        <img src="images/IIISlogo111.png" alt="IIIS, Tsinghua University">
+      </div>
       <div class="qr-block">
         <img src="images/qr.png" alt="GitHub QR code">
         <div class="qr-label">Code &amp; Models</div>
@@ -769,7 +752,7 @@
       </div>
 
       <!-- 2. Key Insight -->
-      <div class="card" data-measure-role="card">
+      <div class="card" data-measure-role="card" style="padding-bottom: calc(9 * var(--u))">
         <div class="section-title"><span class="num">2</span> Key Insight: Edges Differ</div>
         <p class="body-text">
           DAG transitions contribute <span class="keyword">unequally</span> to policy learning. Removing one edge can block a reward-20 mode; another only loses a 0.1 leaf.
@@ -811,7 +794,7 @@
       </div>
 
       <!-- 4. Phases 2-3: indirect guidance -->
-      <div class="card highlight" data-measure-role="card">
+      <div class="card highlight" data-measure-role="card" style="padding-bottom: calc(8 * var(--u))">
         <div class="section-title"><span class="num">4</span> Phases 2&ndash;3: Indirect Guidance <span style="color:var(--gold-accent); font-size: calc(11 * var(--u))">&#9733; KEY</span></div>
         <p class="body-text">
           Edge rewards <em>never</em> enter the gradient. Two indirect mechanisms shape training:
@@ -862,7 +845,7 @@
       </div>
 
       <!-- 6. Robustness -->
-      <div class="card" data-measure-role="card">
+      <div class="card" data-measure-role="card" style="padding-bottom: calc(10 * var(--u))">
         <div class="section-title"><span class="num">6</span> Robust Across Data Regimes</div>
         <p class="body-text">
           TD-GFN matches the target distribution and recovers modes <em>first</em> under every stress test:
@@ -918,7 +901,7 @@
           <div class="figure" style="margin: 0; display:flex; flex-direction:column; align-items:center">
             <img src="images/modes_found_vertical.png"
                  alt="High-reward modes vs trajectories (stacked)"
-                 style="height: calc(193 * var(--u)); width: auto">
+                 style="height: calc(197 * var(--u)); width: auto">
             <div class="caption" style="font-size: calc(10*var(--u)); text-align:center">
               <strong>Mol.</strong> 1.5&ndash;2$\times$ more high-reward modes ($R\!>\!7$, $R\!>\!7.5$).
             </div>
@@ -926,7 +909,7 @@
           <div class="figure" style="margin: 0; display:flex; flex-direction:column; align-items:center">
             <img src="images/reward_diversity_comparison-1.png"
                  alt="Biosequence reward and diversity"
-                 style="height: calc(193 * var(--u)); width: auto">
+                 style="height: calc(197 * var(--u)); width: auto">
             <div class="caption" style="font-size: calc(10*var(--u)); text-align:center">
               <strong>AMP.</strong> Top-100 reward &amp; diversity &mdash; both best.
             </div>
@@ -970,7 +953,7 @@
     </div>
   </div>
 
-  <div class="ornament">AXXX</div>
+  <div class="ornament">IIIS &middot; TSINGHUA</div>
 
 </div>
 

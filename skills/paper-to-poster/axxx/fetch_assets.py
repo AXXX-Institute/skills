@@ -11,9 +11,9 @@ Offline / unreachable release -> falls back to the bundled staging copy in
 the bytes land locally in images/; nothing remote is left in the poster.
 
 Usage:
-  python axxx/fetch_assets.py --dest poster/images            # default set
-  python axxx/fetch_assets.py --dest poster/images --logos airi hse
-  python axxx/fetch_assets.py --dest poster/images --all      # every asset
+  python axxx/fetch_assets.py --dest poster/images            # bullet glyph only
+  python axxx/fetch_assets.py --dest poster/images --logos airi hse   # only this paper's affiliations
+  python axxx/fetch_assets.py --dest poster/images --all      # every asset (release staging only)
   python axxx/fetch_assets.py --dest poster/images --tag assets-v2
 """
 from __future__ import annotations
@@ -73,8 +73,10 @@ def _fetch_one(fname: str, dest_dir: Path, tag: str) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--dest", required=True, help="poster images/ dir to populate (created if missing)")
-    ap.add_argument("--logos", nargs="*", default=LOGOS["default_affiliations"],
-                    help="affiliation keys (default: %(default)s)")
+    ap.add_argument("--logos", nargs="*", default=[],
+                    help="affiliation keys to fetch — pass ONLY the institutions that "
+                         "actually authored this paper (e.g. `airi hse`). Default: none "
+                         "(fetch just the brand bullet). Never dump the whole consortium.")
     ap.add_argument("--all", action="store_true", help="fetch every asset in the release")
     ap.add_argument("--tag", default=CONFIG["assets_tag"], help="release tag to pin (default: %(default)s)")
     args = ap.parse_args()

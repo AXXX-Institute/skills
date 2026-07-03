@@ -60,9 +60,11 @@ all under `axxx/`. There is **one** brand; there is no "pick your colors" step.
 **Apply the theme (do this on the working `poster.html` after scaffolding):**
 
 ```bash
-# 1) fetch the affiliation logos + bullet glyph into the poster's images/
-python axxx/fetch_assets.py --dest poster/images          # default: fusionbrain airi hse innopolis
-#    (subset:  --logos airi hse   |   everything:  --all   |   pin a tag:  --tag assets-v2)
+# 1) fetch ONLY this paper's affiliation logos + the bullet glyph into images/
+#    Pass the subset of AXXX institutions that actually authored the paper.
+python axxx/fetch_assets.py --dest poster/images --logos airi hse   # <- example subset
+#    (bullet only, no logos:  omit --logos   |   pin a tag:  --tag assets-v2)
+#    NEVER pass all four unless all four genuinely co-authored this paper.
 
 # 2) (re)apply the AXXX theme to the poster HTML — idempotent
 python axxx/apply_theme.py poster/poster.html
@@ -74,21 +76,31 @@ Re-fetching a newer tag is the upgrade path. Rationale: `docs/adr/0002`.
 
 ### Affiliation logos in the header
 
-Place the affiliation strip in the header with the **local** committed files and
-the Gate-E class from `logos.json` (all four AXXX wordmarks are `logo-wide`):
+**Show only the logos of the institutions that actually authored THIS paper.** The
+AXXX consortium (`logos.json` → `axxx_consortium`) is AIRI, FusionBrain, HSE, and
+Innopolis — but a given paper is usually authored by a **subset** of them. Placing
+all four on every poster is wrong (it misattributes authorship). Rules:
+
+- Read the paper's author affiliations; include a logo **only** for an institution
+  that appears there. One affiliation → one logo.
+- For a **non-AXXX** paper (e.g. a third-party example), use **that paper's own**
+  logos — do not substitute the AXXX set. Keep the paper's existing header logos.
+- QR codes stay per-poster and generated offline (not brand assets — never in the
+  release).
+
+Place the strip with the **local** committed files and the Gate-E class from
+`logos.json` (the AXXX wordmarks are `logo-wide`). Example for a paper co-authored
+by AIRI + HSE only:
 
 ```html
 <div class="affiliations-logos">
-  <img src="images/fusionbrain_combined.svg" alt="FusionBrain Lab">
-  <img src="images/airi_logo.svg"            alt="AIRI">
-  <img src="images/hse_logo.svg"             alt="HSE University">
-  <img src="images/innopolis_logo.svg"       alt="Innopolis University">
+  <img src="images/airi_logo.svg" alt="AIRI">
+  <img src="images/hse_logo.svg"  alt="HSE University">
 </div>
 ```
 
 Keep posterly's `.logo-slot` / `.logo-chip` class names if you wrap logos in chips
-so **Gate E — Header logos** still applies. QR codes stay per-poster and generated
-offline (they are **not** brand assets — never in the release).
+so **Gate E — Header logos** still applies.
 
 ## Output location & Pages deploy
 
@@ -135,7 +147,7 @@ Don't pick a template, logos, or a QR target silently. The **palette is fixed (A
 
 - **Layout**: "Which gallery template fits best? (a) 4-column landscape, (b) hero + supporting column landscape, (c) 2-column portrait." Show them `templates/README.md`'s table.
 - **Palette**: nothing to ask — the **AXXX theme is always applied** (`axxx/apply_theme.py`). Do not offer color choices.
-- **Logos & venue mark**: the **AXXX affiliation set** (FusionBrain, AIRI, HSE, Innopolis) is the default — confirm which apply to *this* paper (`axxx/fetch_assets.py --logos ...`). Ask only about an extra *venue* mark. Don't assume a venue logo is wanted; cross-check the logo policy from Step 0 (some venues forbid them). When logo files are provided, inspect each one (aspect ratio, transparency, background — Step 2 item 5) and pick a size class + chip treatment per **Gate E — Header logos** below; don't just drop them in at the default size.
+- **Affiliation logos**: ask which of the AXXX consortium (AIRI, FusionBrain, HSE, Innopolis) **actually authored this paper**, and fetch **only that subset** (`axxx/fetch_assets.py --logos <subset>`). There is **no default set** — do not place all four on a poster unless all four co-authored it, and for a non-AXXX paper use that paper's own logos. Then ask separately about an extra *venue* mark; don't assume a venue logo is wanted; cross-check the logo policy from Step 0 (some venues forbid them). Inspect each logo file (aspect ratio, transparency, background — Step 2 item 5) and pick a size class + chip treatment per **Gate E — Header logos** below; don't just drop them in at the default size.
 - **QR code**: "Want a QR code? If so, pointing at which link — paper / arXiv / code repo / project page — or none?" Generate it **offline** as a local image (see Customizing in README / `qrencode`); never leave a remote QR-service URL in the poster — it hangs `measure`'s networkidle wait and link-rots in print/archive.
 
 Persist the user's answers as you go — re-reading them later prevents "improvement" loops that revert deliberate decisions.
@@ -220,7 +232,7 @@ For each paper figure you'll use:
 
 ### Step 3 — Scaffold from the gallery
 
-1. `cp templates/<chosen>_axxx.html <work-dir>/poster.html` (always the **`_axxx`** variant — it ships the AXXX theme). Then `python axxx/fetch_assets.py --dest <work-dir>/images` and `python axxx/apply_theme.py <work-dir>/poster.html` (idempotent; safe even on an `_axxx` template).
+1. `cp templates/<chosen>_axxx.html <work-dir>/poster.html` (always the **`_axxx`** variant — it ships the AXXX theme). Then fetch this paper's own affiliation logos + the bullet — `python axxx/fetch_assets.py --dest <work-dir>/images --logos <only-this-paper's-institutions>` — and `python axxx/apply_theme.py <work-dir>/poster.html` (idempotent; safe even on an `_axxx` template).
 2. **Do not edit the `:root` palette** — it is the fixed AXXX brand (`axxx/theme_tokens.css`). Edit only content, not brand tokens.
 3. Replace `<title>`, header (title/subtitle/authors/affiliation), banner (if any), column cards, takeaways strip (if any), footer.
 4. Match the template's `data-measure-role` scheme — DO NOT remove these attributes. The measurement script depends on them.

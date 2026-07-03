@@ -1,6 +1,7 @@
 {
-  "_comment": "AXXX affiliation-logo registry. Each entry's `file` is an asset in the assets-vN release (see config.json). fetch_assets.py downloads the selected logos from the pinned release tag and commits them into the poster repo's images/. size_class/chip are posterly Gate-E starting defaults (verify on the rendered header crop). bullet_arrow is the brand bullet graphic, not a header logo.",
-  "default_affiliations": ["fusionbrain", "airi", "hse", "innopolis"],
+  "_comment": "AXXX affiliation-logo registry. Each entry's `file` is an asset in the assets-vN release (see config.json). fetch_assets.py downloads the SELECTED logos (pass --logos with only the institutions that authored THIS paper) and commits them into the poster repo's images/. There is NO default set: a poster must show only the logos of its own affiliations, never the whole consortium. size_class/chip are posterly Gate-E starting defaults (verify on the rendered header crop). bullet_arrow is the brand bullet graphic, not a header logo.",
+  "axxx_consortium": ["fusionbrain", "airi", "hse", "innopolis"],
+  "_consortium_note": "These four are the AXXX-family institutions. Pick ONLY the subset that actually authored a given paper — do not place all four on every poster. A non-AXXX paper uses its own logos, not these.",
   "brand_assets": ["bullet_arrow"],
   "logos": {
     "airi": {
