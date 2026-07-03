@@ -37,3 +37,12 @@ intended to hold **multiple, possibly differently-licensed** skills over time.
 - **User confirmation flagged:** if AXXX-Institute requires a different licensing
   posture, that must be reconciled with AGPL before publishing (AGPL cannot be
   unilaterally relicensed away from posterly's terms).
+
+## Update (2026-07-03)
+
+The `AXXX-Institute/skills` repo was created on GitHub with a root **MIT**
+`LICENSE`. That is adopted as the repo-scaffolding license (the "permissive
+top-level license" anticipated above): MIT covers the plugin manifest, README,
+gallery, and repo tooling, while `paper-to-poster` remains **AGPL-3.0** inside its
+own directory. The two coexist because AGPL is confined to `skills/paper-to-poster/`
+and is not relicensed by the MIT root.

@@ -35,11 +35,18 @@ See [`skills-lock.example.json`](skills-lock.example.json).
 
 ## Licensing
 
-This repo uses **per-skill license isolation**: each skill carries its own
-license under `skills/<name>/`, so skills with different licenses can coexist.
-`paper-to-poster` is a derivative of posterly and is therefore **AGPL-3.0**
-(`skills/paper-to-poster/LICENSE`, attribution in
-`skills/paper-to-poster/NOTICE.md`). See [`docs/adr/0003`](docs/adr/0003-agpl-license-isolation.md).
+This repo uses **per-skill license isolation**:
+
+- **Repo scaffolding & docs (root):** **MIT** (`LICENSE`) — the plugin manifest,
+  README, gallery, and repo tooling.
+- **`paper-to-poster` skill:** **AGPL-3.0** (`skills/paper-to-poster/LICENSE`,
+  attribution in `skills/paper-to-poster/NOTICE.md`) because it derives from
+  [posterly](https://github.com/Chenruishuo/posterly). AGPL applies to that skill
+  directory; it is **not** relicensed by the MIT root.
+- **Future skills** carry their own `LICENSE` under `skills/<name>/`.
+
+The permissive MIT root and the copyleft AGPL skill coexist precisely because the
+AGPL is confined to its own directory. See [`docs/adr/0003`](docs/adr/0003-agpl-license-isolation.md).
 
 ## Asset releases
 

@@ -1,17 +1,21 @@
-AXXX-Institute/skills — licensing
-=================================
+MIT License
 
-This repository is a COLLECTION of independent Claude Code skills under
-per-skill license isolation. There is no single repo-wide code license; each
-skill is licensed by the LICENSE file inside its own directory.
+Copyright (c) 2026 AXXX-Institute
 
-  skills/paper-to-poster/   AGPL-3.0-only  (c) 2026 Ruishuo Chen and contributors
-                            derivative of posterly; see that skill's LICENSE and
-                            NOTICE.md for full terms and third-party (MIT/ARIS)
-                            attributions.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Repository-level documentation, glossary (CONTEXT.md), and ADRs (docs/) are
-provided as-is for reference. Adding a new skill? Place its own LICENSE under
-skills/<name>/ — do not assume it inherits another skill's terms.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-See docs/adr/0003-agpl-license-isolation.md for the rationale.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
