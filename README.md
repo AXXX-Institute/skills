@@ -11,27 +11,90 @@ more AXXX skills can be added the same way.
 |---|---|---|
 | [`paper-to-poster`](skills/paper-to-poster/) | Turn a paper into an **AXXX-branded** print-ready conference poster (single HTML/CSS → PDF), with affiliation logos pulled from this repo's asset releases. Ported from [posterly](https://github.com/Chenruishuo/posterly). | AGPL-3.0 (see below) |
 
-## Using a skill
+## Installation
 
-This repo is a Claude Code plugin (`.claude-plugin/plugin.json`). Two ways to consume it:
+This repo is both a Claude Code **plugin** (`.claude-plugin/plugin.json`) and a
+**marketplace** (`.claude-plugin/marketplace.json`). Pick one method. After any
+method, install the **runtime dependencies** (last subsection) — the poster tools
+need them.
 
-1. **As a plugin** — install the plugin so every `skills/<name>/SKILL.md` is available.
-2. **Via a lockfile** — pin a single skill in another repo's `skills-lock.json`:
+### Method A — Claude Code plugin marketplace (recommended)
 
-   ```json
-   {
-     "version": 1,
-     "skills": {
-       "paper-to-poster": {
-         "source": "AXXX-Institute/skills",
-         "sourceType": "github",
-         "skillPath": "skills/paper-to-poster/SKILL.md"
-       }
-     }
-   }
-   ```
+In a Claude Code session, add this repo as a marketplace and install the plugin:
+
+```
+/plugin marketplace add AXXX-Institute/skills
+/plugin install axxx-skills@axxx-institute
+```
+
+- `axxx-skills` is the plugin; `axxx-institute` is the marketplace name (from
+  `marketplace.json`).
+- Installing the plugin exposes **every** skill under `skills/` (currently
+  `paper-to-poster`).
+- Update later with `/plugin marketplace update axxx-institute`; remove with
+  `/plugin uninstall axxx-skills@axxx-institute`.
+- List/enable from the picker with `/plugin`.
+
+### Method B — Manual copy (works in any setup, no marketplace)
+
+A skill is just a directory containing `SKILL.md`. Clone the repo and drop the
+skill into a Claude Code skills directory:
+
+```bash
+git clone https://github.com/AXXX-Institute/skills.git axxx-skills
+
+# Project-local (available in one project): from your project root
+mkdir -p .claude/skills
+cp -r axxx-skills/skills/paper-to-poster .claude/skills/paper-to-poster
+#   …or symlink to track updates:
+# ln -s "$(pwd)/../axxx-skills/skills/paper-to-poster" .claude/skills/paper-to-poster
+
+# Global (available in every project)
+mkdir -p ~/.claude/skills
+cp -r axxx-skills/skills/paper-to-poster ~/.claude/skills/paper-to-poster
+```
+
+Claude Code discovers skills in `.claude/skills/` (project) and `~/.claude/skills/`
+(global) automatically — no restart needed for a new session.
+
+### Method C — Lockfile (for repos using a skills-sync tool)
+
+Pin a single skill in another repo's `skills-lock.json`:
+
+```json
+{
+  "version": 1,
+  "skills": {
+    "paper-to-poster": {
+      "source": "AXXX-Institute/skills",
+      "sourceType": "github",
+      "skillPath": "skills/paper-to-poster/SKILL.md"
+    }
+  }
+}
+```
 
 See [`skills-lock.example.json`](skills-lock.example.json).
+
+### Runtime dependencies (required for all methods)
+
+`paper-to-poster` renders posters with headless Chromium and processes images, so
+its tools need Playwright + Chromium (and Pillow for figure/logo handling):
+
+```bash
+pip install playwright pillow
+playwright install chromium
+```
+
+Without these, `tools/poster_check.py measure` and `tools/render_preview.py` fail.
+
+### Using it
+
+Once installed, just ask Claude in a session — e.g. *"make an AXXX poster for this
+paper"* or *"turn paper.tex into an ICML poster"*. The skill activates from its
+description and walks the workflow in `skills/paper-to-poster/SKILL.md`. The poster
+is written to `./poster/` in your current repo, and Claude offers a GitHub/GitLab
+Pages deploy workflow.
 
 ## Licensing
 

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "axxx-institute",
+  "description": "AXXX-Institute Claude Code skills marketplace. Ships the axxx-skills plugin (paper-to-poster and future AXXX skills).",
+  "owner": {
+    "name": "AXXX-Institute",
+    "url": "https://github.com/AXXX-Institute"
+  },
+  "plugins": [
+    {
+      "name": "axxx-skills",
+      "description": "AXXX-Institute skills bundle. First skill: paper-to-poster — build an AXXX-branded, print-ready academic conference poster from a paper.",
+      "version": "0.1.0",
+      "author": {
+        "name": "AXXX-Institute"
+      },
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://github.com/AXXX-Institute/skills",
+      "tags": ["poster", "academic", "latex", "html", "paper-to-poster"]
+    }
+  ],
+  "version": "0.1.0"
+}
