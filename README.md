@@ -23,10 +23,12 @@ This repo is a Claude Code **marketplace** (`.claude-plugin/marketplace.json`)
 that hosts two plugins. Install whichever you want, independently. If you install
 `paper-to-poster`, also install its **runtime dependencies** (last subsection).
 
-### Method A — Claude Code plugin marketplace (recommended)
+### Method A — Plugin marketplace (recommended)
 
-In a Claude Code session, add this repo as a marketplace, then install either or
-both plugins:
+Same marketplace, same two plugins, from **Claude Code** or **OpenAI Codex**.
+Add this repo as a marketplace once, then install either or both plugins.
+
+**Claude Code** — in a session:
 
 ```
 /plugin marketplace add AXXX-Institute/skills
@@ -34,17 +36,30 @@ both plugins:
 /plugin install mlspace-jobs@axxx-institute       # the MLSpace job skills
 ```
 
-- `axxx-institute` is the marketplace name (from `marketplace.json`);
-  `paper-to-poster` and `mlspace-jobs` are the two plugins.
+**OpenAI Codex** — from your shell:
+
+```bash
+codex plugin marketplace add AXXX-Institute/skills
+codex plugin add paper-to-poster@axxx-institute   # the poster builder
+codex plugin add mlspace-jobs@axxx-institute       # the MLSpace job skills
+```
+
+- `axxx-institute` is the marketplace name (from `marketplace.json` /
+  `.agents/plugins/marketplace.json`); `paper-to-poster` and `mlspace-jobs` are the
+  two plugins. `AXXX-Institute/skills` is the GitHub `owner/repo` shorthand both
+  tools accept.
 - **Install only what you need** — the two plugins are independent. Installing
   `mlspace-jobs` does **not** pull in `paper-to-poster` (or its Playwright/Chromium
   runtime deps), and installing `paper-to-poster` does not pull in the MLSpace
-  skills. Run just the one `/plugin install …` line you want.
+  skills. Run just the one install line you want.
 - Installing a plugin exposes **all** skills it bundles — `mlspace-jobs` brings
   all three `mlspace-jobs*` skills; `paper-to-poster` brings the one poster skill.
-- Update later with `/plugin marketplace update axxx-institute`; remove a plugin
-  with `/plugin uninstall <plugin>@axxx-institute`.
-- List/enable from the picker with `/plugin`.
+- **Update:** Claude `/plugin marketplace update axxx-institute` · Codex
+  `codex plugin marketplace upgrade axxx-institute`.
+- **Remove:** Claude `/plugin uninstall <plugin>@axxx-institute` · Codex
+  `codex plugin remove <plugin>@axxx-institute`.
+- **List / enable:** Claude `/plugin` · Codex `/plugins` (in-session) or
+  `codex plugin list`.
 
 ### Ask an agent to install it (natural language)
 
