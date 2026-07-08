@@ -1,19 +1,23 @@
 # Glossary (CONTEXT.md)
 
-Canonical domain terms for the **axxx-skills** repo — a multi-skill Claude Code
-plugin whose first skill is `paper-to-poster`. Glossary only — no implementation
-detail. See `docs/adr/` for decisions and the skill sources for code.
+Canonical domain terms for the **axxx-skills** repo — a Claude Code **marketplace**
+hosting two independently-installable plugins (`paper-to-poster`, `mlspace-jobs`).
+Glossary only — no implementation detail. See `docs/adr/` for decisions and the
+skill sources for code.
 
 ## skills repo (AXXX-Institute/skills)
-The public, org-owned Claude Code **plugin repository** that hosts one or more
-skills under `skills/<name>/`. GitHub identity: **`AXXX-Institute/skills`**
+The public, org-owned Claude Code **marketplace repository**. Its root
+`.claude-plugin/marketplace.json` lists **plugins**, each under `plugins/<name>/`
+with its own `.claude-plugin/plugin.json` and skills at
+`plugins/<name>/skills/<skill>/`. GitHub identity: **`AXXX-Institute/skills`**
 (Pages at `axxx-institute.github.io/skills`, release assets at
 `github.com/AXXX-Institute/skills/releases/...`); checked out locally as
-`axxx-skills`. `paper-to-poster` is its first, example skill; the repo is built
-so further skills can be added later.
+`axxx-skills`. Ships `paper-to-poster` and `mlspace-jobs`; built so further
+plugins can be added later.
 _Avoid:_ "the poster repo" (that names the user's paper repo, not this one);
 "axxx-skills" as the GitHub name (it's the local dir; the remote is
-`AXXX-Institute/skills`).
+`AXXX-Institute/skills`); "the plugin" (singular — the repo is a marketplace of
+several plugins).
 
 ## paper-to-poster
 The skill ported from upstream **posterly** that turns a paper into a print-ready

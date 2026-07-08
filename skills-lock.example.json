@@ -5,7 +5,7 @@
     "paper-to-poster": {
       "source": "AXXX-Institute/skills",
       "sourceType": "github",
-      "skillPath": "skills/paper-to-poster/SKILL.md"
+      "skillPath": "plugins/paper-to-poster/skills/paper-to-poster/SKILL.md"
     }
   }
 }

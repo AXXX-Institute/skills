@@ -1,5 +1,5 @@
 # Deploy the AXXX paper-to-poster examples gallery to GitHub Pages.
-# Site root = skills/paper-to-poster/examples/ (index.html + the 4 re-rendered
+# Site root = plugins/paper-to-poster/skills/paper-to-poster/examples/ (index.html + the 4 re-rendered
 # AXXX posters with their images/, thumbs, and PDFs). Everything is committed and
 # local, so no rendering happens at deploy time.
 # Result: https://axxx-institute.github.io/skills
@@ -9,7 +9,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "skills/paper-to-poster/examples/**"
+      - "plugins/paper-to-poster/skills/paper-to-poster/examples/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -33,7 +33,7 @@ jobs:
       - name: Stage gallery as site root
         run: |
           mkdir -p _site
-          cp -r skills/paper-to-poster/examples/* _site/
+          cp -r plugins/paper-to-poster/skills/paper-to-poster/examples/* _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

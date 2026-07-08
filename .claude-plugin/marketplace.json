@@ -1,23 +1,35 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "axxx-institute",
-  "description": "AXXX-Institute Claude Code skills marketplace. Ships the axxx-skills plugin (paper-to-poster, MLSpace job skills, and future AXXX skills).",
+  "description": "AXXX-Institute Claude Code skills marketplace. Ships two independently-installable plugins: paper-to-poster (AXXX-branded academic poster builder) and mlspace-jobs (MLSpace GPU job skills).",
   "owner": {
     "name": "AXXX-Institute",
     "url": "https://github.com/AXXX-Institute"
   },
   "plugins": [
     {
-      "name": "axxx-skills",
-      "description": "AXXX-Institute skills bundle. paper-to-poster — build an AXXX-branded, print-ready academic conference poster from a paper; plus mlspace-jobs skills for scaffolding, first-time setup, and day-to-day operation of MLSpace GPU jobs.",
+      "name": "paper-to-poster",
+      "source": "./plugins/paper-to-poster",
+      "description": "Turn a paper into an AXXX-branded, print-ready academic conference poster (single HTML/CSS → PDF), with affiliation logos fetched from this repo's asset releases. AGPL-3.0.",
       "version": "0.1.0",
       "author": {
         "name": "AXXX-Institute"
       },
-      "source": "./",
       "category": "productivity",
       "homepage": "https://github.com/AXXX-Institute/skills",
-      "tags": ["poster", "academic", "latex", "html", "paper-to-poster", "mlspace", "gpu", "training", "jobs"]
+      "tags": ["poster", "academic", "latex", "html", "paper-to-poster"]
+    },
+    {
+      "name": "mlspace-jobs",
+      "source": "./plugins/mlspace-jobs",
+      "description": "MLSpace GPU job skills for the mls CLI: scaffold experiments-as-code training/eval launchers, first-time setup, and day-to-day operation. Bundles mlspace-jobs-scaffold, mlspace-jobs-quick-start, and mlspace-jobs. MIT.",
+      "version": "0.1.0",
+      "author": {
+        "name": "AXXX-Institute"
+      },
+      "category": "productivity",
+      "homepage": "https://github.com/AXXX-Institute/skills",
+      "tags": ["mlspace", "gpu", "training", "jobs", "mls"]
     }
   ],
   "version": "0.1.0"
