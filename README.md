@@ -73,49 +73,6 @@ marketplace and install just that one:
 Under the hood the agent runs `/plugin marketplace add AXXX-Institute/skills`
 followed by `/plugin install <plugin>@axxx-institute` — nothing else is installed.
 
-### Method B — Manual copy (works in any setup, no marketplace)
-
-A skill is just a directory containing `SKILL.md`. Clone the repo and drop the
-skill dirs you want into a Claude Code skills directory:
-
-```bash
-git clone https://github.com/AXXX-Institute/skills.git axxx-skills
-
-# Project-local (available in one project): from your project root
-mkdir -p .claude/skills
-
-# the poster builder:
-cp -r axxx-skills/plugins/paper-to-poster/skills/paper-to-poster .claude/skills/paper-to-poster
-# the MLSpace job skills (all three):
-cp -r axxx-skills/plugins/mlspace-jobs/skills/* .claude/skills/
-
-# Global (available in every project): copy into ~/.claude/skills/ instead
-mkdir -p ~/.claude/skills
-cp -r axxx-skills/plugins/paper-to-poster/skills/paper-to-poster ~/.claude/skills/paper-to-poster
-```
-
-Claude Code discovers skills in `.claude/skills/` (project) and `~/.claude/skills/`
-(global) automatically — no restart needed for a new session.
-
-### Method C — Lockfile (for repos using a skills-sync tool)
-
-Pin a single skill in another repo's `skills-lock.json`:
-
-```json
-{
-  "version": 1,
-  "skills": {
-    "paper-to-poster": {
-      "source": "AXXX-Institute/skills",
-      "sourceType": "github",
-      "skillPath": "plugins/paper-to-poster/skills/paper-to-poster/SKILL.md"
-    }
-  }
-}
-```
-
-See [`skills-lock.example.json`](skills-lock.example.json).
-
 ### Runtime dependencies (only for `paper-to-poster`)
 
 `paper-to-poster` renders posters with headless Chromium and processes images, so
@@ -129,33 +86,6 @@ playwright install chromium
 Without these, the skill's `tools/poster_check.py measure` and
 `tools/render_preview.py` fail. The `mlspace-jobs` plugin has no such runtime
 dependency (it drives the `mls` CLI, which the quick-start skill installs).
-
-### Using it
-
-Once installed, just ask Claude in a session — e.g. *"make an AXXX poster for this
-paper"* (activates `paper-to-poster`, workflow in
-`plugins/paper-to-poster/skills/paper-to-poster/SKILL.md`), or *"set up MLSpace
-training jobs in this repo"* / *"help me set up MLSpace for the first time"*
-(activates the matching `mlspace-jobs` skill). Each skill activates from its
-description.
-
-## Also usable from OpenAI Codex
-
-These plugins follow the cross-tool [Agent Skills](https://agentskills.io)
-standard, so the **same skills work in OpenAI Codex** with no duplicated content:
-
-- Each plugin ships a `.codex-plugin/plugin.json` next to its
-  `.claude-plugin/plugin.json` (both point at the same `skills/`), and both plugins
-  are listed in a Codex marketplace at
-  [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json).
-- Opening this repo in Codex auto-discovers the skills via
-  [`.agents/skills/`](.agents/skills) — symlinks to the canonical skill directories,
-  so there is exactly one copy of each `SKILL.md`.
-- `mlspace-jobs-quick-start` stays explicit-only in Codex via an
-  `agents/openai.yaml` (`allow_implicit_invocation: false`), mirroring its Claude
-  Code `disable-model-invocation: true`.
-- CI (`.github/scripts/validate.py`) asserts the Codex and Claude Code
-  **plugin/skill lists stay identical**.
 
 ## Licensing
 

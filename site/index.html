@@ -17,6 +17,10 @@
   .bar{height:6px;background:var(--accent)}
   code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--accent-light);border-radius:4px;padding:1px 5px;color:var(--accent-deep)}
   a{color:var(--accent)}
+  pre{position:relative}
+  .copy-btn{position:absolute;top:6px;right:6px;border:1px solid var(--border);background:rgba(255,255,255,.92);color:var(--accent-deep);font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.4px;padding:3px 8px;border-radius:6px;cursor:pointer;opacity:.5;transition:opacity .12s}
+  pre:hover .copy-btn,.copy-btn:focus{opacity:1}
+  .copy-btn.ok{color:#178a4e;border-color:#8fce8f}
   header{max-width:1040px;margin:0 auto;padding:56px 24px 8px}
   h1{font-size:38px;font-weight:900;color:var(--accent-deep);letter-spacing:-.6px}
   h1 .ac{color:var(--accent)}
@@ -78,5 +82,21 @@ codex plugin add mlspace-jobs@axxx-institute</code></pre></div>
 <footer>
   <a href="https://github.com/AXXX-Institute/skills">Source: AXXX-Institute/skills</a>
 </footer>
+<script>
+(function(){
+  function copyText(t){
+    if(navigator.clipboard&&navigator.clipboard.writeText){return navigator.clipboard.writeText(t);}
+    return new Promise(function(res,rej){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');res();}catch(e){rej(e);}document.body.removeChild(ta);});
+  }
+  document.querySelectorAll('pre').forEach(function(pre){
+    var btn=document.createElement('button');btn.type='button';btn.className='copy-btn';btn.textContent='Copy';
+    btn.addEventListener('click',function(){
+      var code=pre.querySelector('code');var text=(code?code.textContent:pre.textContent).replace(/\s+$/,'');
+      copyText(text).then(function(){btn.textContent='Copied';btn.classList.add('ok');setTimeout(function(){btn.textContent='Copy';btn.classList.remove('ok');},1400);}).catch(function(){});
+    });
+    pre.appendChild(btn);
+  });
+})();
+</script>
 </body>
 </html>
