@@ -68,6 +68,16 @@ re-rendered in AXXX style, listed by an `index.html`. Distinct from a single
 poster repo's own Pages deploy.
 _Avoid:_ "the demo" (the gallery is the published showcase, not a smoke test).
 
+## Codex mirror
+The parallel exposure of this marketplace's plugins/skills to **OpenAI Codex** via
+the shared Agent Skills standard: each plugin carries a `.codex-plugin/plugin.json`
+beside its `.claude-plugin/plugin.json` (shared `skills/`), a Codex catalog lives at
+`.agents/plugins/marketplace.json`, and `.agents/skills/<skill>` symlinks point at
+the canonical skill dirs. Kept identical to the Claude Code side by a CI parity
+check; the explicit-only skill uses `agents/openai.yaml` in place of
+`disable-model-invocation`.
+_Avoid:_ "port to Codex" (nothing is copied — the same `SKILL.md` files are reused).
+
 ## MLSpace
 The GPU compute platform (Cloud.ru) the job skills target: users submit **jobs**
 to an **allocation**, picking an **instance type** for GPU/CPU/RAM. Driven from

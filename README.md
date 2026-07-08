@@ -1,5 +1,7 @@
 # AXXX-Institute / skills
 
+[![Docs — GitHub Pages](https://img.shields.io/badge/docs-axxx--institute.github.io%2Fskills-0689D4?logo=github&logoColor=white)](https://axxx-institute.github.io/skills/)
+
 AXXX-Institute's [Claude Code](https://claude.com/claude-code) **marketplace** of
 plugins. Each plugin lives under `plugins/<name>/` and ships one or more skills
 under `plugins/<name>/skills/<skill>/`. The two plugins are **installable
@@ -122,6 +124,24 @@ training jobs in this repo"* / *"help me set up MLSpace for the first time"*
 (activates the matching `mlspace-jobs` skill). Each skill activates from its
 description.
 
+## Also usable from OpenAI Codex
+
+These plugins follow the cross-tool [Agent Skills](https://agentskills.io)
+standard, so the **same skills work in OpenAI Codex** with no duplicated content:
+
+- Each plugin ships a `.codex-plugin/plugin.json` next to its
+  `.claude-plugin/plugin.json` (both point at the same `skills/`), and both plugins
+  are listed in a Codex marketplace at
+  [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json).
+- Opening this repo in Codex auto-discovers the skills via
+  [`.agents/skills/`](.agents/skills) — symlinks to the canonical skill directories,
+  so there is exactly one copy of each `SKILL.md`.
+- `mlspace-jobs-quick-start` stays explicit-only in Codex via an
+  `agents/openai.yaml` (`allow_implicit_invocation: false`), mirroring its Claude
+  Code `disable-model-invocation: true`.
+- CI (`.github/scripts/validate.py`) asserts the Codex and Claude Code
+  **plugin/skill lists stay identical**.
+
 ## Licensing
 
 The repo uses **per-plugin license isolation** — each plugin is its own
@@ -154,12 +174,17 @@ offline and on Pages with no remote images. See
 [`docs/RELEASE-assets.md`](docs/RELEASE-assets.md) and
 [`docs/adr/0002`](docs/adr/0002-logo-delivery-releases-fetch-commit.md).
 
-## Examples gallery
+## Documentation site (GitHub Pages)
 
-The four posterly examples, re-rendered in AXXX style, are published to GitHub
-Pages: **https://axxx-institute.github.io/skills** — built from
-[`plugins/paper-to-poster/skills/paper-to-poster/examples/`](plugins/paper-to-poster/skills/paper-to-poster/examples/)
-by `.github/workflows/pages.yml`.
+Published at **https://axxx-institute.github.io/skills/** by
+`.github/workflows/pages.yml` — a landing page
+([`site/index.html`](site/index.html)) with a dedicated page per plugin:
+
+- **`/mlspace-jobs.html`** ([`site/mlspace-jobs.html`](site/mlspace-jobs.html)) —
+  the *experiments-as-code* pitch, the five launcher pillars and why each matters,
+  the three skills, and the recommended workflow (quick-start → scaffold → reference).
+- **`/paper-to-poster/`** — the four posterly examples re-rendered in AXXX style
+  ([`…/examples/`](plugins/paper-to-poster/skills/paper-to-poster/examples/)).
 
 ## Repo docs
 

@@ -207,18 +207,74 @@ def main() -> int:
             if not (md.parent / t).exists():
                 err(f"{md.relative_to(ROOT)}: broken relative link -> {t}")
 
-    # 7. Sync guard: every skill is listed in README and the Pages index.
-    pages = ROOT / "plugins/paper-to-poster/skills/paper-to-poster/examples/index.html"
+    # 7. Sync guard: every skill is listed in README and described on the Pages site.
+    page_files = [
+        ROOT / "site" / "index.html",
+        ROOT / "site" / "mlspace-jobs.html",
+        ROOT / "plugins/paper-to-poster/skills/paper-to-poster/examples/index.html",
+    ]
+    pages_txt = "\n".join(p.read_text(encoding="utf-8") for p in page_files if p.is_file())
     readme_txt = (ROOT / "README.md").read_text(encoding="utf-8") if (ROOT / "README.md").is_file() else ""
-    pages_txt = pages.read_text(encoding="utf-8") if pages.is_file() else ""
     for n in all_skill_names:
         if n not in readme_txt:
             err(f"skill '{n}' is not listed in README.md (Plugins & skills table)")
         if n not in pages_txt:
-            err(f"skill '{n}' is not described on GitHub Pages "
-                "(examples/index.html Plugins & skills section)")
+            err(f"skill '{n}' is not described on the GitHub Pages site "
+                "(site/*.html or the paper-to-poster gallery)")
+
+    # 8. Codex/Claude parity: same plugin set (dual manifests) and same skill set.
+    check_codex_parity(all_skill_names)
 
     return report()
+
+
+def check_codex_parity(claude_skill_names: list[str]) -> None:
+    """Every Claude plugin has a matching Codex plugin manifest, and the Codex
+    `.agents/skills/` view exposes exactly the same skills (resolving to the same
+    files). Skips silently if no Codex mirror exists yet."""
+    agents_skills = ROOT / ".agents" / "skills"
+    codex_manifests = sorted(ROOT.glob("plugins/*/.codex-plugin/plugin.json"))
+    if not agents_skills.exists() and not codex_manifests:
+        return  # no Codex mirror in this repo — nothing to check
+    # Plugin-level parity: each plugins/<p> with a Claude manifest must have a Codex one, same name.
+    for claude_mf in sorted(ROOT.glob("plugins/*/.claude-plugin/plugin.json")):
+        pdir = claude_mf.parent.parent
+        codex_mf = pdir / ".codex-plugin" / "plugin.json"
+        if not codex_mf.is_file():
+            err(f"{pdir.relative_to(ROOT)}: has .claude-plugin/plugin.json but no "
+                ".codex-plugin/plugin.json (Codex/Claude plugin lists must match)")
+            continue
+        cj, xj = load_json(claude_mf), load_json(codex_mf)
+        if isinstance(cj, dict) and isinstance(xj, dict) and cj.get("name") != xj.get("name"):
+            err(f"{pdir.relative_to(ROOT)}: plugin name differs between "
+                f"Claude ('{cj.get('name')}') and Codex ('{xj.get('name')}')")
+    # Marketplace-level parity: the two catalogs list the same plugin names.
+    claude_mkt = load_json(ROOT / ".claude-plugin" / "marketplace.json") or {}
+    codex_mkt = load_json(ROOT / ".agents" / "plugins" / "marketplace.json")
+    if codex_mkt is None:
+        err(".agents/plugins/marketplace.json is missing (Codex marketplace mirror)")
+    else:
+        cnames = {p.get("name") for p in claude_mkt.get("plugins", [])}
+        xnames = {p.get("name") for p in codex_mkt.get("plugins", [])}
+        if cnames != xnames:
+            err(f"marketplace plugin lists differ — Claude {sorted(cnames)} "
+                f"vs Codex {sorted(xnames)}")
+
+    # Skill-set parity: .agents/skills/<name> resolves to the same SKILL.md set.
+    codex_skill_names = []
+    if agents_skills.is_dir():
+        for sd in sorted(p for p in agents_skills.iterdir() if p.is_dir() or p.is_symlink()):
+            sm = sd / "SKILL.md"
+            if not sm.is_file():
+                err(f".agents/skills/{sd.name}: no SKILL.md (broken symlink?)")
+                continue
+            codex_skill_names.append(sd.name)
+    missing = sorted(set(claude_skill_names) - set(codex_skill_names))
+    extra = sorted(set(codex_skill_names) - set(claude_skill_names))
+    if missing:
+        err(f"Codex .agents/skills/ is missing skills present for Claude: {missing}")
+    if extra:
+        err(f"Codex .agents/skills/ has skills not in the Claude plugins: {extra}")
 
 
 def report() -> int:

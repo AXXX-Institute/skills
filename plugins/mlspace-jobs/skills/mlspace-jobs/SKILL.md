@@ -7,6 +7,21 @@ description: Common mls CLI commands for managing MLSpace Jobs.
 
 This skill is for users who already have `mls` installed and configured. It provides direct guidance on common job operations without walking through initial setup.
 
+## First: is `mls` set up?
+
+Before running any command below, make sure `mls` is actually installed and
+configured. A quick, read-only check (run it yourself):
+
+```bash
+which mls && mls configure region
+```
+
+- **`which mls` finds nothing** (not installed) **or `mls configure region` errors / prints no region** (not configured) → the user has **not** completed first-time setup. Do **not** improvise the setup here. Point them to the interactive first-time walkthrough and stop:
+
+  > It looks like `mls` isn't set up yet. Run **`/mlspace-jobs-quick-start`** — it walks you through creating a conda env, installing and configuring `mls`, and submitting your first job. Come back here for day-to-day commands once that's done.
+
+- **Both succeed** (a region prints, e.g. `SR004`) → `mls` is configured; proceed with the commands below.
+
 ## Common Commands
 
 ### Monitor Jobs

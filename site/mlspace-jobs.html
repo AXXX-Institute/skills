@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mlspace-jobs — experiments as code · AXXX skills</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#0689D4; --accent-deep:#053957; --accent-light:#E6F4FD;
+    --text:#111; --text-2:#687A86; --border:#CDD5DA; --bg:#F4F8FB;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Inter","Helvetica Neue",Arial,sans-serif;color:var(--text);background:var(--bg);line-height:1.55}
+  .bar{height:6px;background:var(--accent)}
+  a{color:var(--accent)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:var(--accent-light);border-radius:4px;padding:1px 5px;color:var(--accent-deep)}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+  nav{max-width:1000px;margin:0 auto;padding:20px 24px 0;font-size:13px}
+  nav a{text-decoration:none;color:var(--text-2)}
+  header{max-width:1000px;margin:0 auto;padding:26px 24px 6px}
+  h1{font-size:36px;font-weight:900;color:var(--accent-deep);letter-spacing:-.6px}
+  h1 .ac{color:var(--accent)}
+  .tagline{font-size:18px;color:var(--text-2);margin-top:10px;max-width:720px}
+  .inst{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--accent-deep);background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 13px;margin-top:16px}
+  h2{font-size:24px;font-weight:800;color:var(--accent-deep);letter-spacing:-.3px;margin:44px 0 6px}
+  .lead{color:var(--text-2);font-size:15.5px;margin:8px 0 4px;max-width:780px}
+  .lead strong{color:var(--text)}
+  .pitch{background:#fff;border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;padding:20px 22px;margin-top:16px}
+  .pitch p{color:var(--text-2);font-size:15px;margin-top:10px}
+  .pitch p:first-child{margin-top:0}
+  .pillars{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-top:20px}
+  .pillar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+  .pillar .n{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:13px;margin-right:8px}
+  .pillar h3{display:flex;align-items:center;font-size:16px;color:var(--accent-deep);font-weight:800}
+  .pillar .idea{color:var(--text);font-size:13.5px;margin-top:10px}
+  .pillar .why{color:var(--text-2);font-size:13px;margin-top:8px}
+  .pillar .why b{color:var(--accent-deep);font-weight:700}
+  table{width:100%;border-collapse:collapse;margin-top:16px;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  th,td{text-align:left;padding:12px 14px;font-size:13.5px;vertical-align:top;border-top:1px solid var(--border)}
+  th{background:var(--accent-light);color:var(--accent-deep);font-weight:700;border-top:none;font-size:12px;letter-spacing:.4px;text-transform:uppercase}
+  td .role{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--accent);background:var(--accent-light);border-radius:5px;padding:1px 6px;white-space:nowrap}
+  td strong{color:var(--accent-deep)}
+  .steps{counter-reset:step;margin-top:18px;display:grid;gap:14px}
+  .step{position:relative;background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px 16px 58px}
+  .step::before{counter-increment:step;content:counter(step);position:absolute;left:16px;top:16px;width:28px;height:28px;border-radius:50%;background:var(--accent-deep);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .step h4{font-size:15px;color:var(--accent-deep);font-weight:800}
+  .step p{color:var(--text-2);font-size:13.5px;margin-top:5px}
+  footer{max-width:1000px;margin:40px auto 60px;padding:0 24px;color:var(--text-2);font-size:13px}
+  footer a{text-decoration:none}
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<nav><a href="./">← AXXX skills</a> &nbsp;·&nbsp; <a href="paper-to-poster/">paper-to-poster</a></nav>
+<header>
+  <h1><span class="ac">mlspace-jobs</span> — experiments as code</h1>
+  <p class="tagline">Stop launching GPU runs from shell history and notebooks. Describe every experiment as <strong>data</strong>, and let a reproducible launcher submit them — idempotently, deduplicated, from a frozen snapshot of your code.</p>
+  <div class="inst">/plugin install mlspace-jobs@axxx-institute</div>
+</header>
+
+<main class="wrap">
+
+  <h2>Why "experiments as code"?</h2>
+  <div class="pitch">
+    <p>A sweep scattered across shell flags, notebooks, and ad-hoc <code>mls</code> invocations can't be reviewed, diffed, or reproduced. Two weeks later nobody can say which flags produced which checkpoint — and re-running the batch means reconstructing it from memory.</p>
+    <p>The <strong>mlspace-jobs-scaffold</strong> skill builds your launchers around one idea: <strong>every experiment is a row in <code>experiments.py</code></strong> — an <code>ExperimentConfig</code> dataclass instance, gathered by a <code>collect_experiments()</code> registry. The launcher imports that registry and iterates it. Adding or removing an experiment is a diff to one file, reviewed like any other code change.</p>
+    <p>That registry is also the single per-project home of the instance-type map, so training and evaluation agree on hardware. Everything else the launcher does — idempotency, dedup, code staging — <strong>operates over that registry</strong>. Get the registry right and the rest follows.</p>
+  </div>
+
+  <h2>The five pillars — and why each matters</h2>
+  <p class="lead">Every scaffolded launcher reproduces these. Each exists to kill a specific failure mode seen on real MLSpace runs.</p>
+  <div class="pillars">
+
+    <div class="pillar">
+      <h3><span class="n">1</span>Experiments as code</h3>
+      <div class="idea">Every run is an <code>ExperimentConfig</code> in <code>experiments.py</code>, collected by <code>collect_experiments()</code>; launchers iterate the registry and never hard-code a run.</div>
+      <div class="why"><b>Why it matters:</b> a sweep you can't diff is a sweep you can't reproduce. Encoding runs as data makes the whole batch inspectable and reviewable in one place — the foundation the other four build on.</div>
+    </div>
+
+    <div class="pillar">
+      <h3><span class="n">2</span>Idempotent launches</h3>
+      <div class="idea">Before submitting, check a terminal marker the entrypoint writes last; if it's there, skip — unless <code>--force</code>.</div>
+      <div class="why"><b>Why it matters:</b> re-running after a partial batch should submit only what's missing, never duplicate completed work or clobber good outputs. The check is a cheap <code>exists()</code>.</div>
+    </div>
+
+    <div class="pillar">
+      <h3><span class="n">3</span>In-progress dedup</h3>
+      <div class="idea">List Pending/Running jobs via <code>mls</code> and skip submitting when a normalized job description already matches.</div>
+      <div class="why"><b>Why it matters:</b> idempotency only catches <em>finished</em> work. A queued job has written no artifacts yet — without this, a second launch wastes your allocation on a duplicate.</div>
+    </div>
+
+    <div class="pillar">
+      <h3><span class="n">4</span>Out-of-workdir artifacts</h3>
+      <div class="idea">Write to absolute paths on shared NFS, with a separate root for sanity/CI runs.</div>
+      <div class="why"><b>Why it matters:</b> jobs run in ephemeral containers and the launch host may be a CI checkout that gets wiped. Writing under the repo loses outputs or bloats git; absolute NFS paths stay durable and reachable from every node.</div>
+    </div>
+
+    <div class="pillar">
+      <h3><span class="n">5</span>Code staging</h3>
+      <div class="idea">Stage the repo from <code>.git</code> into a per-commit directory and point the job there; refuse to submit a dirty tree.</div>
+      <div class="why"><b>Why it matters:</b> a job may start minutes after you submit it while you keep editing. If it read your live checkout, an unrelated edit could silently change what a running experiment executes — irreproducible and dangerous.</div>
+    </div>
+
+  </div>
+
+  <h2>The three skills</h2>
+  <table>
+    <thead><tr><th>Skill</th><th>Role</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>mlspace-jobs-scaffold</strong></td>
+        <td><span class="role">BUILD</span></td>
+        <td>Generates <code>run_train_jobs.py</code>, <code>run_eval.py</code>, and <code>experiments.py</code> implementing the five pillars, discovering your allocation's instance types along the way. Done when both launchers print correct payloads on a green <code>--dry</code> run — no GPU spent.</td>
+      </tr>
+      <tr>
+        <td><strong>mlspace-jobs-quick-start</strong></td>
+        <td><span class="role">SETUP</span></td>
+        <td>Interactive, one-step-at-a-time first-time setup: conda env → <code>mls</code> install → credentials → your first submitted job. <strong>Explicit-only</strong> — launch it with <code>/mlspace-jobs-quick-start</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>mlspace-jobs</strong></td>
+        <td><span class="role">OPERATE</span></td>
+        <td>The reference skill: day-to-day commands (status / logs / wait / kill), <code>accelerate</code> multi-GPU config, and troubleshooting recipes &amp; known bugs (segfaults, shared-memory errors).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Recommended workflow</h2>
+  <div class="steps">
+    <div class="step">
+      <h4>Start with the quick-start guide</h4>
+      <p>First time on MLSpace? Run <code>/mlspace-jobs-quick-start</code>. It walks you through creating a conda environment, installing and configuring the <code>mls</code> CLI, and submitting + monitoring a first job end-to-end.</p>
+    </div>
+    <div class="step">
+      <h4>Run the scaffold in your real project repo</h4>
+      <p>In your actual training repo, ask to run <strong>mlspace-jobs-scaffold</strong>. It reads your repo, discovers your allocation's instance types, and writes <code>experiments.py</code> plus the launchers — ending on a green <code>--dry</code> run. From then on, launching a sweep is editing one file and running one command.</p>
+    </div>
+    <div class="step">
+      <h4>Keep it running with the reference skill</h4>
+      <p><strong>mlspace-jobs</strong> is just a reference: reach for it for day-to-day operation and when something breaks — troubleshooting recipes and known bugs (CUDA/image segfaults, <code>/dev/shm</code> "no space left", <code>accelerate</code> multi-GPU config).</p>
+    </div>
+  </div>
+
+</main>
+<footer>
+  <a href="./">AXXX skills</a> · <a href="https://github.com/AXXX-Institute/skills/tree/main/plugins/mlspace-jobs">plugin source</a> · MIT
+</footer>
+</body>
+</html>
