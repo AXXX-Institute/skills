@@ -32,13 +32,23 @@
   h2{font-size:24px;font-weight:800;color:var(--accent-deep);letter-spacing:-.3px;margin:44px 0 6px}
   .lead{color:var(--text-2);font-size:15.5px;margin:8px 0 4px;max-width:780px}
   .lead strong{color:var(--text)}
-  .pillars{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-top:20px}
-  .pillar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px}
-  .pillar .n{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:13px;margin-right:8px}
-  .pillar h3{display:flex;align-items:center;font-size:16px;color:var(--accent-deep);font-weight:800}
-  .pillar .idea{color:var(--text);font-size:13.5px;margin-top:10px}
-  .pillar .why{color:var(--text-2);font-size:13px;margin-top:8px}
-  .pillar .why b{color:var(--accent-deep);font-weight:700}
+  .props{display:grid;gap:20px;margin-top:20px}
+  .prop{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+  .prop h3{display:flex;align-items:center;font-size:17px;color:var(--accent-deep);font-weight:800}
+  .prop .n{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:13px;margin-right:9px;flex:none}
+  .prop .sub{color:var(--text-2);font-size:13.5px;margin-top:9px}
+  .prop .sub strong{color:var(--text)}
+  .cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:14px}
+  .col{border-radius:10px;padding:13px 15px}
+  .col.wo{background:#FCEEEE;border:1px solid #E7C9C9}
+  .col.wi{background:var(--accent-light);border:1px solid #BFE3F7}
+  .tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.5px;padding:2px 8px;border-radius:5px;margin-bottom:8px}
+  .tag.bad{background:#D64545;color:#fff}
+  .tag.good{background:var(--accent);color:#fff}
+  .col p{font-size:13px;color:var(--text-2);margin:0}
+  .col p strong{color:var(--text)}
+  .col pre{margin:9px 0 0;background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 11px;overflow-x:auto}
+  .col pre code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--accent-deep);white-space:pre;display:block;line-height:1.6;background:none;padding:0}
   table{width:100%;border-collapse:collapse;margin-top:16px;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden}
   th,td{text-align:left;padding:12px 14px;font-size:13.5px;vertical-align:top;border-top:1px solid var(--border)}
   th{background:var(--accent-light);color:var(--accent-deep);font-weight:700;border-top:none;font-size:12px;letter-spacing:.4px;text-transform:uppercase}
@@ -79,7 +89,7 @@ codex plugin add mlspace-jobs@axxx-institute</code></pre></div>
         <td><strong>2 · Scaffold your repo</strong></td>
         <td><strong>mlspace-jobs-scaffold</strong></td>
         <td><span class="role">BUILD</span></td>
-        <td>In your real training repo, run <strong>mlspace-jobs-scaffold</strong>: generates <code>run_train_jobs.py</code>, <code>run_eval.py</code>, and <code>experiments.py</code> implementing the five pillars and discovering your instance types. Done on a green <code>--dry</code> run — no GPU spent. After that, launching a sweep is editing one file and running one command.</td>
+        <td>In your real training repo, run <strong>mlspace-jobs-scaffold</strong>: generates <code>run_train_jobs.py</code>, <code>run_eval.py</code>, and <code>experiments.py</code> implementing the properties below and discovering your instance types. Done on a green <code>--dry</code> run — no GPU spent. After that, launching a sweep is editing one file and running one command.</td>
       </tr>
       <tr>
         <td><strong>3 · Reference</strong></td>
@@ -90,38 +100,85 @@ codex plugin add mlspace-jobs@axxx-institute</code></pre></div>
     </tbody>
   </table>
 
-  <h2>The five pillars — and why each matters</h2>
-  <p class="lead">Every scaffolded launcher reproduces these. Each exists to kill a specific failure mode seen on real MLSpace runs.</p>
-  <div class="pillars">
+  <h2>What every launcher gives you — with vs. without</h2>
+  <p class="lead">Four properties the scaffold bakes in. For each: what your life looks like <strong>without</strong> it, and <strong>with</strong> it.</p>
+  <div class="props">
 
-    <div class="pillar">
+    <div class="prop">
       <h3><span class="n">1</span>Experiments as code</h3>
-      <div class="idea">Every run is an <code>ExperimentConfig</code> in <code>experiments.py</code>, collected by <code>collect_experiments()</code>; launchers iterate the registry and never hard-code a run.</div>
-      <div class="why"><b>Why it matters:</b> a sweep you can't diff is a sweep you can't reproduce. Encoding runs as data makes the whole batch inspectable and reviewable in one place — the foundation the other four build on.</div>
+      <p class="sub">Every run is an <code>ExperimentConfig</code> row in <code>experiments.py</code>, collected by <code>collect_experiments()</code> — so a whole sweep is one expression.</p>
+      <div class="cmp">
+        <div class="col wo">
+          <span class="tag bad">Without</span>
+          <p>One YAML per run, kept in sync by hand. A sweep means creating — and later editing — a pile of near-identical files.</p>
+          <pre><code>configs/sft-lr1e5-qwen.yaml
+configs/sft-lr2e5-qwen.yaml
+configs/sft-lr5e5-qwen.yaml
+configs/sft-lr1e5-llama.yaml
+configs/…      # and on, by hand</code></pre>
+        </div>
+        <div class="col wi">
+          <span class="tag good">With</span>
+          <p>The whole sweep is <strong>one line</strong> — diffable, reviewable, reproducible.</p>
+          <pre><code>EXPERIMENTS = [ExperimentConfig(name=f"sft-{m}-lr{lr}", model=m, lr=lr)
+               for m in ("qwen3-8b", "llama3-8b") for lr in (1e-5, 2e-5, 5e-5)]</code></pre>
+        </div>
+      </div>
     </div>
 
-    <div class="pillar">
+    <div class="prop">
       <h3><span class="n">2</span>Idempotent launches</h3>
-      <div class="idea">Before submitting, check a terminal marker the entrypoint writes last; if it's there, skip — unless <code>--force</code>.</div>
-      <div class="why"><b>Why it matters:</b> re-running after a partial batch should submit only what's missing, never duplicate completed work or clobber good outputs. The check is a cheap <code>exists()</code>.</div>
+      <p class="sub">One command launches the whole sweep and is safe to re-run any time: finished runs are skipped (a terminal marker), and jobs already <strong>Pending/Running are skipped too</strong> (in-progress dedup) so you never submit a duplicate.</p>
+      <div class="cmp">
+        <div class="col wo">
+          <span class="tag bad">Without</span>
+          <p>You track which runs finished and which are still queued, then hand-pick what to resubmit — or risk duplicate jobs that burn your GPU allocation.</p>
+        </div>
+        <div class="col wi">
+          <span class="tag good">With</span>
+          <p><strong>One command, re-run as often as you like</strong> — it submits only what's missing. No bookkeeping.</p>
+          <pre><code># re-run any time — only missing experiments go out
+python run_train_jobs.py
+# finished  -> skipped (marker)
+# queued/running -> skipped (dedup)</code></pre>
+        </div>
+      </div>
     </div>
 
-    <div class="pillar">
-      <h3><span class="n">3</span>In-progress dedup</h3>
-      <div class="idea">List Pending/Running jobs via <code>mls</code> and skip submitting when a normalized job description already matches.</div>
-      <div class="why"><b>Why it matters:</b> idempotency only catches <em>finished</em> work. A queued job has written no artifacts yet — without this, a second launch wastes your allocation on a duplicate.</div>
+    <div class="prop">
+      <h3><span class="n">3</span>Out-of-workdir artifacts</h3>
+      <p class="sub">Outputs land at absolute paths on shared NFS — <strong>outside</strong> any repo checkout or git worktree.</p>
+      <div class="cmp">
+        <div class="col wo">
+          <span class="tag bad">Without</span>
+          <p>Artifacts under the repo are fragile around <strong>git worktrees</strong>: a stray cleanup — say an agent running <code>git clean -fdx</code> or removing a worktree to "tidy up" — silently deletes your checkpoints.</p>
+          <pre><code>git worktree remove ../exp-2   # takes its artifacts with it
+git clean -fdx                 # wipes results under the repo</code></pre>
+        </div>
+        <div class="col wi">
+          <span class="tag good">With</span>
+          <p>Artifacts live outside every worktree, so cleanups can't touch them — and all worktrees, branches, and commits share one durable tree.</p>
+          <pre><code>/home/jovyan/&lt;proj&gt;-artifacts/training/…  # absolute, on NFS
+# survives git clean / worktree remove / branch switch</code></pre>
+        </div>
+      </div>
     </div>
 
-    <div class="pillar">
-      <h3><span class="n">4</span>Out-of-workdir artifacts</h3>
-      <div class="idea">Write to absolute paths on shared NFS, with a separate root for sanity/CI runs.</div>
-      <div class="why"><b>Why it matters:</b> jobs run in ephemeral containers and the launch host may be a CI checkout that gets wiped. Writing under the repo loses outputs or bloats git; absolute NFS paths stay durable and reachable from every node.</div>
-    </div>
-
-    <div class="pillar">
-      <h3><span class="n">5</span>Code staging</h3>
-      <div class="idea">Stage the repo from <code>.git</code> into a per-commit directory and point the job there; refuse to submit a dirty tree.</div>
-      <div class="why"><b>Why it matters:</b> a job may start minutes after you submit it while you keep editing. If it read your live checkout, an unrelated edit could silently change what a running experiment executes — irreproducible and dangerous.</div>
+    <div class="prop">
+      <h3><span class="n">4</span>Code staging</h3>
+      <p class="sub">At submit time the launcher snapshots your code from <code>.git</code> into a per-commit directory and points the job at it.</p>
+      <div class="cmp">
+        <div class="col wo">
+          <span class="tag bad">Without</span>
+          <p>A queued job can start <strong>hours or days later</strong>. If it reads your live checkout, whatever you edited — or the branch you switched to — meanwhile is what actually runs, not the code you submitted.</p>
+        </div>
+        <div class="col wi">
+          <span class="tag good">With</span>
+          <p>The job runs a <strong>frozen snapshot of the exact commit</strong> you submitted — whenever it starts, however the working tree changes.</p>
+          <pre><code># submit now; runs THIS commit even if it starts days later
+&lt;STAGING_ROOT&gt;/&lt;commit_hash&gt;/   # frozen snapshot the job cd's into</code></pre>
+        </div>
+      </div>
     </div>
 
   </div>
