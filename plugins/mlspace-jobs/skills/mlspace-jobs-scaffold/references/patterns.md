@@ -1,26 +1,27 @@
-# The four pillars of a robust MLSpace launcher
+# The five pillars of a robust MLSpace launcher
 
 These are the load-bearing patterns every scaffolded launcher reproduces. Each
 exists to solve a specific failure mode observed on MLSpace. When you adapt a
 template, preserve the *intent* of each pillar even if the mechanics change for
-a given repo.
+a given repo. Pillar 1 (experiments as code) is the foundation the other four
+build on.
 
-## 1. Out-of-workdir artifacts (absolute paths)
+## 1. Experiments as code (the registry is the source of truth)
 
-**Why:** MLSpace jobs run in an ephemeral container; the launch host's working
-directory may be a GitLab-runner checkout that gets wiped between pipelines.
-Writing outputs under the repo means losing them (or bloating git). Writing to
-an **absolute path on shared NFS** keeps artifacts durable and reachable from
-every node.
+**Why:** A sweep scattered across shell flags, notebooks, or ad-hoc CLI
+invocations can't be reviewed, diffed, or reproduced. Encoding every run as data
+makes the whole batch inspectable in one place and lets the launcher iterate it
+deterministically — the other four pillars all operate over this registry.
 
-- Every run writes to `<ARTIFACTS_ROOT>/<experiment_name>/…`.
-- Sanity/CI runs write to a **separate** root so they never collide with real runs.
-- `/home/jovyan/<slug>-artifacts` is typically a symlink to a shared NFS tree
-  (e.g. `/mnt/shared_<...>/<slug>-artifacts`) — prefer the `/home/jovyan/...` form
-  in code for readability, but know they are the same tree. See
-  `artifacts-layout.md` for the proposed layout.
-- Mark finished runs read-only (`0444`/`0555`) if your entrypoint supports it, so
-  a later job can't silently corrupt them.
+- Every experiment is one entry in `experiments.py`: an `ExperimentConfig`
+  dataclass instance, gathered by a `collect_experiments()` registry.
+- The launchers **import and iterate that registry** — they never hard-code a run
+  or read experiment definitions from anywhere else.
+- `experiments.py` is also the single per-project home of the
+  `INSTANCE_TYPES_BY_NUM_GPUS` map; both `run_train_jobs.py` and `run_eval.py`
+  import it, so there is one source of truth for instance selection.
+- Adding or removing an experiment is a diff to `experiments.py`, reviewable like
+  any code change. Keep it minimal — one working example beats a speculative sweep.
 
 ## 2. Idempotent launches (skip-if-done)
 
@@ -45,7 +46,24 @@ second launcher invocation would submit a duplicate and waste the allocation.
 - Encode the experiment's stable identity (its `name`) into the description so
   the match is exact and collision-free.
 
-## 4. Code staging (clone to a separate dir)
+## 4. Out-of-workdir artifacts (absolute paths)
+
+**Why:** MLSpace jobs run in an ephemeral container; the launch host's working
+directory may be a GitLab-runner checkout that gets wiped between pipelines.
+Writing outputs under the repo means losing them (or bloating git). Writing to
+an **absolute path on shared NFS** keeps artifacts durable and reachable from
+every node.
+
+- Every run writes to `<ARTIFACTS_ROOT>/<experiment_name>/…`.
+- Sanity/CI runs write to a **separate** root so they never collide with real runs.
+- `/home/jovyan/<slug>-artifacts` is typically a symlink to a shared NFS tree
+  (e.g. `/mnt/shared_<...>/<slug>-artifacts`) — prefer the `/home/jovyan/...` form
+  in code for readability, but know they are the same tree. See
+  `artifacts-layout.md` for the proposed layout.
+- Mark finished runs read-only (`0444`/`0555`) if your entrypoint supports it, so
+  a later job can't silently corrupt them.
+
+## 5. Code staging (clone to a separate dir)
 
 **Why:** An MLSpace job may start minutes after you submit it, and you'll keep
 editing your working tree meanwhile. If the job read code from your live
@@ -69,7 +87,7 @@ If the target repo pins deps with `uv`, a job shouldn't `uv sync` on every node
 (NFS `flock` is unreliable across MLSpace workers). Instead, sync **once** on the
 submitter host into `<VENV_ROOT>/<sha256(uv.lock)[:16]>` and have the job export
 that venv. Two commits with identical `uv.lock` reuse the same environment. Skip
-this pillar entirely for pip/conda repos — explore the repo first and confirm.
+this companion entirely for pip/conda repos — explore the repo first and confirm.
 
 ## Identity, safety and observability knobs
 

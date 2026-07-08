@@ -53,7 +53,7 @@ At scaffold time, decide the target **with** the user, don't assume:
 
 ```
 /home/jovyan/<project_slug>-artifacts/            # symlink (or plain dir)
-├── code/                          # staged code snapshots (pillar 4)
+├── code/                          # staged code snapshots (pillar 5)
 │   └── <commit_hash>/             #   one clean checkout per commit
 ├── venvs/                         # shared uv-lock venvs (optional pillar)
 │   └── <uv_lock_hash>/

@@ -30,23 +30,26 @@ A scaffold is complete when the target repo has:
 1. `experiments.py` — an `ExperimentConfig` dataclass + a `collect_experiments()`
    registry with **≥1 concrete example experiment**.
 2. `run_train_jobs.py` and `run_eval.py` — launchers that import `mls` helpers
-   and implement the four pillars (below).
+   and implement the five pillars (below).
 3. An artifacts-layout doc/section describing the out-of-workdir scheme.
 4. **Both** `python run_train_jobs.py --dry` and `python run_eval.py --dry`
    print correct MLSpace payloads **without launching any job**.
 
 No real GPU job is submitted. The green `--dry` run is the acceptance test.
 
-## The four pillars (never drop one)
+## The five pillars (never drop one)
 
 Every launcher must reproduce these. Full rationale in
 `references/patterns.md` — read it before adapting the templates.
 
-1. **Out-of-workdir artifacts** — absolute NFS paths, separate sanity root.
+1. **Experiments as code** — every experiment is an `ExperimentConfig` row in
+   `experiments.py` gathered by `collect_experiments()`; launchers iterate that
+   registry and never hard-code a run. The foundation the rest build on.
 2. **Idempotency** — skip if a terminal artifact marker exists (unless `--force`).
 3. **In-progress dedup** — skip if a job with the same normalized description is
    Pending/Running (via `mls`' `get_in_progress_jobs`).
-4. **Code staging** — refuse a dirty tree, then `cp -a .git` + `git reset --hard`
+4. **Out-of-workdir artifacts** — absolute NFS paths, separate sanity root.
+5. **Code staging** — refuse a dirty tree, then `cp -a .git` + `git reset --hard`
    into `<STAGING_ROOT>/<commit>` so live edits can't change a running job.
 
 ## Workflow
@@ -163,7 +166,7 @@ has produced checkpoints.
 
 ## Reference material
 
-- `references/patterns.md` — the four pillars, in depth, with the failure mode each prevents.
+- `references/patterns.md` — the five pillars, in depth, with the failure mode each prevents.
 - `references/artifacts-layout.md` — the proposed unified out-of-workdir layout + placeholders.
 - `references/mls-helpers.md` — the exact `mls` import surface, payload shape, and instance-type discovery.
 - `assets/*.tmpl` — the launcher + experiments templates to copy and fill.

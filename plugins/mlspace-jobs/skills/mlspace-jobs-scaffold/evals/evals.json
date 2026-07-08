@@ -1,6 +1,6 @@
 {
   "skill_name": "mlspace-jobs-scaffold",
-  "notes": "Baseline for each eval is a no-skill run of the same prompt. A scaffold is 'done' when both launchers dry-run green. Assertions check the four pillars are present in generated code and that artifacts are placed at absolute out-of-workdir paths.",
+  "notes": "Baseline for each eval is a no-skill run of the same prompt. A scaffold is 'done' when both launchers dry-run green. Assertions check the five pillars (experiments-as-code, idempotency, in-progress dedup, out-of-workdir artifacts, code staging) are present in generated code and that artifacts are placed at absolute out-of-workdir paths.",
   "evals": [
     {
       "id": 0,

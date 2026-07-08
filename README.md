@@ -34,11 +34,27 @@ both plugins:
 
 - `axxx-institute` is the marketplace name (from `marketplace.json`);
   `paper-to-poster` and `mlspace-jobs` are the two plugins.
+- **Install only what you need** — the two plugins are independent. Installing
+  `mlspace-jobs` does **not** pull in `paper-to-poster` (or its Playwright/Chromium
+  runtime deps), and installing `paper-to-poster` does not pull in the MLSpace
+  skills. Run just the one `/plugin install …` line you want.
 - Installing a plugin exposes **all** skills it bundles — `mlspace-jobs` brings
   all three `mlspace-jobs*` skills; `paper-to-poster` brings the one poster skill.
 - Update later with `/plugin marketplace update axxx-institute`; remove a plugin
   with `/plugin uninstall <plugin>@axxx-institute`.
 - List/enable from the picker with `/plugin`.
+
+### Ask an agent to install it (natural language)
+
+Hand Claude Code the repo URL and say which plugin you want — it will add the
+marketplace and install just that one:
+
+> **https://github.com/AXXX-Institute/skills** — install the **mlspace-jobs** skills
+
+> **https://github.com/AXXX-Institute/skills** — install the **paper-to-poster** skill
+
+Under the hood the agent runs `/plugin marketplace add AXXX-Institute/skills`
+followed by `/plugin install <plugin>@axxx-institute` — nothing else is installed.
 
 ### Method B — Manual copy (works in any setup, no marketplace)
 
