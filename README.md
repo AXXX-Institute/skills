@@ -44,23 +44,6 @@ codex plugin add paper-to-poster@axxx-institute   # the poster builder
 codex plugin add mlspace-jobs@axxx-institute       # the MLSpace job skills
 ```
 
-- `axxx-institute` is the marketplace name (from `marketplace.json` /
-  `.agents/plugins/marketplace.json`); `paper-to-poster` and `mlspace-jobs` are the
-  two plugins. `AXXX-Institute/skills` is the GitHub `owner/repo` shorthand both
-  tools accept.
-- **Install only what you need** — the two plugins are independent. Installing
-  `mlspace-jobs` does **not** pull in `paper-to-poster` (or its Playwright/Chromium
-  runtime deps), and installing `paper-to-poster` does not pull in the MLSpace
-  skills. Run just the one install line you want.
-- Installing a plugin exposes **all** skills it bundles — `mlspace-jobs` brings
-  all three `mlspace-jobs*` skills; `paper-to-poster` brings the one poster skill.
-- **Update:** Claude `/plugin marketplace update axxx-institute` · Codex
-  `codex plugin marketplace upgrade axxx-institute`.
-- **Remove:** Claude `/plugin uninstall <plugin>@axxx-institute` · Codex
-  `codex plugin remove <plugin>@axxx-institute`.
-- **List / enable:** Claude `/plugin` · Codex `/plugins` (in-session) or
-  `codex plugin list`.
-
 ### Ask an agent to install it (natural language)
 
 Hand Claude Code the repo URL and say which plugin you want — it will add the
@@ -72,6 +55,30 @@ marketplace and install just that one:
 
 Under the hood the agent runs `/plugin marketplace add AXXX-Institute/skills`
 followed by `/plugin install <plugin>@axxx-institute` — nothing else is installed.
+
+### Method B — Manual copy (works in any setup, no marketplace)
+
+A skill is just a directory containing `SKILL.md`. Clone the repo and drop the
+skill dirs you want into a Claude Code skills directory:
+
+```bash
+git clone https://github.com/AXXX-Institute/skills.git axxx-skills
+
+# Project-local (available in one project): from your project root
+mkdir -p .claude/skills
+
+# the poster builder:
+cp -r axxx-skills/plugins/paper-to-poster/skills/paper-to-poster .claude/skills/paper-to-poster
+# the MLSpace job skills (all three):
+cp -r axxx-skills/plugins/mlspace-jobs/skills/* .claude/skills/
+
+# Global (available in every project): copy into ~/.claude/skills/ instead
+mkdir -p ~/.claude/skills
+cp -r axxx-skills/plugins/paper-to-poster/skills/paper-to-poster ~/.claude/skills/paper-to-poster
+```
+
+Claude Code discovers skills in `.claude/skills/` (project) and `~/.claude/skills/`
+(global) automatically — no restart needed for a new session.
 
 ### Runtime dependencies (only for `paper-to-poster`)
 
@@ -126,8 +133,8 @@ Published at **https://axxx-institute.github.io/skills/** by
 ([`site/index.html`](site/index.html)) with a dedicated page per plugin:
 
 - **`/mlspace-jobs.html`** ([`site/mlspace-jobs.html`](site/mlspace-jobs.html)) —
-  the *experiments-as-code* pitch, the five launcher pillars and why each matters,
-  the three skills, and the recommended workflow (quick-start → scaffold → reference).
+  the *experiments-as-code* pitch: the three skills (in the order to use them) and
+  the four properties the scaffold gives you, each as a with/without comparison.
 - **`/paper-to-poster/`** — the four posterly examples re-rendered in AXXX style
   ([`…/examples/`](plugins/paper-to-poster/skills/paper-to-poster/examples/)).
 
