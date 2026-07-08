@@ -10,6 +10,9 @@ more AXXX skills can be added the same way.
 | Skill | What it does | License |
 |---|---|---|
 | [`paper-to-poster`](skills/paper-to-poster/) | Turn a paper into an **AXXX-branded** print-ready conference poster (single HTML/CSS → PDF), with affiliation logos pulled from this repo's asset releases. Ported from [posterly](https://github.com/Chenruishuo/posterly). | AGPL-3.0 (see below) |
+| [`mlspace-jobs-scaffold`](skills/mlspace-jobs-scaffold/) | **Build** experiments-as-code MLSpace training + eval launchers (`run_train_jobs.py` / `run_eval.py` / `experiments.py`) into a repo — out-of-workdir artifacts, idempotent + in-progress-dedup submission, code staging; verified by a green `--dry` run. | MIT |
+| [`mlspace-jobs-quick-start`](skills/mlspace-jobs-quick-start/) | **First-time** MLSpace setup: an interactive, one-step-at-a-time walkthrough from conda env → `mls` install → credentials → submitting and monitoring a first job. | MIT |
+| [`mlspace-jobs`](skills/mlspace-jobs/) | **Operate** MLSpace once `mls` is configured: a command reference for monitoring, logs, waiting, killing jobs, `accelerate` multi-GPU config, and troubleshooting. | MIT |
 
 ## Installation
 
@@ -30,7 +33,7 @@ In a Claude Code session, add this repo as a marketplace and install the plugin:
 - `axxx-skills` is the plugin; `axxx-institute` is the marketplace name (from
   `marketplace.json`).
 - Installing the plugin exposes **every** skill under `skills/` (currently
-  `paper-to-poster`).
+  `paper-to-poster` and the three `mlspace-jobs*` skills).
 - Update later with `/plugin marketplace update axxx-institute`; remove with
   `/plugin uninstall axxx-skills@axxx-institute`.
 - List/enable from the picker with `/plugin`.
@@ -106,7 +109,10 @@ This repo uses **per-skill license isolation**:
   attribution in `skills/paper-to-poster/NOTICE.md`) because it derives from
   [posterly](https://github.com/Chenruishuo/posterly). AGPL applies to that skill
   directory; it is **not** relicensed by the MIT root.
-- **Future skills** carry their own `LICENSE` under `skills/<name>/`.
+- **`mlspace-jobs*` skills:** **MIT** — original work with no upstream, so they are
+  covered by the repo-root MIT license and carry no separate per-skill `LICENSE`.
+- **Future skills** that derive from copyleft upstreams carry their own `LICENSE`
+  under `skills/<name>/`; original skills stay under the MIT root.
 
 The permissive MIT root and the copyleft AGPL skill coexist precisely because the
 AGPL is confined to its own directory. See [`docs/adr/0003`](docs/adr/0003-agpl-license-isolation.md).

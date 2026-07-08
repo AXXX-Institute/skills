@@ -1,0 +1,149 @@
+{
+  "skill_name": "mlspace-jobs",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I already have mls configured in my conda env 'train_env'. I need to submit a job that runs `python train.py` and then check the logs.",
+      "expected_output": "Should help generate job config, submit, and show how to check logs. Should use conda run -n train_env prefix.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Does NOT walk through conda environment creation or mls configure setup",
+          "type": "excludes"
+        },
+        {
+          "text": "Uses conda run -n train_env prefix for mls commands",
+          "type": "includes"
+        },
+        {
+          "text": "Runs mls job instance_types to check available instance types",
+          "type": "includes"
+        },
+        {
+          "text": "Shows mls job yaml binary to generate config (asks user to run via ! prefix)",
+          "type": "includes"
+        },
+        {
+          "text": "Shows mls job submit -c run.yaml",
+          "type": "includes"
+        },
+        {
+          "text": "Shows mls job logs for viewing logs",
+          "type": "includes"
+        },
+        {
+          "text": "Mentions the web UI URL https://console.cloud.ru/spa/mlspace/env-jobs/jobs",
+          "type": "includes"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "My MLSpace job is segfaulting and my dataloader crashes with 'no space left on device'. I'm using CUDA 12.6.",
+      "expected_output": "Should diagnose both issues: segfault from CUDA mismatch, no-space from shared memory. Suggest binary_exp + shm_size_class: large.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Identifies segfault as likely CUDA/Python version mismatch with base Docker image",
+          "type": "includes"
+        },
+        {
+          "text": "Identifies 'no space left on device' as a shared memory issue",
+          "type": "includes"
+        },
+        {
+          "text": "Suggests binary_exp template (mls job yaml binary_exp)",
+          "type": "includes"
+        },
+        {
+          "text": "Suggests adding shm_size_class: large",
+          "type": "includes"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need to run multi-GPU training with accelerate on MLSpace. 4 GPUs, DataLoader with num_workers=8. What config do I need?",
+      "expected_output": "Should specify processes_per_worker=1, n_workers=1, shm_size_class: large, binary_exp template, and help pick a 4-GPU instance.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Specifies processes_per_worker must be 1 when using accelerate",
+          "type": "includes"
+        },
+        {
+          "text": "Specifies n_workers must be 1 when using accelerate",
+          "type": "includes"
+        },
+        {
+          "text": "Explains accelerate handles multi-process spawning internally",
+          "type": "includes"
+        },
+        {
+          "text": "Suggests shm_size_class: large for num_workers=8",
+          "type": "includes"
+        },
+        {
+          "text": "Suggests binary_exp template",
+          "type": "includes"
+        },
+        {
+          "text": "Suggests running mls job instance_types to find 4-GPU instances",
+          "type": "includes"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "My job job-abc123 seems stuck. How do I check status and kill it?",
+      "expected_output": "Should use the provided job ID, show status/table/logs/kill commands.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses job-abc123 in commands without re-asking for the ID",
+          "type": "includes"
+        },
+        {
+          "text": "Shows mls job status job-abc123 or mls job table",
+          "type": "includes"
+        },
+        {
+          "text": "Shows mls job logs job-abc123",
+          "type": "includes"
+        },
+        {
+          "text": "Shows mls job kill job-abc123 (asks user to run via ! prefix)",
+          "type": "includes"
+        },
+        {
+          "text": "Mentions web UI at https://console.cloud.ru/spa/mlspace/env-jobs/jobs",
+          "type": "includes"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Can you check what GPU instances are available in my region? My env is 'gpu_env'.",
+      "expected_output": "Should proactively run mls job instance_types and explain the output.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Runs conda run -n gpu_env mls configure region to check region",
+          "type": "includes"
+        },
+        {
+          "text": "Runs conda run -n gpu_env mls job instance_types",
+          "type": "includes"
+        },
+        {
+          "text": "Explains the instance_types output columns",
+          "type": "includes"
+        },
+        {
+          "text": "Highlights which instances have availability (count > 0)",
+          "type": "includes"
+        }
+      ]
+    }
+  ]
+}

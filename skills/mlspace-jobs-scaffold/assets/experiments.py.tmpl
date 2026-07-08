@@ -1,0 +1,200 @@
+"""Experiments-as-code for {{PROJECT_NAME}} MLSpace jobs.
+
+Every experiment is a frozen dataclass instance, collected by
+``collect_experiments()``. Wrapper scripts (run_train_jobs.py / run_eval.py)
+import from here instead of parsing ad-hoc config, so a launch is fully
+described — and diff-reviewable — as Python.
+
+Adding an experiment = append an ``ExperimentConfig(...)`` to a generator
+function and make sure the generator is wired into ``collect_experiments()``.
+
+Placeholders to replace when scaffolding (the skill fills these in after
+exploring the target repo and confirming with the user):
+  {{TRAIN_ENTRYPOINT}}  e.g. "scripts/train.py" or "-m mypkg.train"
+  {{DEFAULT_MODEL}}     e.g. "Qwen/Qwen3-0.6B-Base"
+"""
+
+from __future__ import annotations
+
+import dataclasses
+from dataclasses import dataclass, field, replace
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+
+# ---------------------------------------------------------------------------
+# Allocation instance types (single per-project source of truth)
+# ---------------------------------------------------------------------------
+# Populated at scaffold time from the live `mls job instance_types` table for
+# THIS allocation — NOT hardcoded, because allocations differ in which GPU
+# counts and RAM tiers they expose. Both run_train_jobs.py and run_eval.py
+# import this map from here, so there is exactly one place to update.
+#
+# Shape: {num_gpus: "<instance_type_string>"}. The scaffolder replaces the
+# placeholder below with the discovered rows, e.g.:
+#     INSTANCE_TYPES_BY_NUM_GPUS = {
+#         1: "a100plus.1gpu.80vG.12C.244G",
+#         2: "a100plus.2gpu.80vG.24C.488G",
+#         ...
+#     }
+INSTANCE_TYPES_BY_NUM_GPUS: dict[int, str] = {{INSTANCE_TYPES_BY_NUM_GPUS}}
+
+
+# ---------------------------------------------------------------------------
+# Experiment schema
+# ---------------------------------------------------------------------------
+# Keep this dataclass the single source of truth for what a training run *is*.
+# Add typed fields for every knob you want to sweep. Fields that are launcher-
+# level only (not forwarded to the training entrypoint) go in
+# EXPERIMENT_ONLY_FIELDS so they are not serialized into the run config.
+
+
+@dataclass(frozen=True)
+class ExperimentConfig:
+    """One training run, fully specified.
+
+    ``name`` is the stable identity used for the artifacts subdir AND for
+    MLSpace job-description dedup, so it must be unique across all experiments.
+    """
+
+    name: str
+    model_name_or_path: str = "{{DEFAULT_MODEL}}"
+    num_gpus: int = 1
+
+    # --- training hyperparameters (forwarded to the entrypoint) ---
+    learning_rate: float = 5e-5
+    per_device_train_batch_size: int = 8
+    global_batch_size: int = 64
+    max_steps: int | None = None
+    num_train_epochs: float = 1.0
+    dataset_name: str = ""
+    extra: dict[str, Any] = field(default_factory=dict)
+
+    # --- launcher-level only (never forwarded to the training entrypoint) ---
+    description: str = ""
+    priority_class: str | None = None  # "low" | "medium" | "high" | None
+
+    def config_dict(self) -> dict[str, Any]:
+        """Non-launcher fields as a flat {flag: value} mapping for the entrypoint."""
+        launcher_only = {"name", "num_gpus", "description", "priority_class", "extra"}
+        out: dict[str, Any] = {}
+        for f in dataclasses.fields(self):
+            if f.name in launcher_only:
+                continue
+            val = getattr(self, f.name)
+            if val is not None:
+                out[f.name] = val
+        out.update(self.extra)  # free-form overrides win
+        return out
+
+
+def gradient_accumulation_steps(
+    global_batch_size: int, num_gpus: int, per_device_train_batch_size: int
+) -> int:
+    """Derive grad-accum so the effective batch equals ``global_batch_size``."""
+    effective = num_gpus * per_device_train_batch_size
+    if global_batch_size % effective != 0:
+        raise ValueError(
+            f"global_batch_size={global_batch_size} not divisible by "
+            f"num_gpus*per_device_train_batch_size={effective}"
+        )
+    return global_batch_size // effective
+
+
+def write_experiment_config(exp: ExperimentConfig, path: Path) -> None:
+    """Persist the run config next to the artifacts, for reproducibility."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w") as f:
+        yaml.safe_dump(exp.config_dict(), f, sort_keys=True)
+
+
+def build_train_command(
+    exp: ExperimentConfig,
+    output_dir: str,
+    train_entrypoint: str = "{{TRAIN_ENTRYPOINT}}",
+    sanity_check: bool = False,
+    write_config: bool = True,
+) -> list[str]:
+    """Build the argv the MLSpace job runs. Adjust to your entrypoint's flags.
+
+    Uses ``accelerate launch`` for multi-GPU (accelerate owns process spawning,
+    so the MLSpace job stays n_workers=1/processes_per_worker=1). Swap for
+    ``torchrun`` or a plain ``python`` call if your entrypoint differs.
+
+    ``write_config=False`` builds the argv WITHOUT materializing the config
+    file — pass it in ``--dry`` mode so a dry run has no filesystem side effects
+    (the returned command still references the path the real run would write).
+    """
+    if sanity_check:
+        exp = replace(exp, max_steps=2, global_batch_size=exp.per_device_train_batch_size)
+
+    ga = gradient_accumulation_steps(
+        exp.global_batch_size, exp.num_gpus, exp.per_device_train_batch_size
+    )
+    config_path = Path(output_dir) / "experiment_config.yaml"
+    if write_config:
+        write_experiment_config(exp, config_path)
+
+    launcher = (
+        ["accelerate", "launch", "--num_processes", str(exp.num_gpus)]
+        if exp.num_gpus > 1
+        else ["python"]
+    )
+    return [
+        *launcher,
+        *train_entrypoint.split(),
+        "--config", str(config_path),
+        "--output_dir", output_dir,
+        "--gradient_accumulation_steps", str(ga),
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Experiment definitions — one generator per family; sweep with replace()
+# ---------------------------------------------------------------------------
+
+
+def baseline_experiments() -> list[ExperimentConfig]:
+    """Example family. Replace with your real runs."""
+    return [
+        ExperimentConfig(
+            name="{{PROJECT_SLUG}}_baseline",
+            description="Baseline single-GPU run",
+            num_gpus=1,
+        ),
+    ]
+
+
+def collect_experiments(filter_name: str | None = None) -> list[ExperimentConfig]:
+    """Aggregate every generator and enforce the unique-name invariant."""
+    experiments: list[ExperimentConfig] = []
+    experiments.extend(baseline_experiments())
+    # experiments.extend(my_next_family())
+
+    seen: dict[str, int] = {}
+    for i, exp in enumerate(experiments):
+        if exp.name in seen:
+            raise ValueError(
+                f"Duplicate experiment name {exp.name!r} at indices "
+                f"{seen[exp.name]} and {i} — names must be unique (they key "
+                f"the artifacts dir and job dedup)."
+            )
+        seen[exp.name] = i
+
+    if filter_name:
+        experiments = [e for e in experiments if filter_name in e.name]
+    return experiments
+
+
+def has_training_artifacts(output_dir: str) -> bool:
+    """True once a run has produced its terminal marker — used for idempotency.
+
+    Point this at whatever your entrypoint writes last (e.g. a final
+    ``training_metadata.json`` or ``config.json`` + weights).
+    """
+    p = Path(output_dir)
+    return p.exists() and (
+        (p / "training_metadata.json").exists() or (p / "config.json").exists()
+    )

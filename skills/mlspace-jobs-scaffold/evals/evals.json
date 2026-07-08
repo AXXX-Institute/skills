@@ -1,0 +1,51 @@
+{
+  "skill_name": "mlspace-jobs-scaffold",
+  "notes": "Baseline for each eval is a no-skill run of the same prompt. A scaffold is 'done' when both launchers dry-run green. Assertions check the four pillars are present in generated code and that artifacts are placed at absolute out-of-workdir paths.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "new-repo-full-scaffold",
+      "prompt": "Set up MLSpace training + eval launchers in my new repo at ~/proj/mini-sft (a tiny SFT project with scripts/train.py). I want experiments described as code, and artifacts placed OUTSIDE the working directory referenced by absolute paths. Discover which instance types my allocation has. Show me a --dry run at the end.",
+      "files": [],
+      "expected_output": "experiments.py (dataclass + collect_experiments + >=1 example), run_train_jobs.py, run_eval.py created in the target repo with an absolute out-of-workdir ARTIFACTS_ROOT and STAGING_ROOT; instance types discovered via `mls job instance_types`; both launchers produce a green --dry run printing payloads without launching.",
+      "assertions": [
+        {"text": "Created experiments.py with an ExperimentConfig dataclass and a collect_experiments() registry containing at least one concrete experiment"},
+        {"text": "Created both run_train_jobs.py and run_eval.py"},
+        {"text": "Artifacts root and staging root are ABSOLUTE paths OUTSIDE the target repo working directory (not relative, not under the repo)"},
+        {"text": "Launchers import job helpers from the shared mls library (e.g. training_job_api_from_profile / get_in_progress_jobs / run_job_with_retry) rather than reimplementing API calls"},
+        {"text": "Ran `mls job instance_types` (or clearly used its output) to pick the instance-type map for the allocation"},
+        {"text": "Ran run_train_jobs.py --dry (and/or run_eval.py --dry) and it printed a payload/description without submitting a real job"},
+        {"text": "Confirmed the artifacts root / paths with the user before writing them into code"}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "idempotent-dedup-parity",
+      "prompt": "Add a run_train_jobs.py + experiments.py to this repo that launches on MLSpace following the proven pattern: idempotent (skip experiments whose artifacts already exist) and with in-progress dedup (don't resubmit a job that's already Pending/Running). One job per experiment.",
+      "files": [],
+      "expected_output": "Launcher that skips experiments with existing terminal artifacts unless --force, and skips submission when a normalized job description already appears among in-progress jobs from mls; experiments-as-code registry present.",
+      "assertions": [
+        {"text": "Generated launcher skips experiments whose output artifacts already exist, gated by a --force override"},
+        {"text": "Generated launcher lists in-progress jobs via mls and skips submitting when a normalized job description already matches a Pending/Running job"},
+        {"text": "Job description is normalized (strips #tags/@mentions) before the dedup comparison"},
+        {"text": "experiments.py exposes experiments as code via a dataclass + collect_experiments() registry"},
+        {"text": "Refuses to submit when the git working tree is dirty (explains that staging materializes from .git)"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "code-staging-isolation",
+      "prompt": "I have a train.py in this repo. Wire up MLSpace job submission so that my later edits to the working tree can't change what an already-launched job runs (clone the code to a separate directory per commit). Then show me a --dry run.",
+      "files": [],
+      "expected_output": "Launcher stages the repo to an absolute per-commit directory (cp .git + git reset --hard HEAD) before submitting, refuses dirty trees, points the job's WORKDIR at the staged dir, and dry-runs green.",
+      "assertions": [
+        {"text": "Launcher stages the repo into an absolute per-commit directory (e.g. <STAGING_ROOT>/<commit_hash>) using a git-based clone (cp .git then git reset --hard HEAD)"},
+        {"text": "Staging is idempotent (reused if present) and the job's WORKDIR/cd points at the staged directory, not the live checkout"},
+        {"text": "Refuses to submit when tracked files are dirty, with a message explaining uncommitted changes would be dropped"},
+        {"text": "Ran the launcher with --dry and it printed the staged-workdir-based script without launching a real job"},
+        {"text": "The --dry output does not leak secrets: HF_TOKEN (and other *_TOKEN/*_KEY/*_SECRET env values) are masked/redacted, not printed verbatim"},
+        {"text": "--dry has no filesystem side effects (does not write experiment_config.yaml or other run artifacts in dry mode)"}
+      ]
+    }
+  ]
+}
