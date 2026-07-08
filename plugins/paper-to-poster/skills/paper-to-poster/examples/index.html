@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AXXX skills — Claude Code plugins</title>
+<title>paper-to-poster — examples gallery · AXXX skills</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -15,25 +15,16 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:"Inter","Helvetica Neue",Arial,sans-serif;color:var(--text);background:var(--bg);line-height:1.5}
   .bar{height:6px;background:var(--accent)}
-  header{max-width:1100px;margin:0 auto;padding:48px 24px 8px}
+  a{color:var(--accent)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--accent-light);border-radius:4px;padding:1px 5px;color:var(--accent-deep)}
+  nav{max-width:1100px;margin:0 auto;padding:20px 24px 0;font-size:13px}
+  nav a{text-decoration:none;color:var(--text-2)}
+  header{max-width:1100px;margin:0 auto;padding:26px 24px 8px}
   h1{font-size:34px;font-weight:800;color:var(--accent-deep);letter-spacing:-.5px}
   h1 .ac{color:var(--accent)}
-  .sub{color:var(--text-2);font-size:16px;margin-top:8px;max-width:820px}
-  .meta{color:var(--text-2);font-size:13px;margin-top:14px}
-  .meta a{color:var(--accent);text-decoration:none}
-  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--accent-light);border-radius:4px;padding:1px 5px;color:var(--accent-deep)}
-  section, main{max-width:1100px;margin:0 auto;padding:24px}
-  h2{font-size:22px;font-weight:800;color:var(--accent-deep);letter-spacing:-.3px;margin-top:12px}
-  .lead{color:var(--text-2);font-size:14px;margin:6px 0 18px;max-width:820px}
-  .plugins{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:24px}
-  .plugin{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px}
-  .plugin h3{font-size:16px;color:var(--accent-deep);font-weight:800;display:flex;align-items:center;gap:8px}
-  .lic{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--accent);background:var(--accent-light);border-radius:5px;padding:2px 7px}
-  .inst{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--accent-deep);background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 10px;margin:10px 0 6px;overflow-x:auto}
-  .skill-row{padding:11px 0;border-top:1px solid var(--border)}
-  .skill-row .nm{font-weight:700;font-size:13.5px;color:var(--text)}
-  .skill-row .role{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--accent);background:var(--accent-light);border-radius:5px;padding:1px 6px;margin-left:6px}
-  .skill-row .d{color:var(--text-2);font-size:13px;margin-top:3px}
+  .sub{color:var(--text-2);font-size:16px;margin-top:8px;max-width:760px}
+  .inst{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--accent-deep);background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-top:14px}
+  main{max-width:1100px;margin:0 auto;padding:24px}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;margin-top:8px}
   .card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s}
   .card:hover{box-shadow:0 8px 30px rgba(5,57,87,.12);transform:translateY(-2px)}
@@ -52,49 +43,13 @@
 </head>
 <body>
 <div class="bar"></div>
+<nav><a href="../">← AXXX skills</a> &nbsp;·&nbsp; <a href="../mlspace-jobs.html">mlspace-jobs</a></nav>
 <header>
-  <h1>AXXX <span class="ac">skills</span> — Claude Code plugins</h1>
-  <p class="sub">AXXX-Institute's <a href="https://github.com/AXXX-Institute/skills" style="color:var(--accent);text-decoration:none">Claude Code marketplace</a>: two independently-installable plugins — <strong>paper-to-poster</strong> (AXXX-branded academic posters) and <strong>mlspace-jobs</strong> (MLSpace GPU job skills). Install only what you need.</p>
-  <p class="meta">Add the marketplace: <code>/plugin marketplace add AXXX-Institute/skills</code></p>
+  <h1>AXXX <span class="ac">paper-to-poster</span> — examples gallery</h1>
+  <p class="sub">Upstream <a href="https://github.com/Chenruishuo/posterly">posterly</a> examples, re-rendered in the AXXX brand (blue palette, Inter, top accent bar, arrow bullets, affiliation logos). Each poster passes posterly's <code>measure</code> + <code>polish</code> gates. AGPL-3.0 (derivative of posterly).</p>
+  <div class="inst">/plugin install paper-to-poster@axxx-institute</div>
 </header>
-
-<section>
-  <h2>Plugins &amp; skills</h2>
-  <p class="lead">Each plugin ships one or more skills that Claude activates from their descriptions. The two plugins are independent — installing one does not pull in the other.</p>
-  <div class="plugins">
-
-    <div class="plugin">
-      <h3>paper-to-poster <span class="lic">AGPL-3.0</span></h3>
-      <code class="inst">/plugin install paper-to-poster@axxx-institute</code>
-      <div class="skill-row">
-        <div class="nm">paper-to-poster <span class="role">POSTER</span></div>
-        <div class="d">Turn a paper into an AXXX-branded, print-ready conference poster (single HTML/CSS → PDF), with affiliation logos fetched from this repo's asset releases. Passes posterly's measure + polish gates. See the gallery below.</div>
-      </div>
-    </div>
-
-    <div class="plugin">
-      <h3>mlspace-jobs <span class="lic">MIT</span></h3>
-      <code class="inst">/plugin install mlspace-jobs@axxx-institute</code>
-      <div class="skill-row">
-        <div class="nm">mlspace-jobs-scaffold <span class="role">BUILD</span></div>
-        <div class="d">Scaffold experiments-as-code MLSpace training + eval launchers (run_train_jobs.py / run_eval.py / experiments.py) into a repo — an experiments-as-code registry, idempotent + in-progress-dedup submission, out-of-workdir artifacts, and code staging; verified by a green <code>--dry</code> run.</div>
-      </div>
-      <div class="skill-row">
-        <div class="nm">mlspace-jobs-quick-start <span class="role">SETUP</span></div>
-        <div class="d">First-time MLSpace setup: an interactive, one-step-at-a-time walkthrough from conda env → <code>mls</code> install → credentials → submitting and monitoring a first job.</div>
-      </div>
-      <div class="skill-row">
-        <div class="nm">mlspace-jobs <span class="role">OPERATE</span></div>
-        <div class="d">Day-to-day operation once <code>mls</code> is configured: a command reference for monitoring, logs, waiting, killing jobs, <code>accelerate</code> multi-GPU config, and troubleshooting.</div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
 <main>
-  <h2>paper-to-poster — examples gallery</h2>
-  <p class="lead">Upstream <a href="https://github.com/Chenruishuo/posterly" style="color:var(--accent);text-decoration:none">posterly</a> examples, re-rendered in the AXXX brand (blue palette, Inter, top accent bar, arrow bullets, affiliation logos). AGPL-3.0 (derivative of posterly).</p>
   <div class="grid">
 
     <div class="card">

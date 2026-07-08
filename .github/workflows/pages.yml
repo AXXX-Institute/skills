@@ -1,14 +1,16 @@
-# Deploy the AXXX paper-to-poster examples gallery to GitHub Pages.
-# Site root = plugins/paper-to-poster/skills/paper-to-poster/examples/ (index.html + the 4 re-rendered
-# AXXX posters with their images/, thumbs, and PDFs). Everything is committed and
-# local, so no rendering happens at deploy time.
-# Result: https://axxx-institute.github.io/skills
-name: Deploy examples gallery to Pages
+# Deploy the AXXX skills site to GitHub Pages. Multi-page, all static/committed —
+# no rendering at deploy time.
+#   /                     -> site/index.html            (landing: the two plugins)
+#   /mlspace-jobs.html    -> site/mlspace-jobs.html     (mlspace-jobs plugin page)
+#   /paper-to-poster/     -> plugins/paper-to-poster/skills/paper-to-poster/examples/ (poster gallery)
+# Result: https://axxx-institute.github.io/skills/
+name: Deploy site to Pages
 
 on:
   push:
     branches: [main]
     paths:
+      - "site/**"
       - "plugins/paper-to-poster/skills/paper-to-poster/examples/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
@@ -30,10 +32,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Stage gallery as site root
+      - name: Assemble site
         run: |
           mkdir -p _site
-          cp -r plugins/paper-to-poster/skills/paper-to-poster/examples/* _site/
+          cp -r site/* _site/
+          mkdir -p _site/paper-to-poster
+          cp -r plugins/paper-to-poster/skills/paper-to-poster/examples/* _site/paper-to-poster/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

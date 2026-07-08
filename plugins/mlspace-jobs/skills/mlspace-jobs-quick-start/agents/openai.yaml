@@ -1,0 +1,5 @@
+# Codex-specific skill metadata (ignored by Claude Code / the Agent Skills core).
+# Mirrors this skill's Claude Code `disable-model-invocation: true`: the walkthrough
+# has side effects (creates conda envs, installs packages, writes credentials), so
+# Codex must NOT auto-invoke it — the user launches it explicitly.
+allow_implicit_invocation: false

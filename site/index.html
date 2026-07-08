@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXXX skills — Claude Code plugins</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#0689D4; --accent-deep:#053957; --accent-light:#E6F4FD;
+    --text:#111; --text-2:#687A86; --border:#CDD5DA; --bg:#F4F8FB;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Inter","Helvetica Neue",Arial,sans-serif;color:var(--text);background:var(--bg);line-height:1.5}
+  .bar{height:6px;background:var(--accent)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--accent-light);border-radius:4px;padding:1px 5px;color:var(--accent-deep)}
+  a{color:var(--accent)}
+  header{max-width:1040px;margin:0 auto;padding:56px 24px 8px}
+  h1{font-size:38px;font-weight:900;color:var(--accent-deep);letter-spacing:-.6px}
+  h1 .ac{color:var(--accent)}
+  .sub{color:var(--text-2);font-size:17px;margin-top:10px;max-width:760px}
+  .meta{color:var(--text-2);font-size:13px;margin-top:16px}
+  main{max-width:1040px;margin:0 auto;padding:28px 24px 60px}
+  .plugins{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px}
+  .plugin{background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px 22px 20px;display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s}
+  .plugin:hover{box-shadow:0 10px 34px rgba(5,57,87,.12);transform:translateY(-2px)}
+  .plugin h2{font-size:20px;color:var(--accent-deep);font-weight:800;display:flex;align-items:center;gap:9px}
+  .lic{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--accent);background:var(--accent-light);border-radius:5px;padding:2px 7px}
+  .plugin p{color:var(--text-2);font-size:14px;margin-top:10px}
+  .inst{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--accent-deep);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin:14px 0 16px;overflow-x:auto}
+  .go{margin-top:auto;font-weight:700;font-size:14px;text-decoration:none;color:#fff;background:var(--accent);align-self:flex-start;padding:9px 16px;border-radius:8px}
+  footer{max-width:1040px;margin:0 auto 60px;padding:0 24px;color:var(--text-2);font-size:13px}
+  footer a{text-decoration:none}
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<header>
+  <h1>AXXX <span class="ac">skills</span></h1>
+  <p class="sub">AXXX-Institute's <a href="https://github.com/AXXX-Institute/skills" style="text-decoration:none">Claude Code</a> marketplace — two independently-installable plugins. Install only what you need.</p>
+  <p class="meta">Add the marketplace once: <code>/plugin marketplace add AXXX-Institute/skills</code></p>
+</header>
+<main>
+  <div class="plugins">
+
+    <div class="plugin">
+      <h2>paper-to-poster <span class="lic">AGPL-3.0</span></h2>
+      <p>Turn a paper into an <strong>AXXX-branded</strong>, print-ready conference poster — a single HTML/CSS file rendered to PDF, with affiliation logos fetched from this repo's asset releases. Passes posterly's measure + polish gates.</p>
+      <code class="inst">/plugin install paper-to-poster@axxx-institute</code>
+      <a class="go" href="paper-to-poster/">View posters &amp; details →</a>
+    </div>
+
+    <div class="plugin">
+      <h2>mlspace-jobs <span class="lic">MIT</span></h2>
+      <p><strong>Experiments as code</strong> for MLSpace GPU jobs: scaffold reproducible training/eval launchers into your repo, plus a first-time setup walkthrough and a day-to-day command reference. Three skills, one plugin.</p>
+      <code class="inst">/plugin install mlspace-jobs@axxx-institute</code>
+      <a class="go" href="mlspace-jobs.html">Why experiments-as-code →</a>
+    </div>
+
+  </div>
+</main>
+<footer>
+  <a href="https://github.com/AXXX-Institute/skills">Source: AXXX-Institute/skills</a>
+</footer>
+</body>
+</html>

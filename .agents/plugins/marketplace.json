@@ -1,0 +1,32 @@
+{
+  "name": "axxx-institute",
+  "interface": {
+    "displayName": "AXXX-Institute skills"
+  },
+  "plugins": [
+    {
+      "name": "paper-to-poster",
+      "source": {
+        "source": "local",
+        "path": "./plugins/paper-to-poster"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "mlspace-jobs",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mlspace-jobs"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

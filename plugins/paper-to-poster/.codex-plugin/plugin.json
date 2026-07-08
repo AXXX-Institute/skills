@@ -1,0 +1,13 @@
+{
+  "name": "paper-to-poster",
+  "version": "0.1.0",
+  "description": "AXXX-branded academic poster builder — turn a paper into a print-ready conference poster (single HTML/CSS → PDF), with affiliation logos fetched from this repo's asset releases. AGPL-3.0 (derives from posterly).",
+  "author": {
+    "name": "AXXX-Institute"
+  },
+  "homepage": "https://github.com/AXXX-Institute/skills",
+  "repository": "https://github.com/AXXX-Institute/skills",
+  "license": "AGPL-3.0",
+  "keywords": ["poster", "academic", "latex", "html", "paper-to-poster"],
+  "skills": "./skills/"
+}

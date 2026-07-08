@@ -1,5 +1,7 @@
 # AXXX-Institute / skills
 
+[![Docs — GitHub Pages](https://img.shields.io/badge/docs-axxx--institute.github.io%2Fskills-0689D4?logo=github&logoColor=white)](https://axxx-institute.github.io/skills/)
+
 AXXX-Institute's [Claude Code](https://claude.com/claude-code) **marketplace** of
 plugins. Each plugin lives under `plugins/<name>/` and ships one or more skills
 under `plugins/<name>/skills/<skill>/`. The two plugins are **installable
@@ -12,7 +14,7 @@ same way.
 |---|---|---|---|
 | [`paper-to-poster`](plugins/paper-to-poster/) | [`paper-to-poster`](plugins/paper-to-poster/skills/paper-to-poster/) | Turn a paper into an **AXXX-branded** print-ready conference poster (single HTML/CSS → PDF), with affiliation logos pulled from this repo's asset releases. Ported from [posterly](https://github.com/Chenruishuo/posterly). | AGPL-3.0 (see below) |
 | [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs-scaffold`](plugins/mlspace-jobs/skills/mlspace-jobs-scaffold/) | **Build** experiments-as-code MLSpace training + eval launchers (`run_train_jobs.py` / `run_eval.py` / `experiments.py`) into a repo — out-of-workdir artifacts, idempotent + in-progress-dedup submission, code staging; verified by a green `--dry` run. | MIT |
-| [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs-quick-start`](plugins/mlspace-jobs/skills/mlspace-jobs-quick-start/) | **First-time** MLSpace setup: an interactive, one-step-at-a-time walkthrough from conda env → `mls` install → credentials → submitting and monitoring a first job. | MIT |
+| [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs-quick-start`](plugins/mlspace-jobs/skills/mlspace-jobs-quick-start/) | **First-time** MLSpace setup: an interactive, one-step-at-a-time walkthrough from conda env → `mls` install → credentials → submitting and monitoring a first job. **Explicit-only** — launch it deliberately with `/mlspace-jobs-quick-start` (not auto-invoked, since it creates envs and installs packages). | MIT |
 | [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs`](plugins/mlspace-jobs/skills/mlspace-jobs/) | **Operate** MLSpace once `mls` is configured: a command reference for monitoring, logs, waiting, killing jobs, `accelerate` multi-GPU config, and troubleshooting. | MIT |
 
 ## Installation
@@ -21,10 +23,12 @@ This repo is a Claude Code **marketplace** (`.claude-plugin/marketplace.json`)
 that hosts two plugins. Install whichever you want, independently. If you install
 `paper-to-poster`, also install its **runtime dependencies** (last subsection).
 
-### Method A — Claude Code plugin marketplace (recommended)
+### Method A — Plugin marketplace (recommended)
 
-In a Claude Code session, add this repo as a marketplace, then install either or
-both plugins:
+Same marketplace, same two plugins, from **Claude Code** or **OpenAI Codex**.
+Add this repo as a marketplace once, then install either or both plugins.
+
+**Claude Code** — in a session:
 
 ```
 /plugin marketplace add AXXX-Institute/skills
@@ -32,17 +36,30 @@ both plugins:
 /plugin install mlspace-jobs@axxx-institute       # the MLSpace job skills
 ```
 
-- `axxx-institute` is the marketplace name (from `marketplace.json`);
-  `paper-to-poster` and `mlspace-jobs` are the two plugins.
+**OpenAI Codex** — from your shell:
+
+```bash
+codex plugin marketplace add AXXX-Institute/skills
+codex plugin add paper-to-poster@axxx-institute   # the poster builder
+codex plugin add mlspace-jobs@axxx-institute       # the MLSpace job skills
+```
+
+- `axxx-institute` is the marketplace name (from `marketplace.json` /
+  `.agents/plugins/marketplace.json`); `paper-to-poster` and `mlspace-jobs` are the
+  two plugins. `AXXX-Institute/skills` is the GitHub `owner/repo` shorthand both
+  tools accept.
 - **Install only what you need** — the two plugins are independent. Installing
   `mlspace-jobs` does **not** pull in `paper-to-poster` (or its Playwright/Chromium
   runtime deps), and installing `paper-to-poster` does not pull in the MLSpace
-  skills. Run just the one `/plugin install …` line you want.
+  skills. Run just the one install line you want.
 - Installing a plugin exposes **all** skills it bundles — `mlspace-jobs` brings
   all three `mlspace-jobs*` skills; `paper-to-poster` brings the one poster skill.
-- Update later with `/plugin marketplace update axxx-institute`; remove a plugin
-  with `/plugin uninstall <plugin>@axxx-institute`.
-- List/enable from the picker with `/plugin`.
+- **Update:** Claude `/plugin marketplace update axxx-institute` · Codex
+  `codex plugin marketplace upgrade axxx-institute`.
+- **Remove:** Claude `/plugin uninstall <plugin>@axxx-institute` · Codex
+  `codex plugin remove <plugin>@axxx-institute`.
+- **List / enable:** Claude `/plugin` · Codex `/plugins` (in-session) or
+  `codex plugin list`.
 
 ### Ask an agent to install it (natural language)
 
@@ -122,6 +139,24 @@ training jobs in this repo"* / *"help me set up MLSpace for the first time"*
 (activates the matching `mlspace-jobs` skill). Each skill activates from its
 description.
 
+## Also usable from OpenAI Codex
+
+These plugins follow the cross-tool [Agent Skills](https://agentskills.io)
+standard, so the **same skills work in OpenAI Codex** with no duplicated content:
+
+- Each plugin ships a `.codex-plugin/plugin.json` next to its
+  `.claude-plugin/plugin.json` (both point at the same `skills/`), and both plugins
+  are listed in a Codex marketplace at
+  [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json).
+- Opening this repo in Codex auto-discovers the skills via
+  [`.agents/skills/`](.agents/skills) — symlinks to the canonical skill directories,
+  so there is exactly one copy of each `SKILL.md`.
+- `mlspace-jobs-quick-start` stays explicit-only in Codex via an
+  `agents/openai.yaml` (`allow_implicit_invocation: false`), mirroring its Claude
+  Code `disable-model-invocation: true`.
+- CI (`.github/scripts/validate.py`) asserts the Codex and Claude Code
+  **plugin/skill lists stay identical**.
+
 ## Licensing
 
 The repo uses **per-plugin license isolation** — each plugin is its own
@@ -154,12 +189,17 @@ offline and on Pages with no remote images. See
 [`docs/RELEASE-assets.md`](docs/RELEASE-assets.md) and
 [`docs/adr/0002`](docs/adr/0002-logo-delivery-releases-fetch-commit.md).
 
-## Examples gallery
+## Documentation site (GitHub Pages)
 
-The four posterly examples, re-rendered in AXXX style, are published to GitHub
-Pages: **https://axxx-institute.github.io/skills** — built from
-[`plugins/paper-to-poster/skills/paper-to-poster/examples/`](plugins/paper-to-poster/skills/paper-to-poster/examples/)
-by `.github/workflows/pages.yml`.
+Published at **https://axxx-institute.github.io/skills/** by
+`.github/workflows/pages.yml` — a landing page
+([`site/index.html`](site/index.html)) with a dedicated page per plugin:
+
+- **`/mlspace-jobs.html`** ([`site/mlspace-jobs.html`](site/mlspace-jobs.html)) —
+  the *experiments-as-code* pitch, the five launcher pillars and why each matters,
+  the three skills, and the recommended workflow (quick-start → scaffold → reference).
+- **`/paper-to-poster/`** — the four posterly examples re-rendered in AXXX style
+  ([`…/examples/`](plugins/paper-to-poster/skills/paper-to-poster/examples/)).
 
 ## Repo docs
 

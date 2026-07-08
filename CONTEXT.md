@@ -68,6 +68,16 @@ re-rendered in AXXX style, listed by an `index.html`. Distinct from a single
 poster repo's own Pages deploy.
 _Avoid:_ "the demo" (the gallery is the published showcase, not a smoke test).
 
+## Codex mirror
+The parallel exposure of this marketplace's plugins/skills to **OpenAI Codex** via
+the shared Agent Skills standard: each plugin carries a `.codex-plugin/plugin.json`
+beside its `.claude-plugin/plugin.json` (shared `skills/`), a Codex catalog lives at
+`.agents/plugins/marketplace.json`, and `.agents/skills/<skill>` symlinks point at
+the canonical skill dirs. Kept identical to the Claude Code side by a CI parity
+check; the explicit-only skill uses `agents/openai.yaml` in place of
+`disable-model-invocation`.
+_Avoid:_ "port to Codex" (nothing is copied — the same `SKILL.md` files are reused).
+
 ## MLSpace
 The GPU compute platform (Cloud.ru) the job skills target: users submit **jobs**
 to an **allocation**, picking an **instance type** for GPU/CPU/RAM. Driven from
@@ -105,5 +115,8 @@ the BUILD skill).
 The **SETUP** skill: an interactive, task-tracked, one-step-at-a-time walkthrough
 for a **first-time** MLSpace user — create a conda env, install and configure
 `mls`, submit and monitor a first job. Supersets [[mlspace-jobs]]' operational
-guidance for the not-yet-configured user.
+guidance for the not-yet-configured user. **Explicit-only**: it sets
+`disable-model-invocation: true`, so Claude never auto-launches it; the user runs
+it deliberately with `/mlspace-jobs-quick-start` (it has side effects — creates
+conda envs, installs packages, writes credentials).
 _Avoid:_ "mlspace-jobs" (that is the reference for the already-configured user).
