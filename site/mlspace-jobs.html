@@ -24,36 +24,52 @@
   h1{font-size:36px;font-weight:900;color:var(--accent-deep);letter-spacing:-.6px}
   h1 .ac{color:var(--accent)}
   .tagline{font-size:18px;color:var(--text-2);margin-top:10px;max-width:720px}
-  .inst{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--accent-deep);background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 13px;margin-top:16px}
-  .install{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-top:16px;max-width:760px}
+  /* copy-to-clipboard button (all code blocks) */
+  pre{position:relative}
+  .copy-btn{position:absolute;top:6px;right:6px;border:1px solid var(--border);background:rgba(255,255,255,.92);color:var(--accent-deep);font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.4px;padding:3px 8px;border-radius:6px;cursor:pointer;opacity:.5;transition:opacity .12s}
+  pre:hover .copy-btn,.copy-btn:focus{opacity:1}
+  .copy-btn.ok{color:#178a4e;border-color:#8fce8f}
+  .install{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));margin-top:16px;max-width:900px}
   .install .t{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--accent);margin-bottom:5px}
   .install pre{margin:0;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;overflow-x:auto}
   .install pre code{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--accent-deep);background:none;padding:0;white-space:pre;line-height:1.7}
   h2{font-size:24px;font-weight:800;color:var(--accent-deep);letter-spacing:-.3px;margin:44px 0 6px}
-  .lead{color:var(--text-2);font-size:15.5px;margin:8px 0 4px;max-width:780px}
+  .lead{color:var(--text-2);font-size:15.5px;margin:8px 0 4px;max-width:800px}
   .lead strong{color:var(--text)}
+  table{width:100%;border-collapse:collapse;margin-top:16px;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  th,td{text-align:left;padding:12px 14px;font-size:13.5px;vertical-align:top;border-top:1px solid var(--border)}
+  th{background:var(--accent-light);color:var(--accent-deep);font-weight:700;border-top:none;font-size:12px;letter-spacing:.4px;text-transform:uppercase}
+  td:first-child{white-space:nowrap}
+  td .role{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--accent);background:var(--accent-light);border-radius:5px;padding:1px 6px;white-space:nowrap}
+  td strong{color:var(--accent-deep)}
+  /* property flip-cards: "With" by default, "Without" on demand */
   .props{display:grid;gap:20px;margin-top:20px}
   .prop{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px}
   .prop h3{display:flex;align-items:center;font-size:17px;color:var(--accent-deep);font-weight:800}
   .prop .n{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:13px;margin-right:9px;flex:none}
   .prop .sub{color:var(--text-2);font-size:13.5px;margin-top:9px}
   .prop .sub strong{color:var(--text)}
-  .cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:14px}
-  .col{border-radius:10px;padding:13px 15px}
-  .col.wo{background:#FCEEEE;border:1px solid #E7C9C9}
-  .col.wi{background:var(--accent-light);border:1px solid #BFE3F7}
   .tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.5px;padding:2px 8px;border-radius:5px;margin-bottom:8px}
   .tag.bad{background:#D64545;color:#fff}
   .tag.good{background:var(--accent);color:#fff}
-  .col p{font-size:13px;color:var(--text-2);margin:0}
-  .col p strong{color:var(--text)}
-  .col pre{margin:9px 0 0;background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 11px;overflow-x:auto}
-  .col pre code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--accent-deep);white-space:pre;display:block;line-height:1.6;background:none;padding:0}
-  table{width:100%;border-collapse:collapse;margin-top:16px;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-  th,td{text-align:left;padding:12px 14px;font-size:13.5px;vertical-align:top;border-top:1px solid var(--border)}
-  th{background:var(--accent-light);color:var(--accent-deep);font-weight:700;border-top:none;font-size:12px;letter-spacing:.4px;text-transform:uppercase}
-  td .role{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--accent);background:var(--accent-light);border-radius:5px;padding:1px 6px;white-space:nowrap}
-  td strong{color:var(--accent-deep)}
+  .deck{display:flex;gap:10px;margin-top:12px;align-items:stretch}
+  .faces{position:relative;display:grid;flex:1;min-width:0}
+  .face{grid-area:1/1;border-radius:10px;padding:14px 16px;min-width:0}
+  .face.wi{background:var(--accent-light);border:1px solid #BFE3F7}
+  .face.wo{background:#FCEEEE;border:1px solid #E7C9C9;visibility:hidden}
+  .deck.show .face.wi{visibility:hidden}
+  .deck.show .face.wo{visibility:visible}
+  .face p{font-size:13.5px;color:var(--text-2);margin:0}
+  .face p strong{color:var(--text)}
+  .face ul{margin:9px 0 0;padding-left:18px}
+  .face li{font-size:13px;color:var(--text-2);margin:5px 0}
+  .face pre{margin:11px 0 0;background:#0B2233;border-radius:8px;padding:12px 14px;overflow-x:auto}
+  .face pre code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:#D6E9F6;white-space:pre;display:block;line-height:1.65;background:none;padding:0}
+  .face pre .copy-btn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28);color:#EAF4FB}
+  .flip{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;width:62px;border:1px solid #E7C9C9;background:#FCEEEE;color:#B23636;border-radius:10px;cursor:pointer;font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.3px;padding:8px 4px;text-align:center;transition:background .12s,border-color .12s,color .12s}
+  .flip:hover{background:#F6D9D9}
+  .flip .ic{font-size:17px;line-height:1}
+  .deck.show .flip{background:var(--accent-light);border-color:#BFE3F7;color:var(--accent-deep)}
   footer{max-width:1000px;margin:40px auto 60px;padding:0 24px;color:var(--text-2);font-size:13px}
   footer a{text-decoration:none}
 </style>
@@ -77,22 +93,19 @@ codex plugin add mlspace-jobs@axxx-institute</code></pre></div>
   <h2>The three skills — and the order to use them</h2>
   <p class="lead">Start with the quick-start, scaffold your repo, then keep the reference handy.</p>
   <table>
-    <thead><tr><th>Step</th><th>Skill</th><th>Role</th><th>What it does — and when to reach for it</th></tr></thead>
+    <thead><tr><th>Skill</th><th>Role</th><th>What it does — and when to reach for it</th></tr></thead>
     <tbody>
       <tr>
-        <td><strong>1 · Start here</strong></td>
         <td><strong>mlspace-jobs-quick-start</strong></td>
         <td><span class="role">SETUP</span></td>
         <td>First time on MLSpace? Run <code>/mlspace-jobs-quick-start</code> — interactive, one-step-at-a-time setup: conda env → <code>mls</code> install → credentials → your first submitted job. <strong>Explicit-only.</strong></td>
       </tr>
       <tr>
-        <td><strong>2 · Scaffold your repo</strong></td>
         <td><strong>mlspace-jobs-scaffold</strong></td>
         <td><span class="role">BUILD</span></td>
         <td>In your real training repo, run <strong>mlspace-jobs-scaffold</strong>: generates <code>run_train_jobs.py</code>, <code>run_eval.py</code>, and <code>experiments.py</code> implementing the properties below and discovering your instance types. Done on a green <code>--dry</code> run — no GPU spent. After that, launching a sweep is editing one file and running one command.</td>
       </tr>
       <tr>
-        <td><strong>3 · Reference</strong></td>
         <td><strong>mlspace-jobs</strong></td>
         <td><span class="role">OPERATE</span></td>
         <td>Keep it handy for day-to-day operation and when something breaks: commands (status / logs / wait / kill), <code>accelerate</code> multi-GPU config, and troubleshooting recipes &amp; known bugs (CUDA/image segfaults, <code>/dev/shm</code> "no space left").</td>
@@ -100,84 +113,118 @@ codex plugin add mlspace-jobs@axxx-institute</code></pre></div>
     </tbody>
   </table>
 
-  <h2>What every launcher gives you — with vs. without</h2>
-  <p class="lead">Four properties the scaffold bakes in. For each: what your life looks like <strong>without</strong> it, and <strong>with</strong> it.</p>
+  <h2>Why scaffold experiments as code</h2>
+  <p class="lead"><code>mlspace-jobs-scaffold</code> builds launchers with four properties baked in. Each card shows what you <strong>get</strong> — hit <strong>Without</strong> on the right to see what breaks if you skip it.</p>
   <div class="props">
 
     <div class="prop">
       <h3><span class="n">1</span>Experiments as code</h3>
       <p class="sub">Every run is an <code>ExperimentConfig</code> row in <code>experiments.py</code>, collected by <code>collect_experiments()</code> — so a whole sweep is one expression.</p>
-      <div class="cmp">
-        <div class="col wo">
-          <span class="tag bad">Without</span>
-          <p>One YAML per run, kept in sync by hand. A sweep means creating — and later editing — a pile of near-identical files.</p>
-          <pre><code>configs/sft-lr1e5-qwen.yaml
-configs/sft-lr2e5-qwen.yaml
-configs/sft-lr5e5-qwen.yaml
-configs/sft-lr1e5-llama.yaml
-configs/…      # and on, by hand</code></pre>
+      <div class="deck">
+        <div class="faces">
+          <div class="face wi">
+            <span class="tag good">With</span>
+            <p>The whole sweep is <strong>one expression</strong> — diffable, reviewable, reproducible.</p>
+            <pre><code>EXPERIMENTS = [
+    ExperimentConfig(name=f"sft-{m}-lr{lr}", model=m, lr=lr)
+    for m in ("qwen3-8b", "llama3-8b")
+    for lr in (1e-5, 2e-5, 5e-5)
+]</code></pre>
+          </div>
+          <div class="face wo">
+            <span class="tag bad">Without</span>
+            <p>One YAML per run, kept in sync by hand:</p>
+            <ul>
+              <li>A sweep becomes a pile of near-identical files to create and edit</li>
+              <li>No single place to diff or review what's actually running</li>
+              <li>Copy-paste drift — one file keeps a stale hyperparameter</li>
+              <li>Reproducing the batch means reconstructing it from memory</li>
+            </ul>
+          </div>
         </div>
-        <div class="col wi">
-          <span class="tag good">With</span>
-          <p>The whole sweep is <strong>one line</strong> — diffable, reviewable, reproducible.</p>
-          <pre><code>EXPERIMENTS = [ExperimentConfig(name=f"sft-{m}-lr{lr}", model=m, lr=lr)
-               for m in ("qwen3-8b", "llama3-8b") for lr in (1e-5, 2e-5, 5e-5)]</code></pre>
-        </div>
+        <button class="flip" type="button" aria-expanded="false"><span class="ic">⚠</span><span class="lbl">Without</span></button>
       </div>
     </div>
 
     <div class="prop">
       <h3><span class="n">2</span>Idempotent launches</h3>
-      <p class="sub">One command launches the whole sweep and is safe to re-run any time: finished runs are skipped (a terminal marker), and jobs already <strong>Pending/Running are skipped too</strong> (in-progress dedup) so you never submit a duplicate.</p>
-      <div class="cmp">
-        <div class="col wo">
-          <span class="tag bad">Without</span>
-          <p>You track which runs finished and which are still queued, then hand-pick what to resubmit — or risk duplicate jobs that burn your GPU allocation.</p>
-        </div>
-        <div class="col wi">
-          <span class="tag good">With</span>
-          <p><strong>One command, re-run as often as you like</strong> — it submits only what's missing. No bookkeeping.</p>
-          <pre><code># re-run any time — only missing experiments go out
+      <p class="sub">One command launches the whole sweep and is safe to re-run: finished runs skip (a terminal marker), and jobs already <strong>Pending/Running skip too</strong> (in-progress dedup).</p>
+      <div class="deck">
+        <div class="faces">
+          <div class="face wi">
+            <span class="tag good">With</span>
+            <p><strong>One command, re-run as often as you like</strong> — it submits only what's missing. No bookkeeping.</p>
+            <pre><code># re-run any time — only missing experiments go out
 python run_train_jobs.py
-# finished  -> skipped (marker)
-# queued/running -> skipped (dedup)</code></pre>
+#   finished        → skipped (marker)
+#   queued/running  → skipped (dedup)</code></pre>
+          </div>
+          <div class="face wo">
+            <span class="tag bad">Without</span>
+            <p>You track launch state by hand:</p>
+            <ul>
+              <li>Re-running resubmits duplicates that burn your GPU allocation</li>
+              <li>…or clobbers good outputs by re-running completed work</li>
+              <li>After a partial failure you hand-pick exactly what to retry</li>
+              <li>Two people launching the "same" sweep double-submit it</li>
+            </ul>
+          </div>
         </div>
+        <button class="flip" type="button" aria-expanded="false"><span class="ic">⚠</span><span class="lbl">Without</span></button>
       </div>
     </div>
 
     <div class="prop">
-      <h3><span class="n">3</span>Out-of-workdir artifacts</h3>
-      <p class="sub">Outputs land at absolute paths on shared NFS — <strong>outside</strong> any repo checkout or git worktree.</p>
-      <div class="cmp">
-        <div class="col wo">
-          <span class="tag bad">Without</span>
-          <p>Artifacts under the repo are fragile around <strong>git worktrees</strong>: a stray cleanup — say an agent running <code>git clean -fdx</code> or removing a worktree to "tidy up" — silently deletes your checkpoints.</p>
-          <pre><code>git worktree remove ../exp-2   # takes its artifacts with it
-git clean -fdx                 # wipes results under the repo</code></pre>
+      <h3><span class="n">3</span>Code staging</h3>
+      <p class="sub">At submit time the launcher snapshots your code from <code>.git</code> into a per-commit directory and points the job there.</p>
+      <div class="deck">
+        <div class="faces">
+          <div class="face wi">
+            <span class="tag good">With</span>
+            <p>The job runs a <strong>frozen snapshot of the exact commit</strong> you submitted — whenever it starts, however the working tree changes.</p>
+            <pre><code># submit now — the job runs THIS commit, even days later
+&lt;STAGING_ROOT&gt;/&lt;commit_hash&gt;/    # frozen snapshot; the job cd's in</code></pre>
+          </div>
+          <div class="face wo">
+            <span class="tag bad">Without</span>
+            <p>The job reads your live checkout, and a queued job may start <strong>hours or days later</strong>:</p>
+            <ul>
+              <li>Edits made after submitting silently change what runs</li>
+              <li>Switching branches repoints a pending job at the wrong code</li>
+              <li>Two jobs from the "same" script can execute different code</li>
+              <li>No record of what actually ran — impossible to reproduce</li>
+            </ul>
+          </div>
         </div>
-        <div class="col wi">
-          <span class="tag good">With</span>
-          <p>Artifacts live outside every worktree, so cleanups can't touch them — and all worktrees, branches, and commits share one durable tree.</p>
-          <pre><code>/home/jovyan/&lt;proj&gt;-artifacts/training/…  # absolute, on NFS
+        <button class="flip" type="button" aria-expanded="false"><span class="ic">⚠</span><span class="lbl">Without</span></button>
+      </div>
+    </div>
+
+    <div class="prop">
+      <h3><span class="n">4</span>Out-of-workdir artifacts</h3>
+      <p class="sub">Outputs — <strong>and the per-commit code snapshots</strong> from the previous property — land at absolute paths on shared NFS, outside any repo checkout or git worktree.</p>
+      <div class="deck">
+        <div class="faces">
+          <div class="face wi">
+            <span class="tag good">With</span>
+            <p>Artifacts and staged code live outside every worktree, so cleanups can't touch them; all worktrees, branches, and commits share one durable tree.</p>
+            <pre><code>/home/jovyan/&lt;proj&gt;-artifacts/
+    code/&lt;commit&gt;/        # staged snapshots (property 3)
+    training/&lt;exp&gt;/       # checkpoints, metrics, eval
 # survives git clean / worktree remove / branch switch</code></pre>
+          </div>
+          <div class="face wo">
+            <span class="tag bad">Without</span>
+            <p>Artifacts under the repo are fragile — especially with <strong>git worktrees</strong> and agents:</p>
+            <ul>
+              <li>An agent running <code>git clean -fdx</code> to "tidy up" wipes your checkpoints</li>
+              <li><code>git worktree remove</code> takes that worktree's artifacts with it</li>
+              <li>Each worktree writes its own copy → scattered, colliding results</li>
+              <li>Outputs bloat the repo or get committed by accident</li>
+            </ul>
+          </div>
         </div>
-      </div>
-    </div>
-
-    <div class="prop">
-      <h3><span class="n">4</span>Code staging</h3>
-      <p class="sub">At submit time the launcher snapshots your code from <code>.git</code> into a per-commit directory and points the job at it.</p>
-      <div class="cmp">
-        <div class="col wo">
-          <span class="tag bad">Without</span>
-          <p>A queued job can start <strong>hours or days later</strong>. If it reads your live checkout, whatever you edited — or the branch you switched to — meanwhile is what actually runs, not the code you submitted.</p>
-        </div>
-        <div class="col wi">
-          <span class="tag good">With</span>
-          <p>The job runs a <strong>frozen snapshot of the exact commit</strong> you submitted — whenever it starts, however the working tree changes.</p>
-          <pre><code># submit now; runs THIS commit even if it starts days later
-&lt;STAGING_ROOT&gt;/&lt;commit_hash&gt;/   # frozen snapshot the job cd's into</code></pre>
-        </div>
+        <button class="flip" type="button" aria-expanded="false"><span class="ic">⚠</span><span class="lbl">Without</span></button>
       </div>
     </div>
 
@@ -187,5 +234,39 @@ git clean -fdx                 # wipes results under the repo</code></pre>
 <footer>
   <a href="./">AXXX skills</a> · <a href="https://github.com/AXXX-Institute/skills/tree/main/plugins/mlspace-jobs">plugin source</a> · MIT
 </footer>
+<script>
+(function(){
+  function copyText(t){
+    if(navigator.clipboard&&navigator.clipboard.writeText){return navigator.clipboard.writeText(t);}
+    return new Promise(function(res,rej){
+      var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.focus();ta.select();
+      try{document.execCommand('copy');res();}catch(e){rej(e);}document.body.removeChild(ta);
+    });
+  }
+  document.querySelectorAll('pre').forEach(function(pre){
+    var btn=document.createElement('button');
+    btn.type='button';btn.className='copy-btn';btn.textContent='Copy';
+    btn.addEventListener('click',function(){
+      var code=pre.querySelector('code');
+      var text=(code?code.textContent:pre.textContent).replace(/\s+$/,'');
+      copyText(text).then(function(){
+        btn.textContent='Copied';btn.classList.add('ok');
+        setTimeout(function(){btn.textContent='Copy';btn.classList.remove('ok');},1400);
+      }).catch(function(){});
+    });
+    pre.appendChild(btn);
+  });
+  document.querySelectorAll('.flip').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var deck=btn.closest('.deck');var on=deck.classList.toggle('show');
+      btn.setAttribute('aria-expanded',on?'true':'false');
+      var lbl=btn.querySelector('.lbl'),ic=btn.querySelector('.ic');
+      if(lbl){lbl.textContent=on?'Back':'Without';}
+      if(ic){ic.textContent=on?'↩':'⚠';}
+    });
+  });
+})();
+</script>
 </body>
 </html>
