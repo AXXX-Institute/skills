@@ -25,6 +25,10 @@
   h1 .ac{color:var(--accent)}
   .tagline{font-size:18px;color:var(--text-2);margin-top:10px;max-width:720px}
   .inst{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--accent-deep);background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 13px;margin-top:16px}
+  .install{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-top:16px;max-width:760px}
+  .install .t{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--accent);margin-bottom:5px}
+  .install pre{margin:0;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;overflow-x:auto}
+  .install pre code{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--accent-deep);background:none;padding:0;white-space:pre;line-height:1.7}
   h2{font-size:24px;font-weight:800;color:var(--accent-deep);letter-spacing:-.3px;margin:44px 0 6px}
   .lead{color:var(--text-2);font-size:15.5px;margin:8px 0 4px;max-width:780px}
   .lead strong{color:var(--text)}
@@ -58,7 +62,12 @@
 <header>
   <h1><span class="ac">mlspace-jobs</span> — experiments as code</h1>
   <p class="tagline">Stop launching GPU runs from shell history and notebooks. Describe every experiment as <strong>data</strong>, and let a reproducible launcher submit them — idempotently, deduplicated, from a frozen snapshot of your code.</p>
-  <div class="inst">/plugin install mlspace-jobs@axxx-institute</div>
+  <div class="install">
+    <div class="tool"><span class="t">Claude Code</span><pre><code>/plugin marketplace add AXXX-Institute/skills
+/plugin install mlspace-jobs@axxx-institute</code></pre></div>
+    <div class="tool"><span class="t">OpenAI Codex</span><pre><code>codex plugin marketplace add AXXX-Institute/skills
+codex plugin add mlspace-jobs@axxx-institute</code></pre></div>
+  </div>
 </header>
 
 <main class="wrap">

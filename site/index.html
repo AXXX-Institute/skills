@@ -30,6 +30,10 @@
   .lic{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--accent);background:var(--accent-light);border-radius:5px;padding:2px 7px}
   .plugin p{color:var(--text-2);font-size:14px;margin-top:10px}
   .inst{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--accent-deep);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin:14px 0 16px;overflow-x:auto}
+  .install{display:grid;gap:12px;margin:14px 0 16px}
+  .install .t{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--accent);margin-bottom:5px}
+  .install pre{margin:0;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;overflow-x:auto}
+  .install pre code{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--accent-deep);background:none;padding:0;white-space:pre;line-height:1.7}
   .go{margin-top:auto;font-weight:700;font-size:14px;text-decoration:none;color:#fff;background:var(--accent);align-self:flex-start;padding:9px 16px;border-radius:8px}
   footer{max-width:1040px;margin:0 auto 60px;padding:0 24px;color:var(--text-2);font-size:13px}
   footer a{text-decoration:none}
@@ -40,7 +44,7 @@
 <header>
   <h1>AXXX <span class="ac">skills</span></h1>
   <p class="sub">AXXX-Institute's <a href="https://github.com/AXXX-Institute/skills" style="text-decoration:none">Claude Code</a> marketplace — two independently-installable plugins. Install only what you need.</p>
-  <p class="meta">Add the marketplace once: <code>/plugin marketplace add AXXX-Institute/skills</code></p>
+  <p class="meta">Install from <strong>Claude Code</strong> or <strong>OpenAI Codex</strong> — each block below adds the marketplace, then installs that plugin.</p>
 </header>
 <main>
   <div class="plugins">
@@ -48,14 +52,24 @@
     <div class="plugin">
       <h2>paper-to-poster <span class="lic">AGPL-3.0</span></h2>
       <p>Turn a paper into an <strong>AXXX-branded</strong>, print-ready conference poster — a single HTML/CSS file rendered to PDF, with affiliation logos fetched from this repo's asset releases. Passes posterly's measure + polish gates.</p>
-      <code class="inst">/plugin install paper-to-poster@axxx-institute</code>
+      <div class="install">
+        <div class="tool"><span class="t">Claude Code</span><pre><code>/plugin marketplace add AXXX-Institute/skills
+/plugin install paper-to-poster@axxx-institute</code></pre></div>
+        <div class="tool"><span class="t">OpenAI Codex</span><pre><code>codex plugin marketplace add AXXX-Institute/skills
+codex plugin add paper-to-poster@axxx-institute</code></pre></div>
+      </div>
       <a class="go" href="paper-to-poster/">View posters &amp; details →</a>
     </div>
 
     <div class="plugin">
       <h2>mlspace-jobs <span class="lic">MIT</span></h2>
       <p><strong>Experiments as code</strong> for MLSpace GPU jobs: scaffold reproducible training/eval launchers into your repo, plus a first-time setup walkthrough and a day-to-day command reference. Three skills, one plugin.</p>
-      <code class="inst">/plugin install mlspace-jobs@axxx-institute</code>
+      <div class="install">
+        <div class="tool"><span class="t">Claude Code</span><pre><code>/plugin marketplace add AXXX-Institute/skills
+/plugin install mlspace-jobs@axxx-institute</code></pre></div>
+        <div class="tool"><span class="t">OpenAI Codex</span><pre><code>codex plugin marketplace add AXXX-Institute/skills
+codex plugin add mlspace-jobs@axxx-institute</code></pre></div>
+      </div>
       <a class="go" href="mlspace-jobs.html">Why experiments-as-code →</a>
     </div>
 
