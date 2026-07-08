@@ -24,6 +24,10 @@
   h1 .ac{color:var(--accent)}
   .sub{color:var(--text-2);font-size:16px;margin-top:8px;max-width:760px}
   .inst{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--accent-deep);background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-top:14px}
+  .install{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-top:14px;max-width:760px}
+  .install .t{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--accent);margin-bottom:5px}
+  .install pre{margin:0;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;overflow-x:auto}
+  .install pre code{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--accent-deep);background:none;padding:0;white-space:pre;line-height:1.7}
   main{max-width:1100px;margin:0 auto;padding:24px}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;margin-top:8px}
   .card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s}
@@ -47,7 +51,12 @@
 <header>
   <h1>AXXX <span class="ac">paper-to-poster</span> — examples gallery</h1>
   <p class="sub">Upstream <a href="https://github.com/Chenruishuo/posterly">posterly</a> examples, re-rendered in the AXXX brand (blue palette, Inter, top accent bar, arrow bullets, affiliation logos). Each poster passes posterly's <code>measure</code> + <code>polish</code> gates. AGPL-3.0 (derivative of posterly).</p>
-  <div class="inst">/plugin install paper-to-poster@axxx-institute</div>
+  <div class="install">
+    <div class="tool"><span class="t">Claude Code</span><pre><code>/plugin marketplace add AXXX-Institute/skills
+/plugin install paper-to-poster@axxx-institute</code></pre></div>
+    <div class="tool"><span class="t">OpenAI Codex</span><pre><code>codex plugin marketplace add AXXX-Institute/skills
+codex plugin add paper-to-poster@axxx-institute</code></pre></div>
+  </div>
 </header>
 <main>
   <div class="grid">
