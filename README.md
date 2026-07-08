@@ -44,7 +44,7 @@ codex plugin add paper-to-poster@axxx-institute   # the poster builder
 codex plugin add mlspace-jobs@axxx-institute       # the MLSpace job skills
 ```
 
-### Ask an agent to install it (natural language)
+### Method B — Ask an agent to install it (natural language)
 
 Hand Claude Code the repo URL and say which plugin you want — it will add the
 marketplace and install just that one:
