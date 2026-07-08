@@ -56,30 +56,6 @@ marketplace and install just that one:
 Under the hood the agent runs `/plugin marketplace add AXXX-Institute/skills`
 followed by `/plugin install <plugin>@axxx-institute` — nothing else is installed.
 
-### Method B — Manual copy (works in any setup, no marketplace)
-
-A skill is just a directory containing `SKILL.md`. Clone the repo and drop the
-skill dirs you want into a Claude Code skills directory:
-
-```bash
-git clone https://github.com/AXXX-Institute/skills.git axxx-skills
-
-# Project-local (available in one project): from your project root
-mkdir -p .claude/skills
-
-# the poster builder:
-cp -r axxx-skills/plugins/paper-to-poster/skills/paper-to-poster .claude/skills/paper-to-poster
-# the MLSpace job skills (all three):
-cp -r axxx-skills/plugins/mlspace-jobs/skills/* .claude/skills/
-
-# Global (available in every project): copy into ~/.claude/skills/ instead
-mkdir -p ~/.claude/skills
-cp -r axxx-skills/plugins/paper-to-poster/skills/paper-to-poster ~/.claude/skills/paper-to-poster
-```
-
-Claude Code discovers skills in `.claude/skills/` (project) and `~/.claude/skills/`
-(global) automatically — no restart needed for a new session.
-
 ### Runtime dependencies (only for `paper-to-poster`)
 
 `paper-to-poster` renders posters with headless Chromium and processes images, so
