@@ -105,5 +105,8 @@ the BUILD skill).
 The **SETUP** skill: an interactive, task-tracked, one-step-at-a-time walkthrough
 for a **first-time** MLSpace user — create a conda env, install and configure
 `mls`, submit and monitor a first job. Supersets [[mlspace-jobs]]' operational
-guidance for the not-yet-configured user.
+guidance for the not-yet-configured user. **Explicit-only**: it sets
+`disable-model-invocation: true`, so Claude never auto-launches it; the user runs
+it deliberately with `/mlspace-jobs-quick-start` (it has side effects — creates
+conda envs, installs packages, writes credentials).
 _Avoid:_ "mlspace-jobs" (that is the reference for the already-configured user).

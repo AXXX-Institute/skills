@@ -1,6 +1,7 @@
 ---
 name: mlspace-jobs-quick-start
-description: Interactive step-by-step guide for FIRST-TIME MLSpace Jobs setup. Use this skill when the user has NEVER used MLSpace before and needs to set up everything from scratch — creating a conda environment, installing mls CLI, configuring credentials, and submitting their first job. Trigger when user says things like "I've never used MLSpace", "help me set up MLSpace", "first time with mls", or "how do I get started with MLSpace Jobs". Do NOT use this skill if the user already has mls configured — use the mlspace-jobs skill instead.
+description: Interactive, step-by-step first-time MLSpace Jobs setup — create a conda environment, install and configure the mls CLI, and submit + monitor your first job. Explicit-only: launch it deliberately with /mlspace-jobs-quick-start when setting up MLSpace from scratch. Once mls is configured, use the mlspace-jobs skill for day-to-day work, or mlspace-jobs-scaffold to generate experiments-as-code launchers.
+disable-model-invocation: true
 ---
 
 # MLSpace Jobs — Interactive Quick Start
