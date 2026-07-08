@@ -1,19 +1,23 @@
 # Glossary (CONTEXT.md)
 
-Canonical domain terms for the **axxx-skills** repo — a multi-skill Claude Code
-plugin whose first skill is `paper-to-poster`. Glossary only — no implementation
-detail. See `docs/adr/` for decisions and the skill sources for code.
+Canonical domain terms for the **axxx-skills** repo — a Claude Code **marketplace**
+hosting two independently-installable plugins (`paper-to-poster`, `mlspace-jobs`).
+Glossary only — no implementation detail. See `docs/adr/` for decisions and the
+skill sources for code.
 
 ## skills repo (AXXX-Institute/skills)
-The public, org-owned Claude Code **plugin repository** that hosts one or more
-skills under `skills/<name>/`. GitHub identity: **`AXXX-Institute/skills`**
+The public, org-owned Claude Code **marketplace repository**. Its root
+`.claude-plugin/marketplace.json` lists **plugins**, each under `plugins/<name>/`
+with its own `.claude-plugin/plugin.json` and skills at
+`plugins/<name>/skills/<skill>/`. GitHub identity: **`AXXX-Institute/skills`**
 (Pages at `axxx-institute.github.io/skills`, release assets at
 `github.com/AXXX-Institute/skills/releases/...`); checked out locally as
-`axxx-skills`. `paper-to-poster` is its first, example skill; the repo is built
-so further skills can be added later.
+`axxx-skills`. Ships `paper-to-poster` and `mlspace-jobs`; built so further
+plugins can be added later.
 _Avoid:_ "the poster repo" (that names the user's paper repo, not this one);
 "axxx-skills" as the GitHub name (it's the local dir; the remote is
-`AXXX-Institute/skills`).
+`AXXX-Institute/skills`); "the plugin" (singular — the repo is a marketplace of
+several plugins).
 
 ## paper-to-poster
 The skill ported from upstream **posterly** that turns a paper into a print-ready
@@ -63,3 +67,43 @@ The static GitHub Pages site of `AXXX-Institute/skills`
 re-rendered in AXXX style, listed by an `index.html`. Distinct from a single
 poster repo's own Pages deploy.
 _Avoid:_ "the demo" (the gallery is the published showcase, not a smoke test).
+
+## MLSpace
+The GPU compute platform (Cloud.ru) the job skills target: users submit **jobs**
+to an **allocation**, picking an **instance type** for GPU/CPU/RAM. Driven from
+the `mls` CLI. The three MLSpace skills split cleanly by job-to-be-done:
+**BUILD** ([[mlspace-jobs-scaffold]]), first-time **SETUP**
+([[mlspace-jobs-quick-start]]), and day-to-day **OPERATE** ([[mlspace-jobs]]).
+_Avoid:_ "the cluster" (MLSpace is the managed platform, not a bare cluster).
+
+## mls (CLI)
+The command-line tool that talks to MLSpace (`mls job submit/table/status/logs/
+kill/wait`, `mls job instance_types`, `mls configure`). Installed from
+`git+https://gitverse.ru/mrsndmn/mls@master`; a **read-only** dependency of the
+skills — never edited or pushed to from a skill. All three MLSpace skills operate
+`mls`; [[mlspace-jobs-scaffold]] additionally imports its `mls.manager.job`
+helpers into the launchers it generates.
+_Avoid:_ "MLSpace SDK" (it's the CLI; the importable helpers are a sub-surface).
+
+## mlspace-jobs-scaffold
+The **BUILD** skill: scaffolds experiments-as-code training/eval launchers
+(`run_train_jobs.py`, `run_eval.py`, `experiments.py`) into a target repo,
+following four pillars — out-of-workdir artifacts, idempotency, in-progress
+dedup, and code staging. Deliverable is diff-reviewable Python + a green `--dry`
+run; it never launches a real job. Ships templates and reference docs.
+_Avoid:_ "job runner" (it generates launchers, it does not run jobs);
+"mlspace-jobs" (that is the OPERATE reference, a different skill).
+
+## mlspace-jobs
+The **OPERATE** skill: a CLI command reference for a user who **already** has
+`mls` configured — monitor/logs/wait/kill, accelerate multi-GPU config, and
+troubleshooting. No setup walkthrough.
+_Avoid:_ "quick-start" (that is the first-time SETUP skill); "scaffold" (that is
+the BUILD skill).
+
+## mlspace-jobs-quick-start
+The **SETUP** skill: an interactive, task-tracked, one-step-at-a-time walkthrough
+for a **first-time** MLSpace user — create a conda env, install and configure
+`mls`, submit and monitor a first job. Supersets [[mlspace-jobs]]' operational
+guidance for the not-yet-configured user.
+_Avoid:_ "mlspace-jobs" (that is the reference for the already-configured user).

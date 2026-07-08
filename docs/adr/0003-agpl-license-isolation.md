@@ -46,3 +46,14 @@ top-level license" anticipated above): MIT covers the plugin manifest, README,
 gallery, and repo tooling, while `paper-to-poster` remains **AGPL-3.0** inside its
 own directory. The two coexist because AGPL is confined to `skills/paper-to-poster/`
 and is not relicensed by the MIT root.
+
+## Update (2026-07-08)
+
+The repo was restructured into a marketplace of per-directory plugins (ADR 0005).
+The AGPL `paper-to-poster` skill — with its `LICENSE` and `NOTICE.md` — now lives
+at **`plugins/paper-to-poster/skills/paper-to-poster/`**, and the MLSpace skills
+are an independent MIT plugin at `plugins/mlspace-jobs/`. The per-skill isolation
+described here is now enforced **structurally** by the plugin-directory boundary:
+AGPL is confined to the `paper-to-poster` plugin directory, MIT to `mlspace-jobs`
+and the root. Wherever this ADR says `skills/paper-to-poster/`, read
+`plugins/paper-to-poster/skills/paper-to-poster/`.

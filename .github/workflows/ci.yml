@@ -1,0 +1,31 @@
+# Fast, cheap structural CI for the marketplace. No Claude sessions, no skill
+# evaluations, no plugin installs — pure validation. Runs in seconds on the
+# runner's built-in Python (no pip install, no external deps).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate marketplace, plugins & skills
+        run: python3 .github/scripts/validate.py
+
+      - name: Byte-compile paper-to-poster Python (syntax only, no deps)
+        # compileall parses (does not import) every .py, so it needs none of the
+        # poster's Playwright/Pillow runtime deps. Templates (*.tmpl) are skipped.
+        run: python3 -m compileall -q plugins/paper-to-poster/skills/paper-to-poster

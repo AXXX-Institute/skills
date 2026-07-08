@@ -1,0 +1,253 @@
+{
+  "skill_name": "mlspace-jobs-quick-start",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I want to run my training script on MLSpace GPUs. I've never used it before, help me set it up.",
+      "expected_output": "Interactive step-by-step walkthrough starting from environment creation, asking for env name, walking through credential setup with URLs, installing mls and torch, generating job config, and submitting. Should NOT dump all steps at once. Should create tasks to track progress.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Creates tasks via TaskCreate to track walkthrough steps at the start",
+          "type": "includes"
+        },
+        {
+          "text": "Asks the user what to name the conda environment before creating it",
+          "type": "includes"
+        },
+        {
+          "text": "Shows the mlspace environments create command with -p 3.12 and --cuda 12.6.0",
+          "type": "includes"
+        },
+        {
+          "text": "Checks disk space on mounted volumes before setting HF_HOME (runs df -h or equivalent)",
+          "type": "includes"
+        },
+        {
+          "text": "Does NOT suggest /mnt/s3 as a location for HF_HOME",
+          "type": "excludes"
+        },
+        {
+          "text": "Provides the URL https://console.cloud.ru/profile/apiKeys for obtaining Key ID and Key Secret",
+          "type": "includes"
+        },
+        {
+          "text": "Provides the URL https://console.cloud.ru/spa/mlspace/profile/review for workspace ID and API key",
+          "type": "includes"
+        },
+        {
+          "text": "Tells the user to run mls configure interactively via ! prefix, not running it directly",
+          "type": "includes"
+        },
+        {
+          "text": "Shows only one step at a time and waits for user input before proceeding",
+          "type": "includes"
+        },
+        {
+          "text": "Does NOT run mutating commands (conda activate, pip install, mls configure) directly — asks user to run via ! prefix",
+          "type": "excludes"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "I already have mls configured and my conda env 'train_env' is ready. I need to submit a job that runs `python train.py` and then check the logs.",
+      "expected_output": "Should skip setup steps, ask for username/telegram tags, jump to job config generation, submission, monitoring, and log viewing. Should use conda run -n train_env for all mls commands.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Does NOT walk through conda environment creation or mls configure setup",
+          "type": "excludes"
+        },
+        {
+          "text": "Asks the user for their username and Telegram nick for job description tags",
+          "type": "includes"
+        },
+        {
+          "text": "Uses conda run -n train_env prefix for mls commands",
+          "type": "includes"
+        },
+        {
+          "text": "Runs mls job instance_types to check available instance types",
+          "type": "includes"
+        },
+        {
+          "text": "Generates a job config YAML via mls job yaml binary (asks user to run via ! prefix)",
+          "type": "includes"
+        },
+        {
+          "text": "Sets or mentions setting the script/command field to python train.py",
+          "type": "includes"
+        },
+        {
+          "text": "Shows how to submit with mls job submit -c run.yaml",
+          "type": "includes"
+        },
+        {
+          "text": "Mentions the web UI URL https://console.cloud.ru/spa/mlspace/env-jobs/jobs for monitoring",
+          "type": "includes"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My MLSpace job is segfaulting and I'm not sure why. I'm using CUDA 12.6 but the base image might be different. Also my dataloader is crashing with 'no space left on device'.",
+      "expected_output": "Should diagnose both issues: (1) segfault likely from CUDA/Python version mismatch with base image, (2) 'no space left' is a shared memory issue, suggest binary_exp template with shm_size_class: large.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Identifies the segfault as likely caused by CUDA/Python version mismatch with the base Docker image",
+          "type": "includes"
+        },
+        {
+          "text": "Asks user to verify their CUDA version, PyTorch install index, and/or the image field in their job YAML",
+          "type": "includes"
+        },
+        {
+          "text": "Identifies the 'no space left on device' error as a shared memory issue",
+          "type": "includes"
+        },
+        {
+          "text": "Suggests using the binary_exp template (mls job yaml binary_exp)",
+          "type": "includes"
+        },
+        {
+          "text": "Suggests adding shm_size_class: large to the job YAML",
+          "type": "includes"
+        },
+        {
+          "text": "Offers to regenerate or fix the job config for the user",
+          "type": "includes"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I submitted an MLSpace job about 20 minutes ago but I think it's stuck. How do I check what's going on and kill it if needed? The job id is job-abc123.",
+      "expected_output": "Should check job status and offer to kill it. Should use the provided job ID directly without re-asking.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses the provided job ID (job-abc123) in commands rather than asking for it again",
+          "type": "includes"
+        },
+        {
+          "text": "Shows mls job status job-abc123 or mls job table to check the job state",
+          "type": "includes"
+        },
+        {
+          "text": "Shows mls job logs job-abc123 to view logs",
+          "type": "includes"
+        },
+        {
+          "text": "Shows mls job kill job-abc123 to stop the job",
+          "type": "includes"
+        },
+        {
+          "text": "Mentions the web UI at https://console.cloud.ru/spa/mlspace/env-jobs/jobs as an alternative",
+          "type": "includes"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I need to run multi-GPU training with accelerate on MLSpace. My script uses 4 GPUs and the DataLoader has num_workers=8. What should my job config look like?",
+      "expected_output": "Should explain processes_per_worker=1, n_workers=1 for accelerate, warn about shared memory for num_workers=8, and help pick a 4-GPU instance type.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Specifies that processes_per_worker must be 1 when using accelerate",
+          "type": "includes"
+        },
+        {
+          "text": "Specifies that n_workers must be 1 when using accelerate",
+          "type": "includes"
+        },
+        {
+          "text": "Explains that accelerate handles multi-process spawning internally",
+          "type": "includes"
+        },
+        {
+          "text": "Warns about shared memory issues with num_workers=8 and suggests shm_size_class: large",
+          "type": "includes"
+        },
+        {
+          "text": "Suggests using the binary_exp template for shared memory support",
+          "type": "includes"
+        },
+        {
+          "text": "Runs or suggests running mls job instance_types to find an instance type with 4+ GPUs",
+          "type": "includes"
+        },
+        {
+          "text": "Asks the user to run mutating commands via ! prefix rather than running them directly",
+          "type": "includes"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I already have a conda env called 'my_env' with mls installed. Can you check if mls is configured and if so, help me create a quick test job to make sure everything works?",
+      "expected_output": "Should proactively check if mls is configured by running mls configure region. If configured, skip install/configure steps. Should guide through a quick test job (Step 10) with a simple python -c print command, then show how to check completion via logs and status.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Proactively runs conda run -n my_env which mls or conda run -n my_env mls configure region to verify mls is installed and configured",
+          "type": "includes"
+        },
+        {
+          "text": "Skips mls installation and configuration steps if already set up",
+          "type": "includes"
+        },
+        {
+          "text": "Suggests a simple test script like python -c print(...) for the quick test job",
+          "type": "includes"
+        },
+        {
+          "text": "Uses conda run -n my_env prefix for mls commands",
+          "type": "includes"
+        },
+        {
+          "text": "Shows how to check job completion via mls job status or mls job table",
+          "type": "includes"
+        },
+        {
+          "text": "Shows how to view logs of the completed test job",
+          "type": "includes"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "I set up my conda env 'gpu_env' yesterday and mls is installed. I want to submit a training run. Can you check what GPU instances are available and help me pick the right one?",
+      "expected_output": "Should verify mls is configured, run mls job instance_types, explain the output table, highlight available instances, and help the user pick one. Should verify HF_HOME is set independently even though env exists.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Runs conda run -n gpu_env mls configure region to check if mls is configured",
+          "type": "includes"
+        },
+        {
+          "text": "Runs conda run -n gpu_env mls job instance_types to list available instances",
+          "type": "includes"
+        },
+        {
+          "text": "Explains the instance_types output — columns like type name, available count, GPU model, etc.",
+          "type": "includes"
+        },
+        {
+          "text": "Highlights which instance types have availability (count > 0)",
+          "type": "includes"
+        },
+        {
+          "text": "Checks or asks about HF_HOME configuration independently of whether the env already exists",
+          "type": "includes"
+        },
+        {
+          "text": "Uses conda run -n gpu_env prefix for all mls commands",
+          "type": "includes"
+        }
+      ]
+    }
+  ]
+}

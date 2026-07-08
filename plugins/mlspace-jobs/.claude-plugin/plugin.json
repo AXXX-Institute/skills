@@ -1,0 +1,12 @@
+{
+  "name": "mlspace-jobs",
+  "version": "0.1.0",
+  "description": "MLSpace GPU job skills driven by the mls CLI: scaffold experiments-as-code training/eval launchers, an interactive first-time setup walkthrough, and a day-to-day command reference. Ships three skills: mlspace-jobs-scaffold, mlspace-jobs-quick-start, mlspace-jobs.",
+  "author": {
+    "name": "AXXX-Institute"
+  },
+  "homepage": "https://github.com/AXXX-Institute/skills",
+  "repository": "https://github.com/AXXX-Institute/skills",
+  "license": "MIT",
+  "keywords": ["mlspace", "gpu", "training", "jobs", "mls"]
+}
