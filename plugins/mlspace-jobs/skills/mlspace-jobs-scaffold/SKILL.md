@@ -10,7 +10,8 @@ description: >-
   MLSpace", "submit jobs to my allocation", "experiments as code for MLSpace",
   "make my train.py runnable on MLSpace", or "port my existing job launchers
   to this repo". Reuses the shared `mls` library as a read-only dependency and
-  discovers the allocation's instance types with `mls job instance_types`. This
+  discovers the allocation's instance types, allocations, and queues with
+  `mls job instance_types` / `mls job allocations` / `mls queue`. This
   is for BUILDING the launchers, not for running one-off `mls job
   status/logs/kill` commands on an already-configured setup.
 ---
@@ -74,7 +75,7 @@ Determine, by reading the repo:
 - **Checkpoint format** — what a finished run writes last (the idempotency marker)
   and how checkpoints are named (`checkpoint-*`?).
 
-### Step 2 — Discover instance types (live)
+### Step 2 — Discover instance types, allocations & queues (live)
 
 Run `mls job instance_types` and read the table of instance types **available in
 the user's allocation** (see `references/mls-helpers.md`). Choose the `Nxgpu`
@@ -85,6 +86,19 @@ dict; in Step 4 you write it into `experiments.py`'s `INSTANCE_TYPES_BY_NUM_GPUS
 configured, help the user set it up first (create an `mls` profile with their
 allocation credentials) before scaffolding.
 
+Then discover the workspace's **allocations and queues** (the MLSpace *queues*
+feature is optional and per-workspace):
+
+- `mls job allocations` — the workspace's allocations (id, name, region).
+- `mls queue defaults -a <allocation_id>` — the recommended default queue(s);
+  **pre-select this** as the proposed `QUEUE_NAME`.
+- `mls queue list -a <allocation_id>` — the full menu of queues for that allocation.
+
+If `mls queue list` returns queues, offer the user a default in Step 3 and bake
+it into `experiments.py`'s `QUEUE_NAME` in Step 4. If it is empty (or the call
+errors → **queues are not enabled** for this workspace), set `QUEUE_NAME = None`
+in Step 4 so the launchers omit `queue_name` from every payload.
+
 ### Step 3 — Propose, then confirm
 
 Present a short plan and get a yes/no with `AskUserQuestion` before writing files:
@@ -94,6 +108,8 @@ Present a short plan and get a yes/no with `AskUserQuestion` before writing file
   dir at that path). See `references/artifacts-layout.md`. Show the four derived
   paths (`{{ARTIFACTS_ROOT}}` etc.) so the user sees exactly where bytes land.
 - the chosen **instance-type map**;
+- the **default queue** (`QUEUE_NAME`) — pre-selected from `mls queue defaults`,
+  overridable per-experiment; skip this when the workspace has no queues;
 - the **train/eval entrypoints** and launch mechanism (`accelerate` / `torchrun` / `python`);
 - whether to enable the **shared-venv** companion.
 
@@ -116,8 +132,12 @@ Copy the templates from `assets/` and replace every `{{PLACEHOLDER}}`:
 Placeholders: `{{PROJECT_NAME}}`, `{{PROJECT_SLUG}}`, `{{TRAIN_ENTRYPOINT}}`,
 `{{EVAL_ENTRYPOINT}}`, `{{DEFAULT_MODEL}}`, `{{EVAL_DATASET}}`,
 `{{ARTIFACTS_ROOT}}`, `{{ARTIFACTS_ROOT_SANITY}}`, `{{STAGING_ROOT}}`,
-`{{HF_HOME}}`, and `{{INSTANCE_TYPES_BY_NUM_GPUS}}` (in `experiments.py` only —
-replace it with the dict you built in Step 2). Set the `from experiments import …`
+`{{HF_HOME}}`, `{{INSTANCE_TYPES_BY_NUM_GPUS}}` and `{{QUEUE_NAME}}` (both in
+`experiments.py` only — replace `{{INSTANCE_TYPES_BY_NUM_GPUS}}` with the dict you
+built in Step 2, and `{{QUEUE_NAME}}` with the chosen default queue as a quoted
+string, e.g. `"prod-queue"`, or `None` when the workspace has no queues). The
+launchers import `QUEUE_NAME` and only send `queue_name` when it — or a
+per-experiment override — is set. Set the `from experiments import …`
 path to the repo's package layout. Both launchers import
 `INSTANCE_TYPES_BY_NUM_GPUS` from `experiments.py`; do **not** reintroduce a
 hardcoded map in the launchers. `repo_root` is resolved with

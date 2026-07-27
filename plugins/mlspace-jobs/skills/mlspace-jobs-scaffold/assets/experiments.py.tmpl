@@ -43,6 +43,17 @@ INSTANCE_TYPES_BY_NUM_GPUS: dict[int, str] = {{INSTANCE_TYPES_BY_NUM_GPUS}}
 
 
 # ---------------------------------------------------------------------------
+# Default scheduling queue (optional — MLSpace "queues" feature)
+# ---------------------------------------------------------------------------
+# The project-default queue jobs are submitted onto, chosen at scaffold time from
+# `mls queue defaults -a <allocation_id>` (recommended) / `mls queue list -a
+# <allocation_id>` (full menu). Any experiment overrides it via its own
+# ``queue_name`` field. Leave it as ``None`` when the workspace has no queues
+# enabled — the launchers then omit ``queue_name`` from every payload.
+QUEUE_NAME: str | None = {{QUEUE_NAME}}
+
+
+# ---------------------------------------------------------------------------
 # Experiment schema
 # ---------------------------------------------------------------------------
 # Keep this dataclass the single source of truth for what a training run *is*.
@@ -75,10 +86,13 @@ class ExperimentConfig:
     # --- launcher-level only (never forwarded to the training entrypoint) ---
     description: str = ""
     priority_class: str | None = None  # "low" | "medium" | "high" | None
+    queue_name: str | None = None  # override QUEUE_NAME for this run; None → inherit
 
     def config_dict(self) -> dict[str, Any]:
         """Non-launcher fields as a flat {flag: value} mapping for the entrypoint."""
-        launcher_only = {"name", "num_gpus", "description", "priority_class", "extra"}
+        launcher_only = {
+            "name", "num_gpus", "description", "priority_class", "extra", "queue_name",
+        }
         out: dict[str, Any] = {}
         for f in dataclasses.fields(self):
             if f.name in launcher_only:

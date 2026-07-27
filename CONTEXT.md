@@ -88,12 +88,26 @@ _Avoid:_ "the cluster" (MLSpace is the managed platform, not a bare cluster).
 
 ## mls (CLI)
 The command-line tool that talks to MLSpace (`mls job submit/table/status/logs/
-kill/wait`, `mls job instance_types`, `mls configure`). Installed from
+kill/wait`, `mls job instance_types`, `mls job allocations`, the `mls queue`
+read-command group, `mls configure`). Installed from
 `git+https://gitverse.ru/mrsndmn/mls@master`; a **read-only** dependency of the
 skills — never edited or pushed to from a skill. All three MLSpace skills operate
 `mls`; [[mlspace-jobs-scaffold]] additionally imports its `mls.manager.job`
-helpers into the launchers it generates.
+helpers (`staging`, `dedup`, `redact`, `uv_env`, `notify`) into the launchers it
+generates.
 _Avoid:_ "MLSpace SDK" (it's the CLI; the importable helpers are a sub-surface).
+
+## queue / queue_name (MLSpace)
+A named scheduling **queue** a MLSpace workspace may have enabled; a job is
+submitted onto one via the `queue_name` payload param. Queues are **conditional**:
+a workspace may have none, in which case no `queue_name` is sent. Discovered with
+`mls queue defaults` (the recommended default) and `mls queue list` (the full
+menu); [[mlspace-jobs-scaffold]] bakes the chosen default into the target repo's
+`experiments.py` as a **project default that each experiment can override**, and
+omits it entirely when the workspace has no queues.
+_Avoid:_ "allocation" (a queue is a scheduling lane; an allocation is the GPU/CPU
+resource set — a separate concept); "the retry queue" (`mls job retry_queue` is an
+unrelated local resubmit buffer).
 
 ## mlspace-jobs-scaffold
 The **BUILD** skill: scaffolds experiments-as-code training/eval launchers

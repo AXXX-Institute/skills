@@ -45,8 +45,67 @@ except ImportError:  # pragma: no cover - older mls without redact module
         return {**payload, "env_variables": env}
 
 
+# Git-based repo staging (pillar 5) and job-desc dedup (pillar 3) come from mls.
+# The inline fallbacks keep a freshly scaffolded repo working if its pinned mls
+# predates these modules (same pattern as redact_payload above).
+try:
+    from mls.manager.job.staging import (
+        git_commit_hash,
+        git_dirty_tracked,
+        git_toplevel,
+        stage_repo,
+    )
+except ImportError:  # pragma: no cover - older mls without the staging module
+
+    def _git(repo_root: str, *args: str) -> str:
+        return subprocess.run(
+            ["git", "-C", repo_root, *args], capture_output=True, text=True, check=True
+        ).stdout.strip()
+
+    def git_commit_hash(repo_root: str) -> str:
+        return _git(repo_root, "rev-parse", "HEAD")
+
+    def git_toplevel(start_dir: str | None = None) -> str:
+        return _git(start_dir or os.getcwd(), "rev-parse", "--show-toplevel")
+
+    def git_dirty_tracked(repo_root: str) -> list[str]:
+        lines = _git(repo_root, "status", "--porcelain").splitlines()
+        return [ln for ln in lines if ln and not ln.startswith("??")]
+
+    def stage_repo(repo_root: str, target: str) -> None:
+        """Copy .git + ``git reset --hard HEAD`` into target. Idempotent + atomic."""
+        if os.path.isdir(target):
+            print(f"Reusing staged repo at: {target}")
+            return
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        tmp = f"{target}.tmp.{os.getpid()}"
+        if os.path.exists(tmp):
+            shutil.rmtree(tmp)
+        os.makedirs(tmp)
+        print(f"Staging {repo_root} -> {target}")
+        subprocess.run(["cp", "-a", os.path.join(repo_root, ".git"), tmp], check=True)
+        subprocess.run(["git", "-C", tmp, "reset", "--hard", "HEAD"], check=True)
+        try:
+            os.rename(tmp, target)
+        except OSError:
+            shutil.rmtree(tmp, ignore_errors=True)
+            if not os.path.isdir(target):
+                raise
+
+
+try:
+    from mls.manager.job.dedup import normalize_job_desc
+except ImportError:  # pragma: no cover - older mls without the dedup module
+    _JOB_DESC_TAG_RE = re.compile(r"[#@]\S+")
+
+    def normalize_job_desc(desc: str) -> str:
+        """Strip #tags/@mentions so dedup matches on the description body only."""
+        return " ".join(_JOB_DESC_TAG_RE.sub("", desc).split())
+
+
 from experiments import (  # adjust import path to your package layout
     INSTANCE_TYPES_BY_NUM_GPUS,
+    QUEUE_NAME,
     build_train_command,
     collect_experiments,
     has_training_artifacts,
@@ -62,48 +121,6 @@ ARTIFACTS_ROOT_SANITY = "{{ARTIFACTS_ROOT_SANITY}}"  # …/training/artifacts_sa
 STAGING_ROOT = "{{STAGING_ROOT}}"              # /home/jovyan/{{PROJECT_SLUG}}-artifacts/code
 BASE_IMAGE = "cr.ai.cloud.ru/aicloud-base-images/py3.12-torch2.7.0:0.0.41"
 HF_HOME = "{{HF_HOME}}"                         # shared HF cache on NFS
-
-_JOB_DESC_TAG_RE = re.compile(r"[#@]\S+")
-
-
-def normalize_job_desc(desc: str) -> str:
-    """Strip #tags/@mentions so dedup matches on the description body only."""
-    return " ".join(_JOB_DESC_TAG_RE.sub("", desc).split())
-
-
-# --- git / staging: clone code to a stable dir so live edits are isolated -----
-
-
-def _git(repo_root: str, *args: str) -> str:
-    return subprocess.run(
-        ["git", "-C", repo_root, *args], capture_output=True, text=True, check=True
-    ).stdout.strip()
-
-
-def _dirty_tracked(repo_root: str) -> list[str]:
-    lines = _git(repo_root, "status", "--porcelain").splitlines()
-    return [ln for ln in lines if ln and not ln.startswith("??")]
-
-
-def stage_repo(repo_root: str, target: str) -> None:
-    """Copy .git + ``git reset --hard HEAD`` into target. Idempotent + atomic."""
-    if os.path.isdir(target):
-        print(f"Reusing staged repo at: {target}")
-        return
-    os.makedirs(os.path.dirname(target), exist_ok=True)
-    tmp = f"{target}.tmp.{os.getpid()}"
-    if os.path.exists(tmp):
-        shutil.rmtree(tmp)
-    os.makedirs(tmp)
-    print(f"Staging {repo_root} -> {target}")
-    subprocess.run(["cp", "-a", os.path.join(repo_root, ".git"), tmp], check=True)
-    subprocess.run(["git", "-C", tmp, "reset", "--hard", "HEAD"], check=True)
-    try:
-        os.rename(tmp, target)
-    except OSError:
-        shutil.rmtree(tmp, ignore_errors=True)
-        if not os.path.isdir(target):
-            raise
 
 
 def parse_args() -> argparse.Namespace:
@@ -124,11 +141,11 @@ def main() -> int:
 
     # Resolve the repo root robustly regardless of where the launcher lives
     # (repo root, scripts/, etc.) — no fragile parent-of-cwd assumption.
-    repo_root = _git(os.getcwd(), "rev-parse", "--show-toplevel")
-    commit = _git(repo_root, "rev-parse", "HEAD")
+    repo_root = git_toplevel(os.getcwd())
+    commit = git_commit_hash(repo_root)
 
     if not args.dry:
-        dirty = _dirty_tracked(repo_root)
+        dirty = git_dirty_tracked(repo_root)
         if dirty:
             print(
                 f"\033[31mWorking tree is dirty (HEAD={commit[:8]}). Commit or "
@@ -197,6 +214,13 @@ def main() -> int:
             "n_workers": 1,
             "processes_per_worker": 1,
             **({"priority_class": exp.priority_class} if exp.priority_class else {}),
+            # Queue (optional): per-experiment override wins, else the project
+            # default; omitted entirely when neither is set (no queues enabled).
+            **(
+                {"queue_name": exp.queue_name or QUEUE_NAME}
+                if (exp.queue_name or QUEUE_NAME)
+                else {}
+            ),
         }
 
         print(f"\033[32mWould launch [{exp.num_gpus} GPU]:\033[0m {job_desc}")
