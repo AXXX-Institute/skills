@@ -52,6 +52,9 @@ payload = {
     "n_workers": 1,
     "processes_per_worker": 1,   # accelerate/torchrun own process spawning
     # "priority_class": "low",   # optional MLSpace scheduling priority
+    # "queue_name": QUEUE_NAME,  # optional; project-default queue or a per-
+    #                            # experiment override. Omit when the workspace
+    #                            # has no queues (see "allocations & queues").
 }
 ```
 
@@ -77,12 +80,35 @@ DRY *within* the project without leaking allocation assumptions into `mls`.
 Populate it from the live `mls job instance_types` table at scaffold time rather
 than shipping a generic default.
 
-## Optional shared `mls` helpers (import if present)
+## Discovering allocations & queues (scaffold time)
 
-If the environment's `mls` install exposes these modules, prefer importing them
-over the inline copies in the templates (they are the same logic hoisted into
-`mls` so tracks don't each maintain a copy). All are pure/side-effect-light and
-carry no allocation-specific data:
+Allocation IDs and queue names are workspace-specific — discover them live, the
+same way instance types are (never hard-code without checking):
+
+```bash
+mls job allocations                      # workspace allocations (id, name, region)
+mls queue defaults -a <allocation_id>    # the recommended default queue(s)
+mls queue list -a <allocation_id>        # every queue for that allocation
+```
+
+If `mls queue list` is empty (or errors), the workspace has **no queues enabled**
+— leave `QUEUE_NAME = None` in `experiments.py`; the launchers then omit
+`queue_name` from every payload. When queues exist, set `QUEUE_NAME` to the
+chosen default (pre-select the `mls queue defaults` result, offer `mls queue
+list` as the menu). Any experiment overrides it via its own `queue_name` field;
+the resolved value rides in the submit payload next to `priority_class`. The
+`mls queue` group also has read commands for monitoring (`detail`, `jobs`,
+`pods`, `awaiting`, …) — see the `mlspace-jobs` operate skill.
+
+## Optional shared `mls` helpers
+
+These modules hold job-submission logic hoisted out of the launchers so tracks
+don't each maintain a copy. All are pure/side-effect-light and carry no
+allocation-specific data. **The generated `run_train_jobs.py` / `run_eval.py`
+already import `staging`, `dedup`, and `redact`** at module scope, each guarded
+by a `try/except ImportError` that falls back to an identical inline copy (so a
+scaffold still runs against an older `mls`). `uv_env` and `notify` are **not**
+wired into the base templates — import them yourself if the repo needs them:
 
 | Module | Exports | Replaces inline |
 |---|---|---|
@@ -92,9 +118,9 @@ carry no allocation-specific data:
 | `mls.manager.job.uv_env` | `uv_lock_hash`, `ensure_shared_venv` | shared-venv provisioning (uv repos only) |
 | `mls.manager.job.notify` | `send_jobs_summary` | Telegram summary |
 
-The templates keep inline fallbacks so a scaffold works even where these
-modules aren't installed — if you wire the imports, guard them with a
-try/except that falls back to the inline helper.
+Keep the `try/except ImportError` fallback pattern when you touch these imports:
+it lets a freshly scaffolded repo run even where the pinned `mls` predates the
+module (the inline copy is byte-identical to the hoisted one).
 
 ## Multi-GPU note
 

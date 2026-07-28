@@ -13,7 +13,7 @@ IMPORTANT: Track progress with tasks. At the START of the walkthrough, use `Task
 IMPORTANT: Be proactive after user output. When the user shares command output or says they ran a command, immediately acknowledge the result and proceed to the next step with the specific command to run. The user should NEVER need to ask "what's next?" — the walkthrough must flow automatically. At the end of EVERY message, give the user the exact next command to run.
 
 IMPORTANT: Do NOT run mutating commands yourself. Instead, tell the user what command to run and ask them to execute it via `! <command>`. This lets them see the output directly and interrupt long-running commands. However, you MAY run read-only commands yourself for gathering info. Here's the split:
-- **OK to run yourself** (read-only): `mls configure region`, `mls job instance_types`, `mls job table`, `mls job status`, `mls job logs` (without -w), `which mls`, `df -h`, `cat`, `conda env list`
+- **OK to run yourself** (read-only): `mls configure region`, `mls job instance_types`, `mls job allocations`, `mls queue list/defaults/detail`, `mls job table`, `mls job status`, `mls job logs` (without -w), `which mls`, `df -h`, `cat`, `conda env list`
 - **Must be user-run** (via `! ...`): `mls configure`, `mls job yaml`, `mls job submit`, `mls job kill`, `mls job logs -w`, `pip install`, `conda` create/activate/deactivate, `mlspace environments create`
 
 IMPORTANT: All commands that depend on the conda environment MUST be run via `conda run -n <env_name> <command>` (e.g. `conda run -n my_env mls job submit -c run.yaml`). This ensures the correct environment is used without requiring activation. The `<env_name>` is the environment name from Step 1.
@@ -143,6 +143,16 @@ Before generating the config, explore the current environment so you can set the
    ```
    This prints a table of all instance types in the current region with columns: type name, available count, and description (GPU model, GPU count, CPU cores, RAM). Show the table to the user and explain what the columns mean. Highlight which instance types actually have availability (count > 0).
 
+   Optionally, if the workspace uses **queues**, list them so the job can target
+   one (queues are allocation-scoped):
+   ```bash
+   conda run -n <env_name> mls job allocations
+   conda run -n <env_name> mls queue list -a <allocation-id>
+   ```
+   An empty list means queues aren't enabled — skip this. To run the job on a
+   queue, add `queue_name: <name>` to `run.yaml` later (or pass `--queue_name` to
+   `mls job submit`).
+
 3. Generate a starter YAML config — ask the user to run this themselves since it writes a file:
    ```bash
    ! conda run -n <env_name> mls job yaml binary > run.yaml
@@ -266,6 +276,9 @@ All commands below assume `conda run -n <env_name>` prefix (e.g. `conda run -n m
 | `mls configure` | Set up credentials and region |
 | `mls configure region` | Show the currently configured region |
 | `mls job instance_types` | List available instance types and their availability |
+| `mls job allocations` | List the workspace's allocations (id, name, region) |
+| `mls queue list -a <alloc-id>` | List queues for an allocation (if queues enabled) |
+| `mls queue defaults -a <alloc-id>` | Show the default queue(s) for an allocation |
 | `mls job yaml binary > run.yaml` | Generate a starter job config |
 | `mls job submit -c run.yaml` | Submit a job |
 | `mls job table --limit N` | List recent jobs |

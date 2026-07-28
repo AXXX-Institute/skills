@@ -30,9 +30,55 @@ import sys
 # Per-project instance-type map lives in experiments.py (populated from
 # `mls job instance_types` at scaffold time). experiments.py has no mls
 # dependency, so importing it here keeps eval's --local path mls-free.
-from experiments import INSTANCE_TYPES_BY_NUM_GPUS
+from experiments import INSTANCE_TYPES_BY_NUM_GPUS, QUEUE_NAME
 
 DATASETS_DEFAULT = ["{{EVAL_DATASET}}"]  # e.g. "hotpotqa", "musique_ans", ...
+
+# Repo staging (pillar 5) + job-desc dedup (pillar 3) come from mls, with inline
+# fallbacks. These are pure git/text helpers (no MLSpace API), so importing them
+# at module scope keeps the mls-free --local path working: if mls is absent the
+# except branch supplies identical inline copies.
+try:
+    from mls.manager.job.staging import git_commit_hash, git_toplevel, stage_repo
+except ImportError:  # pragma: no cover - older mls without the staging module
+
+    def _git(repo_root: str, *args: str) -> str:
+        return subprocess.run(
+            ["git", "-C", repo_root, *args], capture_output=True, text=True, check=True
+        ).stdout.strip()
+
+    def git_commit_hash(repo_root: str) -> str:
+        return _git(repo_root, "rev-parse", "HEAD")
+
+    def git_toplevel(start_dir: str | None = None) -> str:
+        return _git(start_dir or os.getcwd(), "rev-parse", "--show-toplevel")
+
+    def stage_repo(repo_root: str, target: str) -> None:
+        if os.path.isdir(target):
+            print(f"Reusing staged repo at: {target}")
+            return
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        tmp = f"{target}.tmp.{os.getpid()}"
+        if os.path.exists(tmp):
+            shutil.rmtree(tmp)
+        os.makedirs(tmp)
+        subprocess.run(["cp", "-a", os.path.join(repo_root, ".git"), tmp], check=True)
+        subprocess.run(["git", "-C", tmp, "reset", "--hard", "HEAD"], check=True)
+        try:
+            os.rename(tmp, target)
+        except OSError:
+            shutil.rmtree(tmp, ignore_errors=True)
+            if not os.path.isdir(target):
+                raise
+
+
+try:
+    from mls.manager.job.dedup import normalize_job_desc
+except ImportError:  # pragma: no cover - older mls without the dedup module
+    _JOB_DESC_TAG_RE = re.compile(r"[#@]\S+")
+
+    def normalize_job_desc(desc: str) -> str:
+        return " ".join(_JOB_DESC_TAG_RE.sub("", desc).split())
 
 
 # ============================ jobs-mode plumbing ============================
@@ -46,12 +92,6 @@ HF_HOME = "{{HF_HOME}}"
 
 # Param-count → GPU band (bf16 fit on one 80GB card + KV-cache headroom).
 _GPU_BANDS = ((8e9, 1), (16e9, 2), (30e9, 4))
-
-_JOB_DESC_TAG_RE = re.compile(r"[#@]\S+")
-
-
-def normalize_job_desc(desc: str) -> str:
-    return " ".join(_JOB_DESC_TAG_RE.sub("", desc).split())
 
 
 def num_gpus_for_params(n: int) -> int:
@@ -72,31 +112,6 @@ def compute_param_count(checkpoint: Path) -> int:
     if single.exists():
         return single.stat().st_size // 2
     raise FileNotFoundError(f"Cannot size {checkpoint}: no safetensors.")
-
-
-def _git(repo_root: str, *args: str) -> str:
-    return subprocess.run(
-        ["git", "-C", repo_root, *args], capture_output=True, text=True, check=True
-    ).stdout.strip()
-
-
-def stage_repo(repo_root: str, target: str) -> None:
-    if os.path.isdir(target):
-        print(f"Reusing staged repo at: {target}")
-        return
-    os.makedirs(os.path.dirname(target), exist_ok=True)
-    tmp = f"{target}.tmp.{os.getpid()}"
-    if os.path.exists(tmp):
-        shutil.rmtree(tmp)
-    os.makedirs(tmp)
-    subprocess.run(["cp", "-a", os.path.join(repo_root, ".git"), tmp], check=True)
-    subprocess.run(["git", "-C", tmp, "reset", "--hard", "HEAD"], check=True)
-    try:
-        os.rename(tmp, target)
-    except OSError:
-        shutil.rmtree(tmp, ignore_errors=True)
-        if not os.path.isdir(target):
-            raise
 
 
 # ============================== discovery ==================================
@@ -184,7 +199,7 @@ def _submit_jobs(args, extra, checkpoints, repo_root) -> int:
         print("\033[31mJobs mode needs --author_name and --telegram_nick (or --local).\033[0m")
         return 2
 
-    commit = _git(repo_root, "rev-parse", "HEAD")
+    commit = git_commit_hash(repo_root)
     if not args.dry:
         staged = os.path.join(STAGING_ROOT, commit)
         stage_repo(repo_root, staged)
@@ -237,6 +252,9 @@ def _submit_jobs(args, extra, checkpoints, repo_root) -> int:
             "base_image": args.base_image,
             "n_workers": 1,
             "processes_per_worker": 1,
+            # Queue (optional): the project default; omitted when unset (no
+            # queues enabled). Eval jobs inherit the project QUEUE_NAME.
+            **({"queue_name": QUEUE_NAME} if QUEUE_NAME else {}),
         }
         print(f"\033[32mWould launch [{num_gpus} GPU]:\033[0m {job_desc}")
         print(f"\033[90m  {script}\033[0m")
@@ -256,7 +274,7 @@ def _submit_jobs(args, extra, checkpoints, repo_root) -> int:
 
 def main() -> int:
     args, extra = parse_args()
-    repo_root = _git(os.getcwd(), "rev-parse", "--show-toplevel")
+    repo_root = git_toplevel(os.getcwd())
 
     if args.checkpoint:
         if not args.local:

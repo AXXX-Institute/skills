@@ -65,6 +65,31 @@ mls job wait <job-id> -i 30
 mls job kill <job-id>
 ```
 
+### Discover Allocations & Queues
+
+```bash
+# List the workspace's allocations (id, name, region)
+mls job allocations
+
+# Queues — only if the workspace has the queues feature enabled. All of these
+# are read-only and workspace-scoped:
+mls queue list -a <allocation-id>        # all queues for an allocation
+mls queue defaults -a <allocation-id>    # the default queue(s) for an allocation
+mls queue detail <queue-id>              # one queue's detail
+mls queue queue-defaults <queue-id>      # a queue's default settings
+mls queue instance-types <queue-id>      # instance types available in a queue
+mls queue jobs <queue-id>                # jobs in a queue
+mls queue pods <queue-id>                # pods in a queue
+mls queue notebooks <queue-id>           # notebooks in a queue
+mls queue awaiting <queue-id>            # resources awaiting launch in a queue
+```
+
+An empty `mls queue list` means queues aren't enabled for this workspace — jobs
+then run without a queue. To submit onto a specific queue, pass `--queue_name
+<name>` to `mls job submit` (or set `queue_name` in the job YAML / launcher
+payload). Add `--output json` to any `mls queue` / `mls job allocations` command
+for raw JSON.
+
 ## Multi-GPU Training with Accelerate
 
 When using `accelerate` for multi-GPU training, the job config must have:
