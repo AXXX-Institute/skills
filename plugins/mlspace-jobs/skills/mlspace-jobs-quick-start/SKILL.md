@@ -30,6 +30,14 @@ Then run:
 mlspace environments create --env "<ENVIRONMENT_NAME>" -p 3.12 --cuda 12.6.0
 ```
 
+`-p 3.12 --cuda 12.6.0` is the recommendation **for this jobs-submission
+environment**: it matches the `py3.12-*` / CUDA 12.6 base image the jobs in this
+walkthrough run on, so the local env lines up with the container (a mismatch is
+the usual cause of the segfault in Step 11). It is not a project-wide Python
+requirement — an environment created for other work on a different version (e.g.
+`-p 3.11`) is fine and does not need changing. If the user's job `base_image`
+pins a different Python/CUDA pair, match `-p` / `--cuda` to that image instead.
+
 After it completes, activate it:
 
 ```bash
