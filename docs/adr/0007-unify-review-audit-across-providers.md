@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted.
+Superseded by [ADR 0008](0008-centralize-gitlab-ai-plugin.md).
 
 ## Context
 

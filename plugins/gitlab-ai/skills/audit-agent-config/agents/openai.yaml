@@ -1,0 +1,4 @@
+interface:
+  display_name: "Audit Agent Configuration"
+  short_description: "Check repository agent guidance against source"
+  default_prompt: "Use $audit-agent-config to audit this repository's agent guidance against its source code."

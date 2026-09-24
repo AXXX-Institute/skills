@@ -8,15 +8,15 @@
 Review publishing helper for /review-mr:
 
   # free-form markdown summary note (body from --body, --body-file, or stdin)
-  uv run <review-audit-plugin>/skills/review-mr/scripts/post_review.py --summary --body-file summary.md
+  uv run <gitlab-ai-plugin>/skills/review-mr/scripts/post_review.py --summary --body-file summary.md
 
   # one inline discussion at FILE:LINE
-  uv run <review-audit-plugin>/skills/review-mr/scripts/post_review.py --inline --file src/x.py --line 42 --severity CRITICAL --body "..."
+  uv run <gitlab-ai-plugin>/skills/review-mr/scripts/post_review.py --inline --file src/x.py --line 42 --severity CRITICAL --body "..."
 
   # many inline discussions from a JSON list (CRITICAL issues only; warnings and
   # suggestions belong in the summary note)
   #   [{"file": "src/x.py", "line": 42, "severity": "CRITICAL", "message": "..."}]
-  uv run <review-audit-plugin>/skills/review-mr/scripts/post_review.py --inline-json comments.json
+  uv run <gitlab-ai-plugin>/skills/review-mr/scripts/post_review.py --inline-json comments.json
 
 JSON result to stdout; diagnostics to stderr.
 Requires GITLAB_TOKEN or MR_AUTO_REVIEW_GITLAB_TOKEN env var.

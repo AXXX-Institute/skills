@@ -107,7 +107,7 @@ class CleanupSelectionTests(unittest.TestCase):
                 "notes": [
                     {
                         "id": 14,
-                        "body": "<!-- axxx-review-audit -->\n\n🚨 **CRITICAL**: issue",
+                        "body": "<!-- axxx-gitlab-ai -->\n\n🚨 **CRITICAL**: issue",
                         "author": {"id": 7},
                     }
                 ],
@@ -129,9 +129,29 @@ class CleanupSelectionTests(unittest.TestCase):
         summary = module.format_summary_body("abc123", "Looks good")
         inline = module.format_inline_body("CRITICAL", "Unsafe write")
         self.assertIn("<!-- claude-review:abc123 -->", summary)
-        self.assertIn("<!-- axxx-review-audit -->", summary)
-        self.assertIn("<!-- axxx-review-audit -->", inline)
+        self.assertIn("<!-- axxx-gitlab-ai -->", summary)
+        self.assertIn("<!-- axxx-gitlab-ai -->", inline)
         self.assertIn("**CRITICAL**", inline)
+
+    def test_legacy_plugin_marker_remains_cleanup_compatible(self) -> None:
+        module_path = PLUGIN_ROOT / "shared" / "gitlab_ops" / "review.py"
+        spec = importlib.util.spec_from_file_location("legacy_marker_rules", module_path)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        discussions = [
+            {
+                "id": "legacy",
+                "notes": [
+                    {
+                        "id": 15,
+                        "body": "<!-- axxx-review-audit -->\n\nold plugin output",
+                        "author": {"id": 7},
+                    }
+                ],
+            }
+        ]
+        self.assertEqual(list(module.iter_review_notes(discussions, 7)), [("legacy", 15)])
 
     def test_plain_headings_and_severity_are_not_cleanup_markers(self) -> None:
         module_path = PLUGIN_ROOT / "shared" / "gitlab_ops" / "review.py"
@@ -217,7 +237,7 @@ class GitRemoteTests(unittest.TestCase):
 
 class SkillPolicyTests(unittest.TestCase):
     def test_audit_is_report_only_without_explicit_repair_request(self) -> None:
-        text = (PLUGIN_ROOT / "skills" / "agent-config-audit" / "SKILL.md").read_text()
+        text = (PLUGIN_ROOT / "skills" / "audit-agent-config" / "SKILL.md").read_text()
         self.assertIn("Report only by default", text)
         self.assertIn("only when the user explicitly asks", text)
 
@@ -226,6 +246,14 @@ class SkillPolicyTests(unittest.TestCase):
         self.assertIn("## Authorization gate", shared)
         self.assertIn("Do not delete notes or post anything unless", shared)
         self.assertIn("authorizes only a read-only review", shared)
+
+    def test_pipeline_skill_uses_plugin_shared_helpers(self) -> None:
+        skill = PLUGIN_ROOT / "skills" / "repair-pipeline"
+        instructions = (skill / "SKILL.md").read_text()
+        script = (skill / "scripts" / "fetch_pipeline.py").read_text()
+        self.assertIn("<skill-dir>/scripts/fetch_pipeline.py", instructions)
+        self.assertIn('parents[3] / "shared"', script)
+        self.assertNotIn('pipeline.get("sha", "")[:8]', script)
 
 
 if __name__ == "__main__":

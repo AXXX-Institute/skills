@@ -12,7 +12,7 @@ human notes untouched. Iterating discussions covers every note type (inline
 threads and standalone summary comments).
 
 Outputs JSON to stdout. Diagnostics go to stderr.
-Run with: uv run <review-audit-plugin>/skills/review-mr/scripts/delete_prior_notes.py
+Run with: uv run <gitlab-ai-plugin>/skills/review-mr/scripts/delete_prior_notes.py
 Requires GITLAB_TOKEN or MR_AUTO_REVIEW_GITLAB_TOKEN env var.
 """
 

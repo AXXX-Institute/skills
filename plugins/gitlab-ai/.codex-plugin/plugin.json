@@ -1,0 +1,27 @@
+{
+  "name": "gitlab-ai",
+  "version": "0.1.0",
+  "description": "Provider-neutral GitLab merge-request review, pipeline repair, and repository agent-configuration audit skills for Claude Code and OpenAI Codex.",
+  "author": {
+    "name": "AXXX-Institute"
+  },
+  "homepage": "https://github.com/AXXX-Institute/skills",
+  "repository": "https://github.com/AXXX-Institute/skills",
+  "license": "MIT",
+  "keywords": ["gitlab", "review", "pipeline", "audit", "claude", "codex"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "GitLab AI",
+    "shortDescription": "Review MRs, repair pipelines, and audit guidance.",
+    "longDescription": "Provider-neutral GitLab merge-request review, failed-pipeline repair, and repository agent-configuration auditing for Claude Code and OpenAI Codex.",
+    "developerName": "AXXX-Institute",
+    "category": "Developer Tools",
+    "capabilities": ["Review", "Write"],
+    "websiteURL": "https://axxx-institute.github.io/skills/gitlab-ai.html",
+    "defaultPrompt": [
+      "Review the current GitLab merge request.",
+      "Repair the current branch's failed GitLab pipeline.",
+      "Audit this repository's agent guidance."
+    ]
+  }
+}

@@ -8,7 +8,8 @@ from __future__ import annotations
 
 # Hidden marker embedded in the summary note so a given HEAD is reviewed once.
 REVIEW_SUMMARY_MARKER = "<!-- claude-review:{sha} -->"
-REVIEW_NOTE_MARKER = "<!-- axxx-review-audit -->"
+REVIEW_NOTE_MARKER = "<!-- axxx-gitlab-ai -->"
+LEGACY_REVIEW_NOTE_MARKER = "<!-- axxx-review-audit -->"
 
 SEVERITY_EMOJI = {
     "CRITICAL": "\U0001f6a8",  # 🚨
@@ -20,6 +21,7 @@ SEVERITY_EMOJI = {
 # labels are deliberately absent: humans commonly write "**CRITICAL**" too.
 _REVIEW_MARKERS = (
     REVIEW_NOTE_MARKER,
+    LEGACY_REVIEW_NOTE_MARKER,
     "<!-- claude-review:",
 )
 

@@ -16,8 +16,9 @@ same way.
 | [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs-scaffold`](plugins/mlspace-jobs/skills/mlspace-jobs-scaffold/) | **Build** experiments-as-code MLSpace training + eval launchers (`run_train_jobs.py` / `run_eval.py` / `experiments.py`) into a repo — out-of-workdir artifacts, idempotent + in-progress-dedup submission, code staging; verified by a green `--dry` run. | MIT |
 | [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs-quick-start`](plugins/mlspace-jobs/skills/mlspace-jobs-quick-start/) | **First-time** MLSpace setup: an interactive, one-step-at-a-time walkthrough from conda env → `mls` install → credentials → submitting and monitoring a first job. **Explicit-only** — launch it deliberately with `/mlspace-jobs-quick-start` (not auto-invoked, since it creates envs and installs packages). | MIT |
 | [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs`](plugins/mlspace-jobs/skills/mlspace-jobs/) | **Operate** MLSpace once `mls` is configured: a command reference for monitoring, logs, waiting, killing jobs, `accelerate` multi-GPU config, and troubleshooting. | MIT |
-| [`review-audit`](plugins/review-audit/) | [`review-mr`](plugins/review-audit/skills/review-mr/) | Review the current branch's GitLab MR with a fresh-context Claude or Codex worker, replace prior bot feedback, and post one summary plus CRITICAL inline discussions. | MIT |
-| [`review-audit`](plugins/review-audit/) | [`agent-config-audit`](plugins/review-audit/skills/agent-config-audit/) | Verify repository-scoped Claude Code and Codex guidance against source, report stale claims and omissions, and optionally repair confirmed drift. | MIT |
+| [`gitlab-ai`](plugins/gitlab-ai/) | [`review-mr`](plugins/gitlab-ai/skills/review-mr/) | Review the current branch's GitLab MR with a fresh-context Claude or Codex worker, replace prior bot feedback, and post one summary plus CRITICAL inline discussions. | MIT |
+| [`gitlab-ai`](plugins/gitlab-ai/) | [`repair-pipeline`](plugins/gitlab-ai/skills/repair-pipeline/) | Fetch the latest GitLab pipeline and failed-job logs, diagnose actionable failures, and repair the working tree. | MIT |
+| [`gitlab-ai`](plugins/gitlab-ai/) | [`audit-agent-config`](plugins/gitlab-ai/skills/audit-agent-config/) | Verify repository-scoped Claude Code and Codex guidance against source, report stale claims and omissions, and optionally repair confirmed drift. | MIT |
 
 ## Installation
 
@@ -36,7 +37,7 @@ once, then install only the plugins you need.
 /plugin marketplace add AXXX-Institute/skills
 /plugin install paper-to-poster@axxx-institute   # the poster builder
 /plugin install mlspace-jobs@axxx-institute       # the MLSpace job skills
-/plugin install review-audit@axxx-institute       # GitLab review + agent config audit
+/plugin install gitlab-ai@axxx-institute         # GitLab review, pipeline repair + agent config audit
 ```
 
 **OpenAI Codex** — from your shell:
@@ -45,7 +46,7 @@ once, then install only the plugins you need.
 codex plugin marketplace add AXXX-Institute/skills
 codex plugin add paper-to-poster@axxx-institute   # the poster builder
 codex plugin add mlspace-jobs@axxx-institute       # the MLSpace job skills
-codex plugin add review-audit@axxx-institute       # GitLab review + agent config audit
+codex plugin add gitlab-ai@axxx-institute         # GitLab review, pipeline repair + agent config audit
 ```
 
 ### Method B — Ask an agent to install it (natural language)
@@ -57,7 +58,7 @@ marketplace and install just that one:
 
 > **https://github.com/AXXX-Institute/skills** — install the **paper-to-poster** skill
 
-> **https://github.com/AXXX-Institute/skills** — install the **review-audit** skills
+> **https://github.com/AXXX-Institute/skills** — install the **gitlab-ai** skills
 
 Under the hood the agent runs `/plugin marketplace add AXXX-Institute/skills`
 followed by `/plugin install <plugin>@axxx-institute` — nothing else is installed.
@@ -91,8 +92,9 @@ directory, so a copyleft plugin can't relicense a permissive one:
 - **`mlspace-jobs` plugin:** **MIT** — original work with no upstream; covered by
   the repo-root MIT license (declared in the plugin manifest), no separate
   per-skill `LICENSE`.
-- **`review-audit` plugin:** **MIT** — provider-neutral review/audit skills and
-  deterministic GitLab helpers, covered by the repo-root MIT license.
+- **`gitlab-ai` plugin:** **MIT** — provider-neutral review, pipeline repair,
+  and agent-guidance audit skills with deterministic GitLab helpers, covered by
+  the repo-root MIT license.
 - **Future plugins** that derive from copyleft upstreams carry their own `LICENSE`
   inside their plugin directory; original plugins stay under the MIT root.
 
@@ -121,9 +123,9 @@ Published at **https://axxx-institute.github.io/skills/** by
   the four properties the scaffold gives you, each as a with/without comparison.
 - **`/paper-to-poster/`** — the four posterly examples re-rendered in AXXX style
   ([`…/examples/`](plugins/paper-to-poster/skills/paper-to-poster/examples/)).
-- **`/review-audit.html`** ([`site/review-audit.html`](site/review-audit.html)) —
-  the shared `review-mr` and `agent-config-audit` workflow, model policy, and
-  installation commands.
+- **`/gitlab-ai.html`** ([`site/gitlab-ai.html`](site/gitlab-ai.html)) —
+  the `review-mr`, `repair-pipeline`, and `audit-agent-config` workflows, shared
+  model policy, and installation commands.
 
 ## Repo docs
 

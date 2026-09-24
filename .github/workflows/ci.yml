@@ -25,11 +25,11 @@ jobs:
       - name: Validate marketplace, plugins & skills
         run: python3 .github/scripts/validate.py
 
-      - name: Test review-audit model policy
-        run: python3 -m unittest discover -s plugins/review-audit/tests
+      - name: Test gitlab-ai helpers and policy
+        run: python3 -m unittest discover -s plugins/gitlab-ai/tests
 
-      - name: Byte-compile review-audit Python
-        run: python3 -m compileall -q plugins/review-audit
+      - name: Byte-compile gitlab-ai Python
+        run: python3 -m compileall -q plugins/gitlab-ai
 
       - name: Byte-compile paper-to-poster Python (syntax only, no deps)
         # compileall parses (does not import) every .py, so it needs none of the

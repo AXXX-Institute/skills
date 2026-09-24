@@ -2,7 +2,7 @@
 
 Canonical domain terms for the **axxx-skills** repo — a Claude Code **marketplace**
 hosting three independently-installable plugins (`paper-to-poster`,
-`mlspace-jobs`, `review-audit`).
+`mlspace-jobs`, `gitlab-ai`).
 Glossary only — no implementation detail. See `docs/adr/` for decisions and the
 skill sources for code.
 
@@ -13,7 +13,7 @@ with its own `.claude-plugin/plugin.json` and skills at
 `plugins/<name>/skills/<skill>/`. GitHub identity: **`AXXX-Institute/skills`**
 (Pages at `axxx-institute.github.io/skills`, release assets at
 `github.com/AXXX-Institute/skills/releases/...`); checked out locally as
-`axxx-skills`. Ships `paper-to-poster`, `mlspace-jobs`, and `review-audit`; built so further
+`axxx-skills`. Ships `paper-to-poster`, `mlspace-jobs`, and `gitlab-ai`; built so further
 plugins can be added later.
 _Avoid:_ "the poster repo" (that names the user's paper repo, not this one);
 "axxx-skills" as the GitHub name (it's the local dir; the remote is
@@ -79,10 +79,10 @@ check; the explicit-only skill uses `agents/openai.yaml` in place of
 `disable-model-invocation`.
 _Avoid:_ "port to Codex" (nothing is copied — the same `SKILL.md` files are reused).
 
-## review-audit
+## gitlab-ai
 The provider-neutral plugin for repository quality gates. It bundles
-[[review-mr]] and [[agent-config-audit]], with one model policy and one set of
-GitLab posting helpers shared by Claude Code and Codex.
+[[review-mr]], [[repair-pipeline]], and [[audit-agent-config]], with one model
+policy and one set of GitLab helpers shared by Claude Code and Codex.
 _Avoid:_ "Codex review plugin" or "Claude audit plugin" (the same skills serve
 both providers).
 
@@ -94,7 +94,14 @@ CI-compatible verdict.
 _Avoid:_ "Claude review" (Claude is one supported provider, not the skill's
 identity).
 
-## agent-config-audit
+## repair-pipeline
+The GitLab CI diagnosis and repair skill. It waits for the current branch's
+latest pipeline, retrieves failed-job logs, distinguishes actionable code
+failures from infrastructure failures, and repairs the working tree when safe.
+_Avoid:_ "fix CI config" (the failure may be in source, tests, dependencies, or
+infrastructure rather than the CI configuration itself).
+
+## audit-agent-config
 The cross-provider documentation audit skill. It verifies repository-scoped
 `CLAUDE.md`, `AGENTS.md`, project skills, and commands against source code, then
 reports or minimally repairs confirmed drift.

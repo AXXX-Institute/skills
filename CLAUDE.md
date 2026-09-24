@@ -9,7 +9,7 @@ This repo is a Claude Code **marketplace** of independently-installable plugins,
 `.agents/skills/<skill>` symlinks and `.agents/plugins/marketplace.json`.
 
 Current plugins: `paper-to-poster` (AGPL-3.0), `mlspace-jobs` (MIT, three
-skills), and `review-audit` (MIT, two provider-neutral skills). See `CONTEXT.md`
+skills), and `gitlab-ai` (MIT, three provider-neutral skills). See `CONTEXT.md`
 for the glossary and `docs/adr/` for decisions.
 
 ## Usage arms
@@ -25,9 +25,12 @@ for the glossary and `docs/adr/` for decisions.
   then `/plugin install <plugin>@axxx-institute`.
 - Codex installation: `codex plugin marketplace add AXXX-Institute/skills`
   then `codex plugin add <plugin>@axxx-institute`.
-- `review-audit` runtime: `/review-mr` or `$review-mr` reviews and posts to the
-  current GitLab MR; `/agent-config-audit` or `$agent-config-audit` checks and
-  optionally repairs repository-owned agent guidance.
+- `gitlab-ai` runtime: `/gitlab-ai:review-mr` or `$gitlab-ai:review-mr` reviews
+  and posts to the current GitLab MR;
+  `/gitlab-ai:repair-pipeline` or `$gitlab-ai:repair-pipeline` diagnoses and
+  repairs failed jobs; `/gitlab-ai:audit-agent-config` or
+  `$gitlab-ai:audit-agent-config` checks and optionally repairs repository-owned
+  agent guidance.
 
 ## When adding, renaming, or removing a skill or plugin — update ALL of these
 

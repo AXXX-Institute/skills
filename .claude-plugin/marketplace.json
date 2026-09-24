@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "axxx-institute",
-  "description": "AXXX-Institute skills marketplace. Ships independently installable poster, MLSpace jobs, and provider-neutral review/audit plugins for Claude Code and OpenAI Codex.",
+  "description": "AXXX-Institute skills marketplace. Ships independently installable poster, MLSpace jobs, and provider-neutral GitLab AI plugins for Claude Code and OpenAI Codex.",
   "owner": {
     "name": "AXXX-Institute",
     "url": "https://github.com/AXXX-Institute"
@@ -32,16 +32,16 @@
       "tags": ["mlspace", "gpu", "training", "jobs", "mls"]
     },
     {
-      "name": "review-audit",
-      "source": "./plugins/review-audit",
-      "description": "Provider-neutral GitLab merge-request review and repository agent-configuration audit skills. Bundles review-mr and agent-config-audit for Claude Code and Codex. MIT.",
+      "name": "gitlab-ai",
+      "source": "./plugins/gitlab-ai",
+      "description": "Provider-neutral GitLab workflows. Bundles review-mr, repair-pipeline, and audit-agent-config for Claude Code and Codex. MIT.",
       "version": "0.1.0",
       "author": {
         "name": "AXXX-Institute"
       },
       "category": "development",
       "homepage": "https://github.com/AXXX-Institute/skills",
-      "tags": ["review", "audit", "gitlab", "claude", "codex"]
+      "tags": ["gitlab", "review", "pipeline", "audit", "claude", "codex"]
     }
   ],
   "version": "0.1.0"

@@ -4,7 +4,7 @@ Review only the current branch's open GitLab merge request and publish the resul
 to that MR. Run from the repository root. Posting requires `GITLAB_TOKEN` or
 `MR_AUTO_REVIEW_GITLAB_TOKEN`.
 
-`<plugin-dir>` is the absolute review-audit plugin root. Never substitute a
+`<plugin-dir>` is the absolute gitlab-ai plugin root. Never substitute a
 repository-relative path: installed plugin paths are outside the repository
 being reviewed.
 

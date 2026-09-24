@@ -1,6 +1,6 @@
 """Shared GitLab API helpers for CI scripts.
 
-Bundled into the review-audit plugin. Imported as a plain package off
+Bundled into the gitlab-ai plugin. Imported as a plain package off
 ``sys.path`` (the scripts add the plugin's ``shared`` dir) — it is NOT installed via pip.
 Its only third-party dependency is ``requests`` (supplied by each script's
 PEP 723 header under ``uv run``).

@@ -1,5 +1,5 @@
 ---
-name: agent-config-audit
+name: audit-agent-config
 description: Audit and optionally repair repository-scoped Claude Code and Codex guidance by verifying claims against source code. Use when asked to check, validate, sync, or update CLAUDE.md, AGENTS.md, project skills, commands, or stale agent documentation.
 ---
 

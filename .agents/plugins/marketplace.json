@@ -29,10 +29,10 @@
       "category": "Productivity"
     },
     {
-      "name": "review-audit",
+      "name": "gitlab-ai",
       "source": {
         "source": "local",
-        "path": "./plugins/review-audit"
+        "path": "./plugins/gitlab-ai"
       },
       "policy": {
         "installation": "AVAILABLE",
