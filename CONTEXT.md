@@ -1,7 +1,8 @@
 # Glossary (CONTEXT.md)
 
 Canonical domain terms for the **axxx-skills** repo — a Claude Code **marketplace**
-hosting two independently-installable plugins (`paper-to-poster`, `mlspace-jobs`).
+hosting three independently-installable plugins (`paper-to-poster`,
+`mlspace-jobs`, `review-audit`).
 Glossary only — no implementation detail. See `docs/adr/` for decisions and the
 skill sources for code.
 
@@ -12,7 +13,7 @@ with its own `.claude-plugin/plugin.json` and skills at
 `plugins/<name>/skills/<skill>/`. GitHub identity: **`AXXX-Institute/skills`**
 (Pages at `axxx-institute.github.io/skills`, release assets at
 `github.com/AXXX-Institute/skills/releases/...`); checked out locally as
-`axxx-skills`. Ships `paper-to-poster` and `mlspace-jobs`; built so further
+`axxx-skills`. Ships `paper-to-poster`, `mlspace-jobs`, and `review-audit`; built so further
 plugins can be added later.
 _Avoid:_ "the poster repo" (that names the user's paper repo, not this one);
 "axxx-skills" as the GitHub name (it's the local dir; the remote is
@@ -77,6 +78,28 @@ the canonical skill dirs. Kept identical to the Claude Code side by a CI parity
 check; the explicit-only skill uses `agents/openai.yaml` in place of
 `disable-model-invocation`.
 _Avoid:_ "port to Codex" (nothing is copied — the same `SKILL.md` files are reused).
+
+## review-audit
+The provider-neutral plugin for repository quality gates. It bundles
+[[review-mr]] and [[agent-config-audit]], with one model policy and one set of
+GitLab posting helpers shared by Claude Code and Codex.
+_Avoid:_ "Codex review plugin" or "Claude audit plugin" (the same skills serve
+both providers).
+
+## review-mr
+The GitLab merge-request review skill. It selects a provider-appropriate
+fresh-context worker, removes the review bot's prior feedback, posts warnings and
+suggestions in one summary, posts only CRITICAL findings inline, and emits a
+CI-compatible verdict.
+_Avoid:_ "Claude review" (Claude is one supported provider, not the skill's
+identity).
+
+## agent-config-audit
+The cross-provider documentation audit skill. It verifies repository-scoped
+`CLAUDE.md`, `AGENTS.md`, project skills, and commands against source code, then
+reports or minimally repairs confirmed drift.
+_Avoid:_ "claude-audit" or "codex-audit" (those name provider-specific legacy
+entry points; this skill deliberately unifies their scope).
 
 ## MLSpace
 The GPU compute platform (Cloud.ru) the job skills target: users submit **jobs**

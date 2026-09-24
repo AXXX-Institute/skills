@@ -2,6 +2,7 @@
 # no rendering at deploy time.
 #   /                     -> site/index.html            (landing: the two plugins)
 #   /mlspace-jobs.html    -> site/mlspace-jobs.html     (mlspace-jobs plugin page)
+#   /review-audit.html    -> site/review-audit.html     (review-audit plugin page)
 #   /paper-to-poster/     -> plugins/paper-to-poster/skills/paper-to-poster/examples/ (poster gallery)
 # Result: https://axxx-institute.github.io/skills/
 name: Deploy site to Pages

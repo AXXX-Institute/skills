@@ -4,7 +4,7 @@
 
 AXXX-Institute's [Claude Code](https://claude.com/claude-code) **marketplace** of
 plugins. Each plugin lives under `plugins/<name>/` and ships one or more skills
-under `plugins/<name>/skills/<skill>/`. The two plugins are **installable
+under `plugins/<name>/skills/<skill>/`. The plugins are **installable
 independently**; the repo is built to grow — more AXXX plugins can be added the
 same way.
 
@@ -16,17 +16,19 @@ same way.
 | [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs-scaffold`](plugins/mlspace-jobs/skills/mlspace-jobs-scaffold/) | **Build** experiments-as-code MLSpace training + eval launchers (`run_train_jobs.py` / `run_eval.py` / `experiments.py`) into a repo — out-of-workdir artifacts, idempotent + in-progress-dedup submission, code staging; verified by a green `--dry` run. | MIT |
 | [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs-quick-start`](plugins/mlspace-jobs/skills/mlspace-jobs-quick-start/) | **First-time** MLSpace setup: an interactive, one-step-at-a-time walkthrough from conda env → `mls` install → credentials → submitting and monitoring a first job. **Explicit-only** — launch it deliberately with `/mlspace-jobs-quick-start` (not auto-invoked, since it creates envs and installs packages). | MIT |
 | [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs`](plugins/mlspace-jobs/skills/mlspace-jobs/) | **Operate** MLSpace once `mls` is configured: a command reference for monitoring, logs, waiting, killing jobs, `accelerate` multi-GPU config, and troubleshooting. | MIT |
+| [`review-audit`](plugins/review-audit/) | [`review-mr`](plugins/review-audit/skills/review-mr/) | Review the current branch's GitLab MR with a fresh-context Claude or Codex worker, replace prior bot feedback, and post one summary plus CRITICAL inline discussions. | MIT |
+| [`review-audit`](plugins/review-audit/) | [`agent-config-audit`](plugins/review-audit/skills/agent-config-audit/) | Verify repository-scoped Claude Code and Codex guidance against source, report stale claims and omissions, and optionally repair confirmed drift. | MIT |
 
 ## Installation
 
 This repo is a Claude Code **marketplace** (`.claude-plugin/marketplace.json`)
-that hosts two plugins. Install whichever you want, independently. If you install
+that hosts three plugins. Install whichever you want, independently. If you install
 `paper-to-poster`, also install its **runtime dependencies** (last subsection).
 
 ### Method A — Plugin marketplace (recommended)
 
-Same marketplace, same two plugins, from **Claude Code** or **OpenAI Codex**.
-Add this repo as a marketplace once, then install either or both plugins.
+The same marketplace works from **Claude Code** and **OpenAI Codex**. Add it
+once, then install only the plugins you need.
 
 **Claude Code** — in a session:
 
@@ -34,6 +36,7 @@ Add this repo as a marketplace once, then install either or both plugins.
 /plugin marketplace add AXXX-Institute/skills
 /plugin install paper-to-poster@axxx-institute   # the poster builder
 /plugin install mlspace-jobs@axxx-institute       # the MLSpace job skills
+/plugin install review-audit@axxx-institute       # GitLab review + agent config audit
 ```
 
 **OpenAI Codex** — from your shell:
@@ -42,6 +45,7 @@ Add this repo as a marketplace once, then install either or both plugins.
 codex plugin marketplace add AXXX-Institute/skills
 codex plugin add paper-to-poster@axxx-institute   # the poster builder
 codex plugin add mlspace-jobs@axxx-institute       # the MLSpace job skills
+codex plugin add review-audit@axxx-institute       # GitLab review + agent config audit
 ```
 
 ### Method B — Ask an agent to install it (natural language)
@@ -52,6 +56,8 @@ marketplace and install just that one:
 > **https://github.com/AXXX-Institute/skills** — install the **mlspace-jobs** skills
 
 > **https://github.com/AXXX-Institute/skills** — install the **paper-to-poster** skill
+
+> **https://github.com/AXXX-Institute/skills** — install the **review-audit** skills
 
 Under the hood the agent runs `/plugin marketplace add AXXX-Institute/skills`
 followed by `/plugin install <plugin>@axxx-institute` — nothing else is installed.
@@ -85,6 +91,8 @@ directory, so a copyleft plugin can't relicense a permissive one:
 - **`mlspace-jobs` plugin:** **MIT** — original work with no upstream; covered by
   the repo-root MIT license (declared in the plugin manifest), no separate
   per-skill `LICENSE`.
+- **`review-audit` plugin:** **MIT** — provider-neutral review/audit skills and
+  deterministic GitLab helpers, covered by the repo-root MIT license.
 - **Future plugins** that derive from copyleft upstreams carry their own `LICENSE`
   inside their plugin directory; original plugins stay under the MIT root.
 
@@ -113,6 +121,9 @@ Published at **https://axxx-institute.github.io/skills/** by
   the four properties the scaffold gives you, each as a with/without comparison.
 - **`/paper-to-poster/`** — the four posterly examples re-rendered in AXXX style
   ([`…/examples/`](plugins/paper-to-poster/skills/paper-to-poster/examples/)).
+- **`/review-audit.html`** ([`site/review-audit.html`](site/review-audit.html)) —
+  the shared `review-mr` and `agent-config-audit` workflow, model policy, and
+  installation commands.
 
 ## Repo docs
 
