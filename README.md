@@ -2,11 +2,11 @@
 
 [![Docs — GitHub Pages](https://img.shields.io/badge/docs-axxx--institute.github.io%2Fskills-0689D4?logo=github&logoColor=white)](https://axxx-institute.github.io/skills/)
 
-AXXX-Institute's [Claude Code](https://claude.com/claude-code) **marketplace** of
-plugins. Each plugin lives under `plugins/<name>/` and ships one or more skills
-under `plugins/<name>/skills/<skill>/`. The plugins are **installable
-independently**; the repo is built to grow — more AXXX plugins can be added the
-same way.
+AXXX-Institute's provider-neutral plugin marketplace for
+[Claude Code](https://claude.com/claude-code) and OpenAI Codex. Each plugin
+lives under `plugins/<name>/` and ships one or more skills under
+`plugins/<name>/skills/<skill>/`. The plugins are **installable independently**;
+the repo is built to grow — more AXXX plugins can be added the same way.
 
 ## Plugins & skills
 
@@ -63,7 +63,7 @@ marketplace and install just that one:
 Under the hood the agent runs `/plugin marketplace add AXXX-Institute/skills`
 followed by `/plugin install <plugin>@axxx-institute` — nothing else is installed.
 
-### Runtime dependencies (only for `paper-to-poster`)
+### Runtime dependencies
 
 `paper-to-poster` renders posters with headless Chromium and processes images, so
 its tools need Playwright + Chromium (and Pillow for figure/logo handling):
@@ -76,6 +76,10 @@ playwright install chromium
 Without these, the skill's `tools/poster_check.py measure` and
 `tools/render_preview.py` fail. The `mlspace-jobs` plugin has no such runtime
 dependency (it drives the `mls` CLI, which the quick-start skill installs).
+
+`gitlab-ai` requires `git` and `uv`; its Python scripts declare their own
+dependencies through PEP 723. GitLab reads and writes require
+`MR_AUTO_REVIEW_GITLAB_TOKEN` or `GITLAB_TOKEN`.
 
 ## Licensing
 
