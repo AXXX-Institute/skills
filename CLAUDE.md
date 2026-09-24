@@ -8,8 +8,18 @@ This repo is a Claude Code **marketplace** of independently-installable plugins,
 `plugins/<plugin>/skills/<skill>/SKILL.md`. Codex discovery is via
 `.agents/skills/<skill>` symlinks and `.agents/plugins/marketplace.json`.
 
-Current plugins: `paper-to-poster` (AGPL-3.0) and `mlspace-jobs` (MIT, three
-skills). See `CONTEXT.md` for the glossary and `docs/adr/` for decisions.
+Current plugins: `paper-to-poster` (AGPL-3.0), `mlspace-jobs` (MIT, three
+skills), and `adversarial-review` (MIT, one explicit-only skill). See
+`CONTEXT.md` for the glossary and `docs/adr/` for decisions.
+
+## Usage arms
+
+- **Marketplace discovery:** Claude Code reads `.claude-plugin/marketplace.json`; Codex reads `.agents/plugins/marketplace.json` and follows `.agents/skills/` symlinks.
+- **Claude Code installation:** `/plugin marketplace add AXXX-Institute/skills`, then `/plugin install <plugin>@axxx-institute`.
+- **Codex installation:** `codex plugin marketplace add AXXX-Institute/skills`, then `codex plugin add <plugin>@axxx-institute`.
+- **Direct skill invocation:** installed skills are invoked by name; explicit-only skills such as `/adversarial-review` must be requested directly.
+- **Repository validation:** `python3 .github/scripts/validate.py` checks manifests, marketplace parity, skill metadata, documentation, and symlink integrity.
+- **GitHub Pages catalog:** `.github/workflows/pages.yml` publishes `site/index.html` after pushes to `main` that affect `site/**`.
 
 ## When adding, renaming, or removing a skill or plugin — update ALL of these
 
