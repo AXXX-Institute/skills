@@ -153,6 +153,22 @@ class CleanupSelectionTests(unittest.TestCase):
         ]
         self.assertEqual(list(module.iter_review_notes(discussions, 7)), [])
 
+    def test_inline_publication_errors_make_the_result_fail(self) -> None:
+        module_path = PLUGIN_ROOT / "shared" / "gitlab_ops" / "review.py"
+        spec = importlib.util.spec_from_file_location("review_results", module_path)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        result = module.summarize_inline_results(
+            [
+                {"status": "posted"},
+                {"status": "skipped"},
+                {"status": "error"},
+            ]
+        )
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["errors"], 1)
+
 
 class GitRemoteTests(unittest.TestCase):
     def test_ssh_url_with_port_is_supported(self) -> None:
@@ -168,6 +184,20 @@ class GitRemoteTests(unittest.TestCase):
             ),
             ("gitlab.example.com", "group/subgroup/repo"),
         )
+
+    def test_no_newline_metadata_does_not_advance_new_side_line(self) -> None:
+        module_path = PLUGIN_ROOT / "shared" / "gitlab_ops" / "diff.py"
+        spec = importlib.util.spec_from_file_location("diff_helpers", module_path)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        changes = [
+            {
+                "new_path": "x.py",
+                "diff": "@@ -1 +1 @@\n-old\n\\ No newline at end of file\n+new\n\\ No newline at end of file\n",
+            }
+        ]
+        self.assertEqual(module.collect_changed_lines(changes), {"x.py": {1}})
 
 
 class SkillPolicyTests(unittest.TestCase):

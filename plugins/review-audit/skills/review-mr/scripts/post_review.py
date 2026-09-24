@@ -50,6 +50,7 @@ from gitlab_ops import (  # noqa: E402
     post_inline_discussion,
     post_note,
     resolve_project,
+    summarize_inline_results,
 )
 
 
@@ -145,13 +146,7 @@ def post_inline(base_url: str, project_id: str, mr_iid: int, items: list[dict]) 
         _post_one_inline(base_url, project_id, mr_iid, item, changed_lines, shas)
         for item in items
     ]
-    return {
-        "status": "ok",
-        "posted": sum(1 for r in results if r["status"] == "posted"),
-        "skipped": sum(1 for r in results if r["status"] == "skipped"),
-        "errors": sum(1 for r in results if r["status"] == "error"),
-        "results": results,
-    }
+    return summarize_inline_results(results)
 
 
 def main() -> None:
@@ -202,6 +197,8 @@ def main() -> None:
 
     json.dump(output, sys.stdout, indent=2)
     print()
+    if output.get("status") == "error":
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -61,3 +61,17 @@ def format_inline_body(severity: str, message: str) -> str:
     emoji = SEVERITY_EMOJI.get(sev, "")
     prefix = f"{emoji} **{sev}**: " if sev in SEVERITY_EMOJI else ""
     return f"{REVIEW_NOTE_MARKER}\n\n{prefix}{message}"
+
+
+def summarize_inline_results(results: list[dict]) -> dict:
+    """Aggregate inline publication results and fail if any write failed."""
+    posted = sum(1 for result in results if result["status"] == "posted")
+    skipped = sum(1 for result in results if result["status"] == "skipped")
+    errors = sum(1 for result in results if result["status"] == "error")
+    return {
+        "status": "error" if errors else "ok",
+        "posted": posted,
+        "skipped": skipped,
+        "errors": errors,
+        "results": results,
+    }

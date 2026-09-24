@@ -28,18 +28,6 @@ The policy accepts logical `high`/`fast` tiers and exact provider models. The
 provider-specific task override wins over the task-level value. Provider
 mismatches and unsafe model names fail closed.
 
-## Clear prior bot feedback
-
-After the authorization gate is satisfied, run the deterministic cleanup
-directly, not in a subagent:
-
-```bash
-uv run <plugin-dir>/skills/review-mr/scripts/delete_prior_notes.py
-```
-
-Stop if the command fails or its JSON result has `status: "error"`. Otherwise
-retain its deleted and failed counts for the final summary.
-
 ## Review independently
 
 Read repository guidance (`CLAUDE.md`, `AGENTS.md`, and `.gitlab/CODEOWNERS` when
@@ -68,6 +56,17 @@ trailing whitespace, or intentional internal assertions. Classify findings as
 
 ## Publish
 
+Only after the review has completed successfully, clear prior bot feedback. Run
+the deterministic cleanup directly, not in a subagent:
+
+```bash
+uv run <plugin-dir>/skills/review-mr/scripts/delete_prior_notes.py
+```
+
+Stop before publishing if the command fails or its JSON result has
+`status: "error"`. Otherwise retain its deleted and failed counts for the final
+summary.
+
 Put every WARNING and SUGGESTION in a concise Markdown summary and post it:
 
 ```bash
@@ -89,5 +88,7 @@ summary. The final output line must be bare:
 REVIEW_VERDICT: PASS
 ```
 
-Use `REVIEW_VERDICT: FAIL (<n> critical)` when any CRITICAL finding was posted.
-Treat user-supplied arguments as extra review guidance.
+Use `REVIEW_VERDICT: FAIL (<n> critical)` whenever the reviewer found any
+CRITICAL finding, including when its inline publication was skipped or failed.
+Any publication command failure must stop the workflow with a failure rather
+than emit PASS. Treat user-supplied arguments as extra review guidance.

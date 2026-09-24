@@ -113,6 +113,10 @@ def collect_changed_lines(changes: list[dict]) -> dict[str, set[int]]:
                 continue
             if line.startswith("-"):
                 continue
+            if line.startswith("\\"):
+                # Git hunk metadata (for example, "No newline at end of file")
+                # is not a source line on either side.
+                continue
             if line.startswith("+"):
                 lines_set.add(current_line)
                 current_line += 1

@@ -46,6 +46,7 @@ from .review import (
     format_summary_body,
     is_claude_review_discussion,
     iter_review_notes,
+    summarize_inline_results,
 )
 
 __all__ = [
@@ -78,4 +79,5 @@ __all__ = [
     "post_note",
     "resolve_discussion",
     "resolve_project",
+    "summarize_inline_results",
 ]
