@@ -238,6 +238,21 @@ class GitRemoteTests(unittest.TestCase):
 
 
 class SkillPolicyTests(unittest.TestCase):
+    def test_setup_ci_reference_keeps_the_consumer_contract(self) -> None:
+        reference = (
+            PLUGIN_ROOT / "skills" / "setup-ci" / "references" / "ci-setup.md"
+        ).read_text()
+        self.assertIn(
+            "project: fusionbrain/multimodal/research-agent/ci-tools", reference
+        )
+        self.assertIn("ref: main", reference)
+        self.assertIn("file: ci/ci-tools.yml", reference)
+        self.assertIn("CI_TOOLS_RUNNER_TAG", reference)
+        self.assertIn("MR_AUTO_REVIEW_GITLAB_TOKEN", reference)
+        self.assertIn("GITLAB_TOKEN", reference)
+        self.assertIn("origin` remote", reference)
+        self.assertIn("Do not put the token", reference)
+
     def test_audit_is_report_only_without_explicit_repair_request(self) -> None:
         text = (PLUGIN_ROOT / "skills" / "audit-agent-config" / "SKILL.md").read_text()
         self.assertIn("Report only by default", text)

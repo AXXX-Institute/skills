@@ -1,0 +1,4 @@
+interface:
+  display_name: "Set Up GitLab AI CI"
+  short_description: "Connect a repository to GitLab AI gates"
+  default_prompt: "Use $setup-ci to connect this repository to the gitlab-ai CI review and audit jobs."

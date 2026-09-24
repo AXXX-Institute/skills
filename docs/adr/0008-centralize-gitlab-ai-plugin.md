@@ -14,7 +14,7 @@ requiring manual synchronization between two sources of truth.
 ## Decision
 
 Rename the plugin to `gitlab-ai` and use short verb-object skill names:
-`review-mr`, `repair-pipeline`, and `audit-agent-config`.
+`setup-ci`, `review-mr`, `repair-pipeline`, and `audit-agent-config`.
 
 The plugin owns the skill instructions, model policy, deterministic GitLab
 helpers, and small headless-CI result/verdict parsers. ci-tools installs the
@@ -23,7 +23,7 @@ canonical assets; it does not vendor or snapshot plugin files.
 
 ## Consequences
 
-- Claude Code and Codex expose the same three workflows from one plugin.
+- Claude Code and Codex expose the same four workflows from one plugin.
 - Pipeline repair becomes independently installable outside ci-tools.
 - ci-tools consumers need network access to GitHub during first installation.
 - An already-installed plugin is reused, so updating it remains an explicit

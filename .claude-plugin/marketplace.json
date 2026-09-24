@@ -34,7 +34,7 @@
     {
       "name": "gitlab-ai",
       "source": "./plugins/gitlab-ai",
-      "description": "Provider-neutral GitLab workflows. Bundles review-mr, repair-pipeline, and audit-agent-config for Claude Code and Codex. MIT.",
+      "description": "Provider-neutral GitLab workflows. Bundles setup-ci, review-mr, repair-pipeline, and audit-agent-config for Claude Code and Codex. MIT.",
       "version": "0.1.0",
       "author": {
         "name": "AXXX-Institute"

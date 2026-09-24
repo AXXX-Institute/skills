@@ -81,10 +81,18 @@ _Avoid:_ "port to Codex" (nothing is copied — the same `SKILL.md` files are re
 
 ## gitlab-ai
 The provider-neutral plugin for repository quality gates. It bundles
-[[review-mr]], [[repair-pipeline]], and [[audit-agent-config]], with one model
-policy and one set of GitLab helpers shared by Claude Code and Codex.
+[[setup-ci]], [[review-mr]], [[repair-pipeline]], and [[audit-agent-config]],
+with one model policy and one set of GitLab helpers shared by Claude Code and
+Codex.
 _Avoid:_ "Codex review plugin" or "Claude audit plugin" (the same skills serve
 both providers).
+
+## setup-ci
+The GitLab CI onboarding skill. It connects a repository to the shared
+`claude-audit` and `auto-review` gates without replacing existing pipeline
+configuration, and keeps GitLab tokens out of committed files.
+_Avoid:_ "install GitLab" (GitLab already hosts the repository; this skill
+connects its pipeline to gitlab-ai).
 
 ## review-mr
 The GitLab merge-request review skill. It selects a provider-appropriate

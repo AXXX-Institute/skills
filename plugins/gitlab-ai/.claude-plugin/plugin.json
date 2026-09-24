@@ -1,7 +1,7 @@
 {
   "name": "gitlab-ai",
   "version": "0.1.0",
-  "description": "Provider-neutral GitLab workflows for Claude Code and OpenAI Codex. Ships review-mr, repair-pipeline, and audit-agent-config.",
+  "description": "Provider-neutral GitLab workflows for Claude Code and OpenAI Codex. Ships setup-ci, review-mr, repair-pipeline, and audit-agent-config.",
   "author": {
     "name": "AXXX-Institute"
   },

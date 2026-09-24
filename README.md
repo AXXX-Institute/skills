@@ -16,6 +16,7 @@ the repo is built to grow — more AXXX plugins can be added the same way.
 | [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs-scaffold`](plugins/mlspace-jobs/skills/mlspace-jobs-scaffold/) | **Build** experiments-as-code MLSpace training + eval launchers (`run_train_jobs.py` / `run_eval.py` / `experiments.py`) into a repo — out-of-workdir artifacts, idempotent + in-progress-dedup submission, code staging; verified by a green `--dry` run. | MIT |
 | [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs-quick-start`](plugins/mlspace-jobs/skills/mlspace-jobs-quick-start/) | **First-time** MLSpace setup: an interactive, one-step-at-a-time walkthrough from conda env → `mls` install → credentials → submitting and monitoring a first job. **Explicit-only** — launch it deliberately with `/mlspace-jobs-quick-start` (not auto-invoked, since it creates envs and installs packages). | MIT |
 | [`mlspace-jobs`](plugins/mlspace-jobs/) | [`mlspace-jobs`](plugins/mlspace-jobs/skills/mlspace-jobs/) | **Operate** MLSpace once `mls` is configured: a command reference for monitoring, logs, waiting, killing jobs, `accelerate` multi-GPU config, and troubleshooting. | MIT |
+| [`gitlab-ai`](plugins/gitlab-ai/) | [`setup-ci`](plugins/gitlab-ai/skills/setup-ci/) | Connect a repository to the shared GitLab review and agent-audit CI jobs while preserving its existing pipeline configuration. | MIT |
 | [`gitlab-ai`](plugins/gitlab-ai/) | [`review-mr`](plugins/gitlab-ai/skills/review-mr/) | Review the current branch's GitLab MR with a fresh-context Claude or Codex worker, replace prior bot feedback, and post one summary plus CRITICAL inline discussions. | MIT |
 | [`gitlab-ai`](plugins/gitlab-ai/) | [`repair-pipeline`](plugins/gitlab-ai/skills/repair-pipeline/) | Fetch the latest GitLab pipeline and failed-job logs, diagnose actionable failures, and repair the working tree. | MIT |
 | [`gitlab-ai`](plugins/gitlab-ai/) | [`audit-agent-config`](plugins/gitlab-ai/skills/audit-agent-config/) | Verify repository-scoped Claude Code and Codex guidance against source, report stale claims and omissions, and optionally repair confirmed drift. | MIT |
@@ -48,6 +49,21 @@ codex plugin add paper-to-poster@axxx-institute   # the poster builder
 codex plugin add mlspace-jobs@axxx-institute       # the MLSpace job skills
 codex plugin add gitlab-ai@axxx-institute         # GitLab review, pipeline repair + agent config audit
 ```
+
+Then connect the current repository to the shared GitLab CI gates:
+
+```text
+# Claude Code
+/gitlab-ai:setup-ci
+
+# OpenAI Codex
+$gitlab-ai:setup-ci
+```
+
+The skill safely merges the ci-tools include into an existing `.gitlab-ci.yml`,
+reuses or asks for the runner tag, validates the result, and explains which
+masked GitLab token variable must be added. It never writes the token to the
+repository.
 
 ### Method B — Ask an agent to install it (natural language)
 
