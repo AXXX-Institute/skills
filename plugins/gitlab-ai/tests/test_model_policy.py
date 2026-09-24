@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import pathlib
 import subprocess
@@ -254,6 +255,43 @@ class SkillPolicyTests(unittest.TestCase):
         self.assertIn("<skill-dir>/scripts/fetch_pipeline.py", instructions)
         self.assertIn('parents[3] / "shared"', script)
         self.assertNotIn('pipeline.get("sha", "")[:8]', script)
+
+
+class CiHelperTests(unittest.TestCase):
+    def test_claude_json_result_reaches_verdict_gate(self) -> None:
+        parser = PLUGIN_ROOT / "shared" / "ci" / "claude_json.py"
+        verdict = PLUGIN_ROOT / "shared" / "ci" / "verdict.sh"
+        payload = json.dumps(
+            [
+                {"type": "result", "result": "Report\n\nREVIEW_VERDICT: PASS"},
+            ]
+        )
+        parsed = subprocess.run(
+            ["python3", str(parser), "result"],
+            input=payload,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        gated = subprocess.run(
+            ["bash", str(verdict), "REVIEW_VERDICT"],
+            input=parsed.stdout,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(gated.returncode, 0, gated.stderr)
+
+    def test_missing_verdict_fails_closed(self) -> None:
+        verdict = PLUGIN_ROOT / "shared" / "ci" / "verdict.sh"
+        gated = subprocess.run(
+            ["bash", str(verdict), "AUDIT_VERDICT"],
+            input="no decision\n",
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(gated.returncode, 1)
 
 
 if __name__ == "__main__":
