@@ -1,7 +1,8 @@
 # Glossary (CONTEXT.md)
 
 Canonical domain terms for the **axxx-skills** repo — a Claude Code **marketplace**
-hosting two independently-installable plugins (`paper-to-poster`, `mlspace-jobs`).
+hosting independently installable plugins (`paper-to-poster`, `mlspace-jobs`, and
+`adversarial-review`).
 Glossary only — no implementation detail. See `docs/adr/` for decisions and the
 skill sources for code.
 
@@ -12,8 +13,8 @@ with its own `.claude-plugin/plugin.json` and skills at
 `plugins/<name>/skills/<skill>/`. GitHub identity: **`AXXX-Institute/skills`**
 (Pages at `axxx-institute.github.io/skills`, release assets at
 `github.com/AXXX-Institute/skills/releases/...`); checked out locally as
-`axxx-skills`. Ships `paper-to-poster` and `mlspace-jobs`; built so further
-plugins can be added later.
+`axxx-skills`. Ships `paper-to-poster`, `mlspace-jobs`, and `adversarial-review`;
+built so further plugins can be added later.
 _Avoid:_ "the poster repo" (that names the user's paper repo, not this one);
 "axxx-skills" as the GitHub name (it's the local dir; the remote is
 `AXXX-Institute/skills`); "the plugin" (singular — the repo is a marketplace of
@@ -77,6 +78,26 @@ the canonical skill dirs. Kept identical to the Claude Code side by a CI parity
 check; the explicit-only skill uses `agents/openai.yaml` in place of
 `disable-model-invocation`.
 _Avoid:_ "port to Codex" (nothing is copied — the same `SKILL.md` files are reused).
+
+## adversarial-review
+The explicit-only skill that asks a separate, fresh-context **Reviewer** to verify
+a committed implementation across every affected **Usage arm** and return an
+`APPROVE` or `REVISE` verdict. The author resolves all findings; the reviewer never
+edits the change it judges.
+_Avoid:_ "self-review", "review checklist" (the independence boundary is essential).
+
+## Usage arm
+One distinct way changed code is launched or consumed, such as a CLI command,
+pipeline stage, training entry point, evaluation path, metrics script, test suite,
+or CI job. A review covers all affected arms rather than only the path named in the
+request.
+_Avoid:_ "test case" (tests are one possible arm, not the whole set).
+
+## Reviewer
+The independent agent launched with fresh context by `adversarial-review`. It
+derives its checklist from the repository and returns findings to the author without
+modifying the reviewed work.
+_Avoid:_ "author", "same-agent reviewer".
 
 ## MLSpace
 The GPU compute platform (Cloud.ru) the job skills target: users submit **jobs**
