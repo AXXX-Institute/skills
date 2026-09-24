@@ -133,31 +133,28 @@ def render_page(skill: SkillPage, all_skills: list[SkillPage]) -> str:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{esc(skill.name)} — AXXX skills</title>
-<style>
-  :root{{--accent:#0689D4;--deep:#053957;--light:#E6F4FD;--text:#111;--muted:#687A86;--border:#CDD5DA;--bg:#F4F8FB}}
-  *{{box-sizing:border-box}}body{{margin:0;font-family:Inter,"Helvetica Neue",Arial,sans-serif;color:var(--text);background:var(--bg);line-height:1.55}}.bar{{height:6px;background:var(--accent)}}main{{max-width:980px;margin:0 auto;padding:46px 24px 72px}}h1,h2{{color:var(--deep)}}h1{{font-size:42px;margin:8px 0}}.sub{{color:var(--muted);font-size:19px;max-width:820px}}.meta,.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:26px 0}}.card{{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px}}.label{{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}}code{{background:var(--light);color:var(--deep);padding:2px 5px;border-radius:4px}}pre{{background:#0b2535;color:#eaf7ff;border-radius:12px;padding:18px;overflow:auto;white-space:pre-wrap}}a{{color:var(--accent)}}nav{{display:flex;flex-wrap:wrap;gap:8px;margin-top:36px}}nav a{{background:#fff;border:1px solid var(--border);border-radius:999px;padding:5px 10px;text-decoration:none}}details{{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:28px}}summary{{cursor:pointer;font-weight:700;color:var(--deep)}}details pre{{max-height:680px;white-space:pre;tab-size:2}}.actions{{display:flex;gap:16px;flex-wrap:wrap}}
-</style>
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
-<body><div class="bar"></div><main>
-  <p><a href="../">← All AXXX skills</a></p>
+<body class="page-skill"><div class="bar"></div><main>
+  <p class="breadcrumb"><a href="../">← All AXXX skills</a></p>
   <h1>{esc(skill.name)}</h1>
   <p class="sub">{esc(skill.description)}</p>
-  <div class="meta">
+  <div class="skill-meta">
     <div class="card"><div class="label">Plugin</div><strong>{esc(skill.plugin)}</strong></div>
     <div class="card"><div class="label">License</div><strong>{esc(skill.license)}</strong></div>
     <div class="card"><div class="label">Invocation</div><strong>{esc(mode)}</strong></div>
   </div>
   <h2>Install</h2>
-  <div class="grid">
-    <section class="card"><h3>Claude Code</h3><pre><code>/plugin marketplace add AXXX-Institute/skills
+  <div class="skill-grid">
+    <section class="card install-card"><h3>Claude Code</h3><pre><code>/plugin marketplace add AXXX-Institute/skills
 /plugin install {esc(skill.plugin)}@axxx-institute</code></pre><p>Run <code>{esc(skill.claude_invocation)}</code>.</p></section>
-    <section class="card"><h3>OpenAI Codex</h3><pre><code>codex plugin marketplace add AXXX-Institute/skills
+    <section class="card install-card"><h3>OpenAI Codex</h3><pre><code>codex plugin marketplace add AXXX-Institute/skills
 codex plugin add {esc(skill.plugin)}@axxx-institute</code></pre><p>Run <code>{esc(skill.codex_invocation)}</code>.</p></section>
   </div>
   <div class="actions"><a href="{esc(source_url)}">README and source on GitHub →</a><a href="{esc(skill_url)}">Open SKILL.md →</a>{related_links}</div>
   <details><summary>View complete skill instructions</summary><pre><code>{esc(skill.skill_source)}</code></pre></details>
-  <h2>Other skills</h2><nav>{navigation}</nav>
-</main></body>
+  <h2>Other skills</h2><nav class="skill-nav">{navigation}</nav>
+</main><script src="../assets/site.js"></script></body>
 </html>
 """
 

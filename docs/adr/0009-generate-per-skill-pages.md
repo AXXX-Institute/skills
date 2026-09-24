@@ -17,6 +17,9 @@ skill.
   Claude Code and Codex installation and invocation instructions.
 - GitHub Pages generates `/<skill>/index.html` from marketplace metadata and the
   canonical `SKILL.md` during deployment.
+- The landing page, plugin overviews, and generated skill pages share
+  `site/assets/styles.css` and `site/assets/site.js` so typography, spacing,
+  cards, code blocks, and interactions remain consistent.
 - Plugin landing pages link to the generated routes.
 - The existing poster example tree remains at `/paper-to-poster/`; its former
   gallery index is also published as `/paper-to-poster/gallery.html` before the

@@ -44,6 +44,8 @@ glossary and `docs/adr/` for decisions.
 - Per-skill documentation: every `plugins/<plugin>/skills/<skill>/README.md`
   documents installation and invocation; `.github/scripts/build_skill_pages.py`
   turns every `SKILL.md` into the extensionless Pages route `/<skill>/`.
+- Shared site design: hand-written and generated marketplace pages load
+  `site/assets/styles.css`; shared interactions live in `site/assets/site.js`.
 
 ## When adding, renaming, or removing a skill or plugin — update ALL of these
 
@@ -96,6 +98,8 @@ in the **same change**; don't stop at dropping a `SKILL.md`.
   scaffold's pillars, update every `pillar N` cross-reference and the eval notes).
 - **Skill pages are generated.** Do not hand-edit `site/<skill>/index.html`.
   Update the skill's `README.md`, `SKILL.md`, or the shared generator instead.
+- **Site styles are shared.** Do not add page-local `<style>` blocks to
+  marketplace pages. Extend `site/assets/styles.css` with scoped selectors.
 - **Commits:** conventional-commit prefixes (`feat:`, `fix:`, `refactor:`,
   `docs:`, `results:`); stage specific files (avoid `git add -A` when unrelated
   changes are present); commit only when the work is coherent and verified.

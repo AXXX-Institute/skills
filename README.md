@@ -153,6 +153,7 @@ Published at **https://axxx-institute.github.io/skills/** by
 ([`site/index.html`](site/index.html)) with plugin overview pages and one
 generated `/<skill>/` page for every skill. Each skill page includes installation
 and invocation commands, metadata, source links, and the complete `SKILL.md`.
+All marketplace pages use the same visual system from `site/assets/styles.css`.
 
 - **`/mlspace-jobs.html`** ([`site/mlspace-jobs.html`](site/mlspace-jobs.html)) —
   the *experiments-as-code* pitch: the three skills (in the order to use them) and
