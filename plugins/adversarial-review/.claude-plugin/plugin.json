@@ -1,0 +1,12 @@
+{
+  "name": "adversarial-review",
+  "version": "0.1.0",
+  "description": "Independent fresh-context review for committed code changes across every affected usage path. Works with Claude Code Agent/Task delegation and Codex spawn_agent. MIT.",
+  "author": {
+    "name": "AXXX-Institute"
+  },
+  "homepage": "https://github.com/AXXX-Institute/skills",
+  "repository": "https://github.com/AXXX-Institute/skills",
+  "license": "MIT",
+  "keywords": ["review", "code-review", "adversarial", "subagent", "codex", "claude"]
+}

@@ -9,8 +9,9 @@ This repo is a Claude Code **marketplace** of independently-installable plugins,
 `.agents/skills/<skill>` symlinks and `.agents/plugins/marketplace.json`.
 
 Current plugins: `paper-to-poster` (AGPL-3.0), `mlspace-jobs` (MIT, three
-skills), and `gitlab-ai` (MIT, four provider-neutral skills). See `CONTEXT.md`
-for the glossary and `docs/adr/` for decisions.
+skills), `gitlab-ai` (MIT, four provider-neutral skills), and
+`adversarial-review` (MIT, one explicit-only skill). See `CONTEXT.md` for the
+glossary and `docs/adr/` for decisions.
 
 ## Usage arms
 
@@ -36,6 +37,10 @@ for the glossary and `docs/adr/` for decisions.
 - Headless Claude CI: install `gitlab-ai`, resolve its `installPath` from
   `claude plugin list --json`, then invoke `shared/ci/run_claude_gate.sh`; it
   composes the model policy and JSON/verdict helpers around a namespaced skill.
+- Adversarial review: `/adversarial-review` or `$adversarial-review` launches a
+  fresh-context reviewer for a committed change; it must be invoked explicitly.
+- GitHub Pages catalog: `.github/workflows/pages.yml` publishes
+  `site/index.html` after pushes to `main` that affect `site/**`.
 
 ## When adding, renaming, or removing a skill or plugin — update ALL of these
 

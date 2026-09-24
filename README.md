@@ -20,11 +20,12 @@ the repo is built to grow — more AXXX plugins can be added the same way.
 | [`gitlab-ai`](plugins/gitlab-ai/) | [`review-mr`](plugins/gitlab-ai/skills/review-mr/) | Review the current branch's GitLab MR with a fresh-context Claude or Codex worker, replace prior bot feedback, and post one summary plus CRITICAL inline discussions. | MIT |
 | [`gitlab-ai`](plugins/gitlab-ai/) | [`repair-pipeline`](plugins/gitlab-ai/skills/repair-pipeline/) | Fetch the latest GitLab pipeline and failed-job logs, diagnose actionable failures, and repair the working tree. | MIT |
 | [`gitlab-ai`](plugins/gitlab-ai/) | [`audit-agent-config`](plugins/gitlab-ai/skills/audit-agent-config/) | Verify repository-scoped Claude Code and Codex guidance against source, report stale claims and omissions, and optionally repair confirmed drift. | MIT |
+| [`adversarial-review`](plugins/adversarial-review/) | [`adversarial-review`](plugins/adversarial-review/skills/adversarial-review/) | Review a committed implementation through an independent fresh-context agent, verifying every affected usage path before returning `APPROVE` or `REVISE`. **Explicit-only** — invoke `/adversarial-review` after non-trivial code changes. | MIT |
 
 ## Installation
 
 This repo is a Claude Code **marketplace** (`.claude-plugin/marketplace.json`)
-that hosts three plugins. Install whichever you want, independently. If you install
+that hosts independently installable plugins. Install whichever you want. If you install
 `paper-to-poster`, also install its **runtime dependencies** (last subsection).
 
 ### Method A — Plugin marketplace (recommended)
@@ -39,6 +40,7 @@ once, then install only the plugins you need.
 /plugin install paper-to-poster@axxx-institute   # the poster builder
 /plugin install mlspace-jobs@axxx-institute       # the MLSpace job skills
 /plugin install gitlab-ai@axxx-institute         # GitLab review, pipeline repair + agent config audit
+/plugin install adversarial-review@axxx-institute # independent code review
 ```
 
 **OpenAI Codex** — from your shell:
@@ -48,6 +50,7 @@ codex plugin marketplace add AXXX-Institute/skills
 codex plugin add paper-to-poster@axxx-institute   # the poster builder
 codex plugin add mlspace-jobs@axxx-institute       # the MLSpace job skills
 codex plugin add gitlab-ai@axxx-institute         # GitLab review, pipeline repair + agent config audit
+codex plugin add adversarial-review@axxx-institute # independent code review
 ```
 
 Then connect the current repository to the shared GitLab CI gates:
@@ -75,6 +78,8 @@ marketplace and install just that one:
 > **https://github.com/AXXX-Institute/skills** — install the **paper-to-poster** skill
 
 > **https://github.com/AXXX-Institute/skills** — install the **gitlab-ai** skills
+
+> **https://github.com/AXXX-Institute/skills** — install the **adversarial-review** skill
 
 Under the hood the agent runs `/plugin marketplace add AXXX-Institute/skills`
 followed by `/plugin install <plugin>@axxx-institute` — nothing else is installed.
@@ -122,6 +127,8 @@ directory, so a copyleft plugin can't relicense a permissive one:
 - **`gitlab-ai` plugin:** **MIT** — provider-neutral review, pipeline repair,
   and agent-guidance audit skills with deterministic GitLab helpers, covered by
   the repo-root MIT license.
+- **`adversarial-review` plugin:** **MIT** — original work covered by the repo-root
+  license and declared in both plugin manifests.
 - **Future plugins** that derive from copyleft upstreams carry their own `LICENSE`
   inside their plugin directory; original plugins stay under the MIT root.
 
