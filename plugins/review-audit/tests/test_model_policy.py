@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import importlib.util
 import os
 import pathlib
 import subprocess
 import unittest
-import importlib.util
 
 
 PLUGIN_ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -74,13 +74,22 @@ class CleanupSelectionTests(unittest.TestCase):
                         "id": 10,
                         "body": "<!-- claude-review:abc -->",
                         "author": {"id": 7},
-                    }
+                    },
+                    {
+                        "id": 13,
+                        "body": "manual follow-up in review thread",
+                        "author": {"id": 7},
+                    },
                 ],
             },
             {
                 "id": "human",
                 "notes": [
-                    {"id": 11, "body": "my own note", "author": {"id": 7}}
+                    {
+                        "id": 11,
+                        "body": "my own **CRITICAL** note",
+                        "author": {"id": 7},
+                    }
                 ],
             },
             {
@@ -93,9 +102,38 @@ class CleanupSelectionTests(unittest.TestCase):
                     }
                 ],
             },
+            {
+                "id": "new-inline",
+                "notes": [
+                    {
+                        "id": 14,
+                        "body": "<!-- axxx-review-audit -->\n\n🚨 **CRITICAL**: issue",
+                        "author": {"id": 7},
+                    }
+                ],
+            },
         ]
 
-        self.assertEqual(list(module.iter_review_notes(discussions, 7)), [("review", 10)])
+        self.assertEqual(
+            list(module.iter_review_notes(discussions, 7)),
+            [("review", 10), ("new-inline", 14)],
+        )
+
+
+class GitRemoteTests(unittest.TestCase):
+    def test_ssh_url_with_port_is_supported(self) -> None:
+        module_path = PLUGIN_ROOT / "shared" / "gitlab_ops" / "git.py"
+        spec = importlib.util.spec_from_file_location("git_helpers", module_path)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        self.assertEqual(
+            module.parse_remote_url(
+                "ssh://git@gitlab.example.com:2222/group/subgroup/repo.git"
+            ),
+            ("gitlab.example.com", "group/subgroup/repo"),
+        )
 
 
 if __name__ == "__main__":

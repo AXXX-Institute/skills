@@ -8,6 +8,7 @@ from __future__ import annotations
 
 # Hidden marker embedded in the summary note so a given HEAD is reviewed once.
 REVIEW_SUMMARY_MARKER = "<!-- claude-review:{sha} -->"
+REVIEW_NOTE_MARKER = "<!-- axxx-review-audit -->"
 
 SEVERITY_EMOJI = {
     "CRITICAL": "\U0001f6a8",  # 🚨
@@ -15,12 +16,13 @@ SEVERITY_EMOJI = {
     "SUGGESTION": "\U0001f4a1",  # 💡
 }
 
-# Substrings that mark a note as authored by this or an older review workflow.
+# Unambiguous substrings that mark one note as automated review output. Severity
+# labels are deliberately absent: humans commonly write "**CRITICAL**" too.
 _REVIEW_MARKERS = (
+    REVIEW_NOTE_MARKER,
     "<!-- claude-review:",
     "## Claude Code Review",
     "## Automated Code Review",
-    *(f"**{sev}**" for sev in SEVERITY_EMOJI),
 )
 
 
@@ -33,17 +35,15 @@ def is_claude_review_discussion(discussion: dict) -> bool:
     return any(marker in body for marker in _REVIEW_MARKERS)
 
 
-def iter_review_notes(
-    discussions: list[dict], author_id: int | None
-):
+def iter_review_notes(discussions: list[dict], author_id: int | None):
     """Yield ``(discussion_id, note_id)`` for this bot's marked review notes."""
     for discussion in discussions:
-        if not is_claude_review_discussion(discussion):
-            continue
         for note in discussion.get("notes") or []:
             if note.get("system"):
                 continue
             if (note.get("author") or {}).get("id") != author_id:
+                continue
+            if not any(marker in note.get("body", "") for marker in _REVIEW_MARKERS):
                 continue
             yield discussion["id"], note["id"]
 

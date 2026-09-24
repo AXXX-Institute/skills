@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 import subprocess
+import urllib.parse
 
 # CI environment variables that carry the real branch name when the working tree
 # is in a detached HEAD, in priority order: the merge-request source branch
@@ -25,6 +26,12 @@ def parse_remote_url(remote_url: str) -> tuple[str, str]:
     ssh_match = re.match(r"git@([^:]+):(.+?)(?:\.git)?$", url)
     if ssh_match:
         return ssh_match.group(1), ssh_match.group(2)
+
+    if url.startswith("ssh://"):
+        parsed = urllib.parse.urlparse(url)
+        if parsed.hostname and parsed.path.strip("/"):
+            path = re.sub(r"\.git$", "", parsed.path.strip("/"))
+            return parsed.hostname, path
 
     url = re.sub(r"\.git$", "", url)
     url = re.sub(r"https?://[^@]+@", "https://", url)

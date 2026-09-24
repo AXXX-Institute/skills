@@ -39,6 +39,7 @@ from .mr import (
     resolve_discussion,
 )
 from .review import (
+    REVIEW_NOTE_MARKER,
     REVIEW_SUMMARY_MARKER,
     SEVERITY_EMOJI,
     format_inline_body,
@@ -47,6 +48,7 @@ from .review import (
 )
 
 __all__ = [
+    "REVIEW_NOTE_MARKER",
     "REVIEW_SUMMARY_MARKER",
     "SEVERITY_EMOJI",
     "build_diff",

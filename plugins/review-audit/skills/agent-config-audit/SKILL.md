@@ -50,10 +50,10 @@ report individual files inside an already documented package tree as omissions.
 ## Report and repair
 
 Report each audited file with STALE, OMISSIONS, VERIFIED, and UNABLE TO VERIFY
-sections, followed by a summary table. If the user requested `check`, report
-only. Otherwise minimally repair confirmed stale claims and significant
-omissions without rewriting accurate prose or changing source code to make docs
-true.
+sections, followed by a summary table. Report only by default. Repair confirmed
+stale claims and significant omissions only when the user explicitly asks to
+fix, update, repair, or sync the guidance. Repairs must be minimal: do not
+rewrite accurate prose or change source code to make documentation true.
 
 The final output line must be bare:
 
