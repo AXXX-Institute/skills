@@ -47,7 +47,7 @@
 <div class="bar"></div>
 <header>
   <h1>AXXX <span class="ac">skills</span></h1>
-  <p class="sub">AXXX-Institute's <a href="https://github.com/AXXX-Institute/skills" style="text-decoration:none">Claude Code</a> marketplace of independently-installable plugins. Install only what you need.</p>
+  <p class="sub">AXXX-Institute's <a href="https://github.com/AXXX-Institute/skills" style="text-decoration:none">Claude Code and Codex</a> marketplace — independently installable plugins. Install only what you need.</p>
   <p class="meta">Install from <strong>Claude Code</strong> or <strong>OpenAI Codex</strong> — each block below adds the marketplace, then installs that plugin.</p>
 </header>
 <main>
@@ -62,7 +62,7 @@
         <div class="tool"><span class="t">OpenAI Codex</span><pre><code>codex plugin marketplace add AXXX-Institute/skills
 codex plugin add paper-to-poster@axxx-institute</code></pre></div>
       </div>
-      <a class="go" href="paper-to-poster/">View posters &amp; details →</a>
+      <a class="go" href="paper-to-poster/">View skill &amp; poster gallery →</a>
     </div>
 
     <div class="plugin">
@@ -78,6 +78,18 @@ codex plugin add mlspace-jobs@axxx-institute</code></pre></div>
     </div>
 
     <div class="plugin">
+      <h2>gitlab-ai <span class="lic">MIT</span></h2>
+      <p><strong>One GitLab toolkit for both providers.</strong> <code>setup-ci</code> connects a repository, <code>review-mr</code> posts feedback, <code>repair-pipeline</code> diagnoses failed jobs, and <code>audit-agent-config</code> checks agent guidance against source.</p>
+      <div class="install">
+        <div class="tool"><span class="t">Claude Code</span><pre><code>/plugin marketplace add AXXX-Institute/skills
+/plugin install gitlab-ai@axxx-institute</code></pre></div>
+        <div class="tool"><span class="t">OpenAI Codex</span><pre><code>codex plugin marketplace add AXXX-Institute/skills
+codex plugin add gitlab-ai@axxx-institute</code></pre></div>
+      </div>
+      <a class="go" href="gitlab-ai.html">GitLab AI workflows →</a>
+    </div>
+
+    <div class="plugin">
       <h2>adversarial-review <span class="lic">MIT</span></h2>
       <p><strong>Independent review</strong> for committed code changes: a fresh-context agent discovers every affected usage path, verifies each one, and returns an actionable <code>APPROVE</code> or <code>REVISE</code> verdict. Explicit-only for Claude Code and Codex.</p>
       <div class="install">
@@ -86,7 +98,7 @@ codex plugin add mlspace-jobs@axxx-institute</code></pre></div>
         <div class="tool"><span class="t">OpenAI Codex</span><pre><code>codex plugin marketplace add AXXX-Institute/skills
 codex plugin add adversarial-review@axxx-institute</code></pre></div>
       </div>
-      <a class="go" href="https://github.com/AXXX-Institute/skills/tree/main/plugins/adversarial-review/skills/adversarial-review">View skill source →</a>
+      <a class="go" href="adversarial-review/">View skill details →</a>
     </div>
 
   </div>

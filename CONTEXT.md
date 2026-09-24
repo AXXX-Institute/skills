@@ -1,8 +1,8 @@
 # Glossary (CONTEXT.md)
 
 Canonical domain terms for the **axxx-skills** repo — a Claude Code **marketplace**
-hosting independently installable plugins (`paper-to-poster`, `mlspace-jobs`, and
-`adversarial-review`).
+hosting four independently installable plugins (`paper-to-poster`,
+`mlspace-jobs`, `gitlab-ai`, and `adversarial-review`).
 Glossary only — no implementation detail. See `docs/adr/` for decisions and the
 skill sources for code.
 
@@ -13,8 +13,8 @@ with its own `.claude-plugin/plugin.json` and skills at
 `plugins/<name>/skills/<skill>/`. GitHub identity: **`AXXX-Institute/skills`**
 (Pages at `axxx-institute.github.io/skills`, release assets at
 `github.com/AXXX-Institute/skills/releases/...`); checked out locally as
-`axxx-skills`. Ships `paper-to-poster`, `mlspace-jobs`, and `adversarial-review`;
-built so further plugins can be added later.
+`axxx-skills`. Ships `paper-to-poster`, `mlspace-jobs`, `gitlab-ai`, and
+`adversarial-review`; built so further plugins can be added later.
 _Avoid:_ "the poster repo" (that names the user's paper repo, not this one);
 "axxx-skills" as the GitHub name (it's the local dir; the remote is
 `AXXX-Institute/skills`); "the plugin" (singular — the repo is a marketplace of
@@ -69,6 +69,13 @@ re-rendered in AXXX style, listed by an `index.html`. Distinct from a single
 poster repo's own Pages deploy.
 _Avoid:_ "the demo" (the gallery is the published showcase, not a smoke test).
 
+## Skill page
+The generated GitHub Pages route `/<skill>/` for one marketplace skill. It shows
+the owning plugin, license, invocation policy, Claude Code and Codex installation
+commands, source links, and the complete canonical `SKILL.md` content. The page
+is generated at deploy time rather than edited independently.
+_Avoid:_ "plugin page" (a plugin may bundle several skill pages).
+
 ## Codex mirror
 The parallel exposure of this marketplace's plugins/skills to **OpenAI Codex** via
 the shared Agent Skills standard: each plugin carries a `.codex-plugin/plugin.json`
@@ -78,6 +85,43 @@ the canonical skill dirs. Kept identical to the Claude Code side by a CI parity
 check; the explicit-only skill uses `agents/openai.yaml` in place of
 `disable-model-invocation`.
 _Avoid:_ "port to Codex" (nothing is copied — the same `SKILL.md` files are reused).
+
+## gitlab-ai
+The provider-neutral plugin for repository quality gates. It bundles
+[[setup-ci]], [[review-mr]], [[repair-pipeline]], and [[audit-agent-config]],
+with one model policy and one set of GitLab helpers shared by Claude Code and
+Codex.
+_Avoid:_ "Codex review plugin" or "Claude audit plugin" (the same skills serve
+both providers).
+
+## setup-ci
+The GitLab CI onboarding skill. It connects a repository to the shared
+`claude-audit` and `auto-review` gates without replacing existing pipeline
+configuration, and keeps GitLab tokens out of committed files.
+_Avoid:_ "install GitLab" (GitLab already hosts the repository; this skill
+connects its pipeline to gitlab-ai).
+
+## review-mr
+The GitLab merge-request review skill. It selects a provider-appropriate
+fresh-context worker, removes the review bot's prior feedback, posts warnings and
+suggestions in one summary, posts only CRITICAL findings inline, and emits a
+CI-compatible verdict.
+_Avoid:_ "Claude review" (Claude is one supported provider, not the skill's
+identity).
+
+## repair-pipeline
+The GitLab CI diagnosis and repair skill. It waits for the current branch's
+latest pipeline, retrieves failed-job logs, distinguishes actionable code
+failures from infrastructure failures, and repairs the working tree when safe.
+_Avoid:_ "fix CI config" (the failure may be in source, tests, dependencies, or
+infrastructure rather than the CI configuration itself).
+
+## audit-agent-config
+The cross-provider documentation audit skill. It verifies repository-scoped
+`CLAUDE.md`, `AGENTS.md`, project skills, and commands against source code, then
+reports or minimally repairs confirmed drift.
+_Avoid:_ "claude-audit" or "codex-audit" (those name provider-specific legacy
+entry points; this skill deliberately unifies their scope).
 
 ## adversarial-review
 The explicit-only skill that asks a separate, fresh-context **Reviewer** to verify

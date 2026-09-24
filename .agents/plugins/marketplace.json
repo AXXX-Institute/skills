@@ -29,6 +29,18 @@
       "category": "Productivity"
     },
     {
+      "name": "gitlab-ai",
+      "source": {
+        "source": "local",
+        "path": "./plugins/gitlab-ai"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
       "name": "adversarial-review",
       "source": {
         "source": "local",

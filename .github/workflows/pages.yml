@@ -1,8 +1,10 @@
 # Deploy the AXXX skills site to GitHub Pages. Multi-page, all static/committed —
 # no rendering at deploy time.
-#   /                     -> site/index.html            (landing: the two plugins)
+#   /                     -> site/index.html            (marketplace landing)
 #   /mlspace-jobs.html    -> site/mlspace-jobs.html     (mlspace-jobs plugin page)
-#   /paper-to-poster/     -> plugins/paper-to-poster/skills/paper-to-poster/examples/ (poster gallery)
+#   /gitlab-ai.html       -> site/gitlab-ai.html        (gitlab-ai plugin page)
+#   /<skill>/             -> generated skill page from README.md + SKILL.md
+#   /paper-to-poster/gallery.html -> poster gallery
 # Result: https://axxx-institute.github.io/skills/
 name: Deploy site to Pages
 
@@ -11,6 +13,10 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - ".github/scripts/build_skill_pages.py"
+      - "plugins/*/skills/*/README.md"
+      - "plugins/*/skills/*/SKILL.md"
+      - "plugins/*/.claude-plugin/plugin.json"
       - "plugins/paper-to-poster/skills/paper-to-poster/examples/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
@@ -38,6 +44,8 @@ jobs:
           cp -r site/* _site/
           mkdir -p _site/paper-to-poster
           cp -r plugins/paper-to-poster/skills/paper-to-poster/examples/* _site/paper-to-poster/
+          cp plugins/paper-to-poster/skills/paper-to-poster/examples/index.html _site/paper-to-poster/gallery.html
+          python3 .github/scripts/build_skill_pages.py --output _site
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

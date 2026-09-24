@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repair GitLab Pipeline"
+  short_description: "Diagnose and repair failed GitLab CI jobs"
+  default_prompt: "Use $repair-pipeline to diagnose and repair the current branch's failed GitLab pipeline."
