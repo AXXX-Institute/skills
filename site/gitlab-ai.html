@@ -4,13 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>gitlab-ai — AXXX skills</title>
-<style>
-  :root{--accent:#0689D4;--deep:#053957;--light:#E6F4FD;--text:#111;--muted:#687A86;--border:#CDD5DA;--bg:#F4F8FB}
-  *{box-sizing:border-box}body{margin:0;font-family:Inter,"Helvetica Neue",Arial,sans-serif;color:var(--text);background:var(--bg);line-height:1.55}.bar{height:6px;background:var(--accent)}main{max-width:880px;margin:0 auto;padding:52px 24px 72px}h1,h2{color:var(--deep)}h1{font-size:38px;margin:0}.sub{color:var(--muted);font-size:18px;max-width:720px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin:30px 0}.card{background:white;border:1px solid var(--border);border-radius:14px;padding:22px}code{background:var(--light);color:var(--deep);padding:2px 5px;border-radius:4px}pre{background:white;border:1px solid var(--border);border-radius:10px;padding:16px;overflow:auto}a{color:var(--accent)}li{margin:7px 0}
-</style>
+<link rel="stylesheet" href="assets/styles.css">
 </head>
-<body><div class="bar"></div><main>
-  <p><a href="./">← All AXXX skills</a></p>
+<body class="page-plugin"><div class="bar"></div><main>
+  <p class="breadcrumb"><a href="./">← All AXXX skills</a></p>
   <h1>gitlab-ai</h1>
   <p class="sub">A provider-neutral plugin for GitLab CI setup, merge-request review, failed-pipeline repair, and repository agent-configuration auditing in Claude Code and OpenAI Codex.</p>
   <div class="grid">
@@ -36,5 +33,5 @@ codex plugin marketplace add AXXX-Institute/skills
 codex plugin add gitlab-ai@axxx-institute
 
 # Then run /gitlab-ai:setup-ci or $gitlab-ai:setup-ci</code></pre>
-</main></body>
+</main><script src="assets/site.js"></script></body>
 </html>

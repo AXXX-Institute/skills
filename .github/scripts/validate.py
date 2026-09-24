@@ -241,7 +241,15 @@ def main() -> int:
             err(f"skill '{n}' is not described on the GitHub Pages site "
                 "(site/*.html or the paper-to-poster gallery)")
 
-    # 8. Codex/Claude parity: same plugin set (dual manifests) and same skill set.
+    # 8. All hand-written marketplace pages use the shared visual system.
+    for page in sorted((ROOT / "site").glob("*.html")):
+        page_text = page.read_text(encoding="utf-8")
+        if 'href="assets/styles.css"' not in page_text:
+            err(f"{page.relative_to(ROOT)}: does not load shared assets/styles.css")
+        if "<style" in page_text:
+            err(f"{page.relative_to(ROOT)}: contains inline CSS instead of shared styles")
+
+    # 9. Codex/Claude parity: same plugin set (dual manifests) and same skill set.
     check_codex_parity(all_skill_names)
 
     return report()

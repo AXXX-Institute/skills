@@ -4,50 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AXXX skills — Claude Code plugins</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --accent:#0689D4; --accent-deep:#053957; --accent-light:#E6F4FD;
-    --text:#111; --text-2:#687A86; --border:#CDD5DA; --bg:#F4F8FB;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"Inter","Helvetica Neue",Arial,sans-serif;color:var(--text);background:var(--bg);line-height:1.5}
-  .bar{height:6px;background:var(--accent)}
-  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--accent-light);border-radius:4px;padding:1px 5px;color:var(--accent-deep)}
-  a{color:var(--accent)}
-  pre{position:relative}
-  .copy-btn{position:absolute;top:6px;right:6px;border:1px solid var(--border);background:rgba(255,255,255,.92);color:var(--accent-deep);font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.4px;padding:3px 8px;border-radius:6px;cursor:pointer;opacity:.5;transition:opacity .12s}
-  pre:hover .copy-btn,.copy-btn:focus{opacity:1}
-  .copy-btn.ok{color:#178a4e;border-color:#8fce8f}
-  header{max-width:1040px;margin:0 auto;padding:56px 24px 8px}
-  h1{font-size:38px;font-weight:900;color:var(--accent-deep);letter-spacing:-.6px}
-  h1 .ac{color:var(--accent)}
-  .sub{color:var(--text-2);font-size:17px;margin-top:10px;max-width:760px}
-  .meta{color:var(--text-2);font-size:13px;margin-top:16px}
-  main{max-width:1040px;margin:0 auto;padding:28px 24px 60px}
-  .plugins{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px}
-  .plugin{background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px 22px 20px;display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s}
-  .plugin:hover{box-shadow:0 10px 34px rgba(5,57,87,.12);transform:translateY(-2px)}
-  .plugin h2{font-size:20px;color:var(--accent-deep);font-weight:800;display:flex;align-items:center;gap:9px}
-  .lic{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--accent);background:var(--accent-light);border-radius:5px;padding:2px 7px}
-  .plugin p{color:var(--text-2);font-size:14px;margin-top:10px}
-  .inst{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--accent-deep);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin:14px 0 16px;overflow-x:auto}
-  .install{display:grid;gap:12px;margin:14px 0 16px}
-  .install .t{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--accent);margin-bottom:5px}
-  .install pre{margin:0;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;overflow-x:auto}
-  .install pre code{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--accent-deep);background:none;padding:0;white-space:pre;line-height:1.7}
-  .go{margin-top:auto;font-weight:700;font-size:14px;text-decoration:none;color:#fff;background:var(--accent);align-self:flex-start;padding:9px 16px;border-radius:8px}
-  footer{max-width:1040px;margin:0 auto 60px;padding:0 24px;color:var(--text-2);font-size:13px}
-  footer a{text-decoration:none}
-</style>
+<link rel="stylesheet" href="assets/styles.css">
 </head>
-<body>
+<body class="page-home">
 <div class="bar"></div>
 <header>
   <h1>AXXX <span class="ac">skills</span></h1>
-  <p class="sub">AXXX-Institute's <a href="https://github.com/AXXX-Institute/skills" style="text-decoration:none">Claude Code and Codex</a> marketplace — independently installable plugins. Install only what you need.</p>
+  <p class="sub">AXXX-Institute's <a href="https://github.com/AXXX-Institute/skills">Claude Code and Codex</a> marketplace — independently installable plugins. Install only what you need.</p>
   <p class="meta">Install from <strong>Claude Code</strong> or <strong>OpenAI Codex</strong> — each block below adds the marketplace, then installs that plugin.</p>
 </header>
 <main>
@@ -106,21 +69,6 @@ codex plugin add adversarial-review@axxx-institute</code></pre></div>
 <footer>
   <a href="https://github.com/AXXX-Institute/skills">Source: AXXX-Institute/skills</a>
 </footer>
-<script>
-(function(){
-  function copyText(t){
-    if(navigator.clipboard&&navigator.clipboard.writeText){return navigator.clipboard.writeText(t);}
-    return new Promise(function(res,rej){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');res();}catch(e){rej(e);}document.body.removeChild(ta);});
-  }
-  document.querySelectorAll('pre').forEach(function(pre){
-    var btn=document.createElement('button');btn.type='button';btn.className='copy-btn';btn.textContent='Copy';
-    btn.addEventListener('click',function(){
-      var code=pre.querySelector('code');var text=(code?code.textContent:pre.textContent).replace(/\s+$/,'');
-      copyText(text).then(function(){btn.textContent='Copied';btn.classList.add('ok');setTimeout(function(){btn.textContent='Copy';btn.classList.remove('ok');},1400);}).catch(function(){});
-    });
-    pre.appendChild(btn);
-  });
-})();
-</script>
+<script src="assets/site.js"></script>
 </body>
 </html>
