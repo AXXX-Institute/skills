@@ -150,16 +150,18 @@ offline and on Pages with no remote images. See
 
 Published at **https://axxx-institute.github.io/skills/** by
 `.github/workflows/pages.yml` — a landing page
-([`site/index.html`](site/index.html)) with a dedicated page per plugin:
+([`site/index.html`](site/index.html)) with plugin overview pages and one
+generated `/<skill>/` page for every skill. Each skill page includes installation
+and invocation commands, metadata, source links, and the complete `SKILL.md`.
 
 - **`/mlspace-jobs.html`** ([`site/mlspace-jobs.html`](site/mlspace-jobs.html)) —
   the *experiments-as-code* pitch: the three skills (in the order to use them) and
   the four properties the scaffold gives you, each as a with/without comparison.
-- **`/paper-to-poster/`** — the four posterly examples re-rendered in AXXX style
-  ([`…/examples/`](plugins/paper-to-poster/skills/paper-to-poster/examples/)).
+- **`/paper-to-poster/`** — the skill page, linking to the preserved poster
+  showcase at `/paper-to-poster/gallery.html` and its examples.
 - **`/gitlab-ai.html`** ([`site/gitlab-ai.html`](site/gitlab-ai.html)) —
-  the `review-mr`, `repair-pipeline`, and `audit-agent-config` workflows, shared
-  model policy, and installation commands.
+  the `setup-ci`, `review-mr`, `repair-pipeline`, and `audit-agent-config`
+  workflows, shared model policy, and links to their individual skill pages.
 
 ## Repo docs
 

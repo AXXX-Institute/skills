@@ -69,6 +69,13 @@ re-rendered in AXXX style, listed by an `index.html`. Distinct from a single
 poster repo's own Pages deploy.
 _Avoid:_ "the demo" (the gallery is the published showcase, not a smoke test).
 
+## Skill page
+The generated GitHub Pages route `/<skill>/` for one marketplace skill. It shows
+the owning plugin, license, invocation policy, Claude Code and Codex installation
+commands, source links, and the complete canonical `SKILL.md` content. The page
+is generated at deploy time rather than edited independently.
+_Avoid:_ "plugin page" (a plugin may bundle several skill pages).
+
 ## Codex mirror
 The parallel exposure of this marketplace's plugins/skills to **OpenAI Codex** via
 the shared Agent Skills standard: each plugin carries a `.codex-plugin/plugin.json`

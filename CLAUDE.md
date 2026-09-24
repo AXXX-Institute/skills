@@ -41,6 +41,9 @@ glossary and `docs/adr/` for decisions.
   fresh-context reviewer for a committed change; it must be invoked explicitly.
 - GitHub Pages catalog: `.github/workflows/pages.yml` publishes
   `site/index.html` after pushes to `main` that affect `site/**`.
+- Per-skill documentation: every `plugins/<plugin>/skills/<skill>/README.md`
+  documents installation and invocation; `.github/scripts/build_skill_pages.py`
+  turns every `SKILL.md` into the extensionless Pages route `/<skill>/`.
 
 ## When adding, renaming, or removing a skill or plugin — update ALL of these
 
@@ -60,17 +63,18 @@ in the **same change**; don't stop at dropping a `SKILL.md`.
    - Explicit-only skill → `disable-model-invocation: true` (Claude) **and** an
      `agents/openai.yaml` with `allow_implicit_invocation: false` (Codex) beside
      its `SKILL.md`.
-2. **README.md** — add the skill to the **Plugins & skills** table (with its new
-   `plugins/<plugin>/skills/<skill>/` path and license), and update the install
-   instructions if a new plugin was introduced.
+2. **README files** — add the skill to the root **Plugins & skills** table and
+   create `plugins/<plugin>/skills/<skill>/README.md` with Claude Code and Codex
+   marketplace installation commands, invocation examples, and a `SKILL.md`
+   link. CI enforces this contract.
 3. **GitHub Pages** — describe the new skill on the site published by
    `.github/workflows/pages.yml`: MLSpace skills on
    [`site/mlspace-jobs.html`](site/mlspace-jobs.html), poster skills in the poster
    gallery (`plugins/paper-to-poster/skills/paper-to-poster/examples/index.html`),
    and a new plugin gets a card on the `site/index.html` landing plus its
-   `/plugin install <name>@axxx-institute` line. Every skill must be described on
-   the site — the CI sync-guard enforces this. **Keep the Pages skill list in sync
-   with the actual skills.**
+   `/plugin install <name>@axxx-institute` line. Every skill also gets a generated
+   `/<skill>/` page from `.github/scripts/build_skill_pages.py`; link it from the
+   relevant landing page. The CI sync-guard enforces this.
 4. **CONTEXT.md** — add/adjust the glossary term(s) for the new skill/plugin
    (glossary only — no implementation detail).
 5. **docs/adr/** — if the addition involved a real, hard-to-reverse decision
@@ -90,6 +94,8 @@ in the **same change**; don't stop at dropping a `SKILL.md`.
 - **Skills are the source of truth** for their own behavior; keep `SKILL.md`,
   its `references/`, and `evals/` internally consistent (e.g. if you renumber the
   scaffold's pillars, update every `pillar N` cross-reference and the eval notes).
+- **Skill pages are generated.** Do not hand-edit `site/<skill>/index.html`.
+  Update the skill's `README.md`, `SKILL.md`, or the shared generator instead.
 - **Commits:** conventional-commit prefixes (`feat:`, `fix:`, `refactor:`,
   `docs:`, `results:`); stage specific files (avoid `git add -A` when unrelated
   changes are present); commit only when the work is coherent and verified.

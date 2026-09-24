@@ -14,10 +14,10 @@
   <h1>gitlab-ai</h1>
   <p class="sub">A provider-neutral plugin for GitLab CI setup, merge-request review, failed-pipeline repair, and repository agent-configuration auditing in Claude Code and OpenAI Codex.</p>
   <div class="grid">
-    <section class="card"><h2>setup-ci</h2><p>Safely merges the shared review and audit jobs into an existing <code>.gitlab-ci.yml</code>, resolves the runner tag, validates the result, and keeps GitLab tokens out of committed files.</p></section>
-    <section class="card"><h2>review-mr</h2><p>Uses a fresh-context worker selected by the shared model policy, removes prior bot feedback, posts warnings and suggestions in one summary, and reserves inline discussions for CRITICAL findings.</p></section>
-    <section class="card"><h2>repair-pipeline</h2><p>Waits for the latest branch pipeline, fetches failed-job logs, identifies actionable failures, and repairs the working tree while separating code defects from infrastructure failures.</p></section>
-    <section class="card"><h2>audit-agent-config</h2><p>Checks repository-scoped <code>CLAUDE.md</code>, <code>AGENTS.md</code>, skills, commands, and references against source. It reports or minimally repairs only confirmed contradictions and significant omissions.</p></section>
+    <section class="card"><h2><a href="setup-ci/">setup-ci</a></h2><p>Safely merges the shared review and audit jobs into an existing <code>.gitlab-ci.yml</code>, resolves the runner tag, validates the result, and keeps GitLab tokens out of committed files.</p></section>
+    <section class="card"><h2><a href="review-mr/">review-mr</a></h2><p>Uses a fresh-context worker selected by the shared model policy, removes prior bot feedback, posts warnings and suggestions in one summary, and reserves inline discussions for CRITICAL findings.</p></section>
+    <section class="card"><h2><a href="repair-pipeline/">repair-pipeline</a></h2><p>Waits for the latest branch pipeline, fetches failed-job logs, identifies actionable failures, and repairs the working tree while separating code defects from infrastructure failures.</p></section>
+    <section class="card"><h2><a href="audit-agent-config/">audit-agent-config</a></h2><p>Checks repository-scoped <code>CLAUDE.md</code>, <code>AGENTS.md</code>, skills, commands, and references against source. It reports or minimally repairs only confirmed contradictions and significant omissions.</p></section>
   </div>
   <h2>Model policy</h2>
   <ul>

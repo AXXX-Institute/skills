@@ -13,12 +13,44 @@
   <img src="https://img.shields.io/badge/coding_agent-skill-7B2CBF.svg" alt="Agent skill">
 </p>
 
-**This is a coding-agent skill, not a hosted service.** Clone, install, and either invoke `/posterly` from your agent or call the CLIs directly. There is no cloud, no signup, no telemetry.
+**This is a coding-agent skill, not a hosted service.** Install the
+`paper-to-poster` plugin, invoke the skill from Claude Code or Codex, or call its
+CLIs directly. There is no cloud, no signup, and no telemetry.
+
+## Install
+
+### Claude Code
+
+```text
+/plugin marketplace add AXXX-Institute/skills
+/plugin install paper-to-poster@axxx-institute
+```
+
+### OpenAI Codex
+
+```bash
+codex plugin marketplace add AXXX-Institute/skills
+codex plugin add paper-to-poster@axxx-institute
+```
+
+## Use
+
+- Claude Code: `/paper-to-poster`
+- OpenAI Codex: `$paper-to-poster`
+
+Ask the skill to build or revise an AXXX-branded poster from your paper source.
+See [SKILL.md](SKILL.md) for the complete workflow.
+
+[Open the skill page](https://axxx-institute.github.io/skills/paper-to-poster/)
 
 > [!NOTE]
 > **Built with Claude, works with Codex too.** posterly is developed primarily with Claude (Opus 4.7 / 4.8), but in testing Codex (GPT-5.5) drives it just as well — and any coding agent with skill support should be fine. Hit a snag? A ⭐ and an issue are always welcome!
 
-A poster in `posterly` is **one HTML file** styled for an exact print canvas. The skill ships three neutral templates, four sanity-check CLIs, and a render pipeline that produces a PDF at exact ICML / NeurIPS / ICLR / CVPR dimensions. Inside your agent, `/posterly` walks you through venue lookup → template pick → content fill → render — see `SKILL.md` for the full workflow it follows.
+A poster is **one HTML file** styled for an exact print canvas. The skill ships
+AXXX-branded templates, four sanity-check CLIs, and a render pipeline that
+produces a PDF at exact ICML / NeurIPS / ICLR / CVPR dimensions. Inside your
+agent, `/paper-to-poster` walks through venue lookup → template pick → content
+fill → render; see `SKILL.md` for the full workflow.
 
 ---
 
@@ -78,21 +110,13 @@ Trade-off: no native math typesetting; templates load MathJax 3 from a CDN by de
 
 ---
 
-## Install
+## Runtime dependencies and smoke test
 
-**The lazy way — hand it to your agent.** Paste this to your coding agent (Claude, Codex, …):
-
-> Install this skill for me: https://github.com/Chenruishuo/posterly
-
-It will clone the repo into `~/.claude/skills/`, install the Python deps, and run the smoke test. The manual steps below are the fallback (or for a non-agent setup).
+After installing the plugin, install the rendering dependencies and run the
+smallest end-to-end fixture:
 
 ```bash
-# 1. Clone into ~/.claude/skills/ for Claude Code auto-discovery
-#    (other agents: point them at this dir however they load skills)
-git clone https://github.com/Chenruishuo/posterly ~/.claude/skills/posterly
-cd ~/.claude/skills/posterly
-
-# 2. Python deps
+# 1. Python deps
 python -m pip install "playwright>=1.40"
 python -m playwright install chromium
 # On a fresh Linux box you may also need the system libs Chromium links against:
@@ -101,12 +125,12 @@ python -m playwright install chromium
 #   #                     libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 \
 #   #                     libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2
 
-# 3. System dep for verify-final's pdfinfo
+# 2. System dep for verify-final's pdfinfo
 #    Linux:   apt install poppler-utils
 #    macOS:   brew install poppler
 #    Windows: choco install poppler
 
-# 4. Smoke test
+# 3. Smoke test (run from the installed skill directory)
 cd examples/hello_world
 python ../../tools/poster_check.py preflight  poster.html
 python ../../tools/poster_check.py measure    poster.html
@@ -114,7 +138,7 @@ python ../../tools/poster_check.py polish     poster.html
 python ../../tools/render_preview.py          poster.html
 python ../../tools/poster_check.py verify-final poster_preview.pdf --from-html poster.html
 
-# 5. (dev) run the test suite
+# 4. (dev) run the test suite
 python -m pip install "pytest>=7" && python -m pytest
 ```
 
@@ -128,7 +152,7 @@ All four `poster_check.py` calls should print `PASS` and `render_preview.py` sho
 
 Once installed, just point your agent at the paper's source directory:
 
-> /posterly — make my ICML 2026 poster from the LaTeX project at ~/papers/mypaper/. Logos are in ~/papers/mypaper/logos/, QR should point to https://github.com/you/yourcode
+> /paper-to-poster — make my ICML 2026 poster from the LaTeX project at ~/papers/mypaper/. Logos are in ~/papers/mypaper/logos/, QR should point to https://github.com/you/yourcode
 
 The paper source is the only required input — hand over the LaTeX project directory (an easily-parsed format like Word should also do) and posterly reads the actual source, so numbers and claims come from the paper, not from memory. Logos and the QR target URL are optional: anything you don't hand over up front, the skill asks about in one batch of design questions before it starts (and degrades gracefully if the answer is "none" — text venue badge, no empty logo/QR boxes).
 
@@ -141,7 +165,7 @@ The paper source is the only required input — hand over the LaTeX project dire
 
 ```
 posterly/
-├── SKILL.md             ← workflow your agent follows when you /posterly
+├── SKILL.md             ← workflow your agent follows when you /paper-to-poster
 ├── tools/
 │   ├── poster_check.py  ← preflight / measure / polish / verify-final CLIs
 │   ├── render_preview.py← print-emulated PDF + thumbnail PNG
@@ -173,7 +197,7 @@ The three knobs you'll actually touch:
 
 - **Colors / fonts**: edit `:root` design tokens (`--accent`, `--gold`, `--font-serif`, …) in the template you copied.
 - **Logos**: drop into the same directory as `poster.html`, reference as `images/your_logo.png`.
-- **QR code**: give `/posterly` your paper/code URL and Claude generates the QR for you — the showcase posters' codes were made this way. Templates ship an inline SVG placeholder so they render offline; to make one by hand, `qrencode -o qr.png -s 12 "<url>"` (Linux) or `python -c "import qrcode; qrcode.make('<url>').save('qr.png')"`, then point the QR `<img src=…>` at it.
+- **QR code**: give `/paper-to-poster` your paper/code URL and the agent generates the QR for you — the showcase posters' codes were made this way. Templates ship an inline SVG placeholder so they render offline; to make one by hand, `qrencode -o qr.png -s 12 "<url>"` (Linux) or `python -c "import qrcode; qrcode.make('<url>').save('qr.png')"`, then point the QR `<img src=…>` at it.
 
 ---
 

@@ -77,7 +77,9 @@ def parse_frontmatter(text: str) -> dict | None:
 MAX_DESC = 1024  # Claude Code skill `description` hard cap
 
 
-def check_skill(skill_dir: Path, names_seen: dict[str, Path]) -> str | None:
+def check_skill(
+    skill_dir: Path, names_seen: dict[str, Path], plugin_name: str
+) -> str | None:
     """Validate one skill directory; return its frontmatter name (or None)."""
     rel = skill_dir.relative_to(ROOT)
     skill_md = skill_dir / "SKILL.md"
@@ -102,6 +104,22 @@ def check_skill(skill_dir: Path, names_seen: dict[str, Path]) -> str | None:
         if name in names_seen:
             err(f"duplicate skill name '{name}': {rel} and {names_seen[name]}")
         names_seen[name] = rel
+    readme = skill_dir / "README.md"
+    if not readme.is_file():
+        err(f"{rel}: missing README.md with installation instructions")
+    else:
+        readme_text = readme.read_text(encoding="utf-8")
+        required_install_fragments = (
+            "/plugin marketplace add AXXX-Institute/skills",
+            f"/plugin install {plugin_name}@axxx-institute",
+            "codex plugin marketplace add AXXX-Institute/skills",
+            f"codex plugin add {plugin_name}@axxx-institute",
+            "[SKILL.md](SKILL.md)",
+            f"https://axxx-institute.github.io/skills/{name}/",
+        )
+        for fragment in required_install_fragments:
+            if fragment not in readme_text:
+                err(f"{rel}/README.md: missing `{fragment}`")
     # Light evals.json check (optional file)
     evals = skill_dir / "evals" / "evals.json"
     if evals.is_file():
@@ -180,7 +198,7 @@ def main() -> int:
         if not skill_dirs:
             err(f"{src}: plugin ships no skills under skills/")
         for sd in skill_dirs:
-            n = check_skill(sd, skill_names)
+            n = check_skill(sd, skill_names, pname)
             if n:
                 all_skill_names.append(n)
 
@@ -193,6 +211,7 @@ def main() -> int:
     # 6. Internal markdown links resolve (marketplace-level docs only).
     doc_files = [ROOT / "README.md", ROOT / "CLAUDE.md", ROOT / "CONTEXT.md"]
     doc_files += sorted((ROOT / "docs").rglob("*.md")) if (ROOT / "docs").is_dir() else []
+    doc_files += sorted(ROOT.glob("plugins/*/skills/*/README.md"))
     link_re = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
     for md in doc_files:
         if not md.is_file():

@@ -25,6 +25,9 @@ jobs:
       - name: Validate marketplace, plugins & skills
         run: python3 .github/scripts/validate.py
 
+      - name: Build per-skill Pages routes
+        run: python3 .github/scripts/build_skill_pages.py --output /tmp/axxx-skill-pages
+
       - name: Test gitlab-ai helpers and policy
         run: python3 -m unittest discover -s plugins/gitlab-ai/tests
 
