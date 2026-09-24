@@ -169,6 +169,21 @@ class CleanupSelectionTests(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertEqual(result["errors"], 1)
 
+    def test_cleanup_deletion_errors_make_the_result_fail(self) -> None:
+        module_path = PLUGIN_ROOT / "shared" / "gitlab_ops" / "review.py"
+        spec = importlib.util.spec_from_file_location("cleanup_results", module_path)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        result = module.summarize_cleanup_result(
+            42,
+            [10],
+            [{"id": 11, "error": "GitLab 500"}],
+        )
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["deleted_count"], 1)
+        self.assertEqual(len(result["failed"]), 1)
+
 
 class GitRemoteTests(unittest.TestCase):
     def test_ssh_url_with_port_is_supported(self) -> None:

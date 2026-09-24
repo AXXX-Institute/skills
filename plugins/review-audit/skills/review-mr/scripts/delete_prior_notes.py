@@ -38,6 +38,7 @@ from gitlab_ops import (  # noqa: E402
     iter_review_notes,
     log,
     resolve_project,
+    summarize_cleanup_result,
 )
 
 
@@ -69,15 +70,11 @@ def main() -> None:
             failed.append({"id": note_id, "error": str(exc)})
             log(f"  WARNING: failed to delete {note_id}: {exc}")
 
-    output = {
-        "status": "ok",
-        "mr_iid": mr_iid,
-        "deleted_count": len(deleted),
-        "deleted_ids": deleted,
-        "failed": failed,
-    }
+    output = summarize_cleanup_result(mr_iid, deleted, failed)
     json.dump(output, sys.stdout, indent=2)
     print()
+    if output["status"] == "error":
+        sys.exit(1)
 
 
 if __name__ == "__main__":

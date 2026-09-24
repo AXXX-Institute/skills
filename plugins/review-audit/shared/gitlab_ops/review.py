@@ -75,3 +75,16 @@ def summarize_inline_results(results: list[dict]) -> dict:
         "errors": errors,
         "results": results,
     }
+
+
+def summarize_cleanup_result(
+    mr_iid: int, deleted: list[int], failed: list[dict]
+) -> dict:
+    """Build cleanup output and fail closed when any deletion failed."""
+    return {
+        "status": "error" if failed else "ok",
+        "mr_iid": mr_iid,
+        "deleted_count": len(deleted),
+        "deleted_ids": deleted,
+        "failed": failed,
+    }
