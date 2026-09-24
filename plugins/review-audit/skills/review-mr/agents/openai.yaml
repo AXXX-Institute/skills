@@ -1,0 +1,6 @@
+interface:
+  display_name: "Review GitLab MR"
+  short_description: "Review and publish GitLab MR findings"
+  default_prompt: "Use $review-mr to review the current GitLab merge request."
+policy:
+  allow_implicit_invocation: true

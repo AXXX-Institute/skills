@@ -31,7 +31,7 @@ def gitlab_error(msg: str) -> NoReturn:
     """Write a JSON error to stdout and exit."""
     json.dump({"status": "error", "message": msg}, sys.stdout, indent=2)
     print()
-    sys.exit(0)
+    sys.exit(1)
 
 
 def new_session() -> requests.Session:

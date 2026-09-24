@@ -39,13 +39,12 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[3] / "shared"))
 load_dotenv()
 
 from gitlab_ops import (  # noqa: E402
-    REVIEW_SUMMARY_MARKER,
-    REVIEW_NOTE_MARKER,
     collect_changed_lines,
     fetch_diff_versions,
     fetch_mr_changes,
     find_mr,
     format_inline_body,
+    format_summary_body,
     gitlab_error,
     log,
     post_inline_discussion,
@@ -79,8 +78,7 @@ def _read_body(args: argparse.Namespace) -> str:
 
 
 def post_summary(base_url: str, project_id: str, mr_iid: int, body: str) -> dict:
-    marker = REVIEW_SUMMARY_MARKER.format(sha=_head_sha())
-    full = f"{marker}\n{REVIEW_NOTE_MARKER}\n\n## Automated Code Review\n\n{body.strip()}\n"
+    full = format_summary_body(_head_sha(), body)
     post_note(base_url, project_id, mr_iid, full)
     return {"status": "ok", "posted": "summary"}
 
@@ -120,8 +118,7 @@ def _post_one_inline(
                 "reason": "line not in diff",
             }
 
-    rendered_body = format_inline_body(severity, body) if severity else body
-    full_body = f"{REVIEW_NOTE_MARKER}\n\n{rendered_body}"
+    full_body = format_inline_body(severity, body)
     try:
         post_inline_discussion(
             base_url, project_id, mr_iid, file_path, line, full_body, shas

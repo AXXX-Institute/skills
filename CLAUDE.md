@@ -69,11 +69,11 @@ in the **same change**; don't stop at dropping a `SKILL.md`.
   keeps its `LICENSE`/`NOTICE.md` inside its own plugin directory; original work
   is MIT under the repo root (declared in the plugin's `plugin.json`). Never let a
   copyleft plugin's license leak to the root or another plugin.
-- **Invocation policy.** A skill with side effects or a long interactive takeover
-  (e.g. `mlspace-jobs-quick-start`, which creates conda envs, installs packages,
-  and writes credentials) sets `disable-model-invocation: true` so it runs only
-  when the user types `/<skill>`. Skills meant to activate from natural language
-  (e.g. `mlspace-jobs-scaffold`, `mlspace-jobs`) leave it unset.
+- **Invocation policy.** A skill whose ordinary execution immediately starts a
+  long interactive takeover (e.g. `mlspace-jobs-quick-start`) sets
+  `disable-model-invocation: true`. Skills that support useful read-only work but
+  can also mutate external state remain discoverable and put an explicit user
+  authorization gate immediately before the mutation.
 - **Skills are the source of truth** for their own behavior; keep `SKILL.md`,
   its `references/`, and `evals/` internally consistent (e.g. if you renumber the
   scaffold's pillars, update every `pillar N` cross-reference and the eval notes).

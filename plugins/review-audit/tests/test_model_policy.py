@@ -119,6 +119,40 @@ class CleanupSelectionTests(unittest.TestCase):
             [("review", 10), ("new-inline", 14)],
         )
 
+    def test_published_summary_and_inline_notes_have_hidden_markers(self) -> None:
+        module_path = PLUGIN_ROOT / "shared" / "gitlab_ops" / "review.py"
+        spec = importlib.util.spec_from_file_location("review_formatters", module_path)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        summary = module.format_summary_body("abc123", "Looks good")
+        inline = module.format_inline_body("CRITICAL", "Unsafe write")
+        self.assertIn("<!-- claude-review:abc123 -->", summary)
+        self.assertIn("<!-- axxx-review-audit -->", summary)
+        self.assertIn("<!-- axxx-review-audit -->", inline)
+        self.assertIn("**CRITICAL**", inline)
+
+    def test_plain_headings_and_severity_are_not_cleanup_markers(self) -> None:
+        module_path = PLUGIN_ROOT / "shared" / "gitlab_ops" / "review.py"
+        spec = importlib.util.spec_from_file_location("review_marker_rules", module_path)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        discussions = [
+            {
+                "id": "manual",
+                "notes": [
+                    {
+                        "id": 21,
+                        "body": "## Automated Code Review\n**CRITICAL**: my note",
+                        "author": {"id": 7},
+                    }
+                ],
+            }
+        ]
+        self.assertEqual(list(module.iter_review_notes(discussions, 7)), [])
+
 
 class GitRemoteTests(unittest.TestCase):
     def test_ssh_url_with_port_is_supported(self) -> None:
@@ -134,6 +168,19 @@ class GitRemoteTests(unittest.TestCase):
             ),
             ("gitlab.example.com", "group/subgroup/repo"),
         )
+
+
+class SkillPolicyTests(unittest.TestCase):
+    def test_audit_is_report_only_without_explicit_repair_request(self) -> None:
+        text = (PLUGIN_ROOT / "skills" / "agent-config-audit" / "SKILL.md").read_text()
+        self.assertIn("Report only by default", text)
+        self.assertIn("only when the user explicitly asks", text)
+
+    def test_mutating_review_workflow_requires_explicit_publish_intent(self) -> None:
+        shared = (PLUGIN_ROOT / "shared" / "references" / "review-mr.md").read_text()
+        self.assertIn("## Authorization gate", shared)
+        self.assertIn("Do not delete notes or post anything unless", shared)
+        self.assertIn("authorizes only a read-only review", shared)
 
 
 if __name__ == "__main__":

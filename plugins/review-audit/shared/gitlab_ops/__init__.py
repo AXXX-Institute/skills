@@ -43,6 +43,7 @@ from .review import (
     REVIEW_SUMMARY_MARKER,
     SEVERITY_EMOJI,
     format_inline_body,
+    format_summary_body,
     is_claude_review_discussion,
     iter_review_notes,
 )
@@ -59,6 +60,7 @@ __all__ = [
     "fetch_mr_discussions",
     "find_mr",
     "format_inline_body",
+    "format_summary_body",
     "get_current_branch",
     "gitlab_delete",
     "gitlab_error",

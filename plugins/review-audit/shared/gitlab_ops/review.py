@@ -21,8 +21,6 @@ SEVERITY_EMOJI = {
 _REVIEW_MARKERS = (
     REVIEW_NOTE_MARKER,
     "<!-- claude-review:",
-    "## Claude Code Review",
-    "## Automated Code Review",
 )
 
 
@@ -48,9 +46,18 @@ def iter_review_notes(discussions: list[dict], author_id: int | None):
             yield discussion["id"], note["id"]
 
 
+def format_summary_body(sha: str, message: str) -> str:
+    """Render a marked review summary that cleanup can identify safely."""
+    summary_marker = REVIEW_SUMMARY_MARKER.format(sha=sha)
+    return (
+        f"{summary_marker}\n{REVIEW_NOTE_MARKER}\n\n"
+        f"## Automated Code Review\n\n{message.strip()}\n"
+    )
+
+
 def format_inline_body(severity: str, message: str) -> str:
-    """Render an inline-discussion body: ``🚨 **CRITICAL**: message``."""
+    """Render a marked inline-review body with an optional severity label."""
     sev = severity.upper()
     emoji = SEVERITY_EMOJI.get(sev, "")
     prefix = f"{emoji} **{sev}**: " if sev in SEVERITY_EMOJI else ""
-    return f"{prefix}{message}"
+    return f"{REVIEW_NOTE_MARKER}\n\n{prefix}{message}"
