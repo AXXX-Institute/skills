@@ -81,6 +81,13 @@ dependency (it drives the `mls` CLI, which the quick-start skill installs).
 dependencies through PEP 723. GitLab reads and writes require
 `MR_AUTO_REVIEW_GITLAB_TOKEN` or `GITLAB_TOKEN`.
 
+The GitLab host and project path are derived from the target repository's
+`origin` remote. For example, an origin under `gitlab.example.com/group/repo`
+uses `https://gitlab.example.com/api/v4`; no marketplace setting hard-codes a
+GitLab server. In GitLab CI, the source branch is taken from the standard
+`CI_MERGE_REQUEST_SOURCE_BRANCH_NAME`/`CI_COMMIT_*` variables when the checkout
+is detached.
+
 ## Licensing
 
 The repo uses **per-plugin license isolation** — each plugin is its own

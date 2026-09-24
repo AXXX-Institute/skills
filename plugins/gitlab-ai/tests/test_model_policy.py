@@ -5,6 +5,7 @@ import json
 import os
 import pathlib
 import subprocess
+import tempfile
 import unittest
 
 
@@ -292,6 +293,41 @@ class CiHelperTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(gated.returncode, 1)
+
+    def test_claude_gate_composes_model_result_and_verdict_helpers(self) -> None:
+        gate = PLUGIN_ROOT / "shared" / "ci" / "run_claude_gate.sh"
+        with tempfile.TemporaryDirectory() as tmp:
+            fake = pathlib.Path(tmp) / "claude"
+            fake.write_text(
+                "#!/usr/bin/env python3\n"
+                "import json, os, sys\n"
+                "assert '/gitlab-ai:audit-agent-config check --worker-model haiku' in sys.argv\n"
+                "assert '--tools' in sys.argv and 'Read,Skill' in sys.argv\n"
+                "print(json.dumps({'type':'result','result':os.environ['FAKE_RESULT'],"
+                "'usage':{'input_tokens':1,'output_tokens':2}}))\n"
+            )
+            fake.chmod(0o755)
+            env = {key: value for key, value in os.environ.items() if key not in MODEL_ENV}
+            env.update(
+                CLAUDE_BIN=str(fake),
+                FAKE_RESULT="AUDIT_VERDICT: PASS",
+            )
+            result = subprocess.run(
+                [
+                    "bash",
+                    str(gate),
+                    "audit",
+                    "/gitlab-ai:audit-agent-config check",
+                    "Read,Skill",
+                ],
+                capture_output=True,
+                text=True,
+                env=env,
+                check=False,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("AUDIT_VERDICT: PASS", result.stdout)
+        self.assertIn("Tokens", result.stdout)
 
 
 if __name__ == "__main__":

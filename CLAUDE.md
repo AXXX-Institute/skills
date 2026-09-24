@@ -32,8 +32,8 @@ for the glossary and `docs/adr/` for decisions.
   `$gitlab-ai:audit-agent-config` checks and optionally repairs repository-owned
   agent guidance.
 - Headless Claude CI: install `gitlab-ai`, resolve its `installPath` from
-  `claude plugin list --json`, then use `shared/model_policy.sh` and the
-  `shared/ci/` JSON/verdict helpers around namespaced skill invocations.
+  `claude plugin list --json`, then invoke `shared/ci/run_claude_gate.sh`; it
+  composes the model policy and JSON/verdict helpers around a namespaced skill.
 
 ## When adding, renaming, or removing a skill or plugin — update ALL of these
 
