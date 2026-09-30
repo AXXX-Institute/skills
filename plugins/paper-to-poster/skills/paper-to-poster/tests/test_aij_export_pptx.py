@@ -8,7 +8,7 @@ Office equation (OMML, validated against the ECMA-376 math schema) wrapped in
 mc:AlternateContent with a picture fallback; a formula that cannot be
 converted degrades to a picture and is reported.
 
-Needs the [pptx] extra (python-pptx, mathml2omml, lxml), Playwright/Chromium,
+Needs the [pptx] extra (python-pptx, mathml2omml, lxml, fonttools, brotli), Playwright/Chromium,
 and network access (SB Sans Display CDN + MathJax CDN); skips otherwise.
 """
 from __future__ import annotations
@@ -185,7 +185,7 @@ def test_every_run_typeface_is_embedded(exported, slide_xml):
 
     out, report = exported
     used = {r.get("typeface") for r in slide_xml.iter(f"{{{NS['a']}}}latin")} - {"Cambria Math"}
-    assert used == {"SB Sans Display", "SB Sans Display Light"}
+    assert used == {"SB Sans Display", "SB Sans Display Light", "SB Sans Display Semibold"}
     assert set(report.fonts_embedded) == used
     with zipfile.ZipFile(out) as z:
         pres = etree.fromstring(z.read("ppt/presentation.xml"))
@@ -201,8 +201,16 @@ def test_every_run_typeface_is_embedded(exported, slide_xml):
                 assert eot["version"] == 0x00020002 and eot["magic"] == 0x504C and eot["fsType"] == 0
                 assert eot["family"] == face == ttf["name"].getDebugName(1)
                 slots[(face, etree.QName(slot).localname)] = ttf["OS/2"].usWeightClass
-    assert slots == {("SB Sans Display Light", "regular"): 300,
-                     ("SB Sans Display", "regular"): 400, ("SB Sans Display", "bold"): 700}
+    assert slots == {("SB Sans Display Light", "regular"): 300, ("SB Sans Display", "regular"): 400,
+                     ("SB Sans Display Semibold", "regular"): 600, ("SB Sans Display", "bold"): 700}
+
+
+def test_gallery_pptx_carries_the_fonts():
+    """The published example embeds its fonts too (maintainers' decision,
+    docs/adr/0013), so it opens in SB Sans Display anywhere."""
+    with zipfile.ZipFile(EXAMPLE.with_name("poster.pptx")) as z:
+        assert len([n for n in z.namelist() if n.startswith("ppt/fonts/")]) == 4
+        assert 'embedTrueTypeFonts="1"' in z.read("ppt/presentation.xml").decode()
 
 
 def test_eot_round_trip_keeps_the_font_bytes():
@@ -274,12 +282,14 @@ def test_every_text_block_is_native_text_at_its_rendered_place(html_facts, slide
 def _expected_face(weight: int) -> tuple[str, bool]:
     if weight <= 350:
         return "SB Sans Display Light", False
+    if 550 <= weight < 650:
+        return "SB Sans Display Semibold", False
     return "SB Sans Display", weight >= 650
 
 
 def test_each_block_keeps_its_role_font_size_and_weight(html_facts, slide_xml):
     """Per block, every text run in the pptx carries the typeface, size and bold
-    flag of the HTML text it came from (Title 14pt Bold, Subtitle 7pt Regular,
+    flag of the HTML text it came from (Title 13pt Semibold, Subtitle 7pt Regular,
     Body 7pt Light, <strong> Bold, keywords Regular)."""
     sps = _sps(slide_xml)
     for b in html_facts["blocks"]:
@@ -313,9 +323,9 @@ def test_lists_are_one_bulleted_frame_each(html_facts, slide_xml):
 
 
 def test_fonts_sizes_and_weights_follow_the_three_roles(slide_xml):
-    """Title/№ = SB Sans Display Bold 14pt; everything else 7pt in SB Sans
-    Display (Regular: Subtitle role, keywords) or SB Sans Display Light (Body);
-    bold only for <strong> emphasis and 'best' table cells."""
+    """Title/№ = SB Sans Display Semibold 13pt (as the template); everything
+    else 7pt in SB Sans Display (Regular: Subtitle role, keywords) or SB Sans
+    Display Light (Body); bold only for <strong> emphasis and 'best' cells."""
     seen = set()
     for r in slide_xml.iter(f"{{{NS['a']}}}r"):
         rpr = r.find("a:rPr", NS)
@@ -323,13 +333,13 @@ def test_fonts_sizes_and_weights_follow_the_three_roles(slide_xml):
         size = int(rpr.get("sz"))
         bold = rpr.get("b") == "1"
         seen.add((face, size, bold))
-        assert face in ("SB Sans Display", "SB Sans Display Light"), face
+        assert face in ("SB Sans Display", "SB Sans Display Light", "SB Sans Display Semibold"), face
         assert size in (700, 1300), size
         if size == 1300:
-            assert face == "SB Sans Display" and bold
+            assert face == "SB Sans Display Semibold" and not bold
         if face == "SB Sans Display Light":
             assert not bold
-    assert ("SB Sans Display", 1300, True) in seen          # Title (the template's 13pt)
+    assert ("SB Sans Display Semibold", 1300, False) in seen   # Title (the template's 13pt Semibold)
     assert ("SB Sans Display", 700, False) in seen          # Subtitle
     assert ("SB Sans Display Light", 700, False) in seen    # Body
 
@@ -673,3 +683,23 @@ def test_edge_inline_and_contents_wrappers_stay_native(edge):
     texts = {_norm(s["text"]) for s in _sps(xml)}
     assert {"LINKCAPTION inside a link", "CONTENTSP1 first paragraph", "CONTENTSP2 second paragraph"} <= texts
     assert not [f for f in report.frames_as_picture if "Backgrounds, lists" in f["text"]]
+
+
+
+def test_edge_image_css_effects_survive_in_the_picture(edge):
+    """An image's CSS (here filter: brightness(0) invert(1) on a red data: URI
+    with quotes in it) is part of what is on the sheet: the picture is white,
+    not the source's red."""
+    import io
+
+    from PIL import Image
+
+    html, out, _, _ = edge
+    x, y, w, h = _edge_rect(html, "#fx-logo")
+    prs = pptx.Presentation(str(out))
+    pic = [s for s in prs.slides[0].shapes if s.shape_type == 13
+           and abs(s.left / EMU_PER_MM - x) <= TOL_MM and abs(s.top / EMU_PER_MM - y) <= TOL_MM]
+    assert len(pic) == 1
+    im = Image.open(io.BytesIO(pic[0].image.blob)).convert("RGBA")
+    r, g, b, a = im.getpixel((im.width // 2, im.height // 2))
+    assert a > 200 and min(r, g, b) > 240, (r, g, b, a)

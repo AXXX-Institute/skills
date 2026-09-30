@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" width="520" height="101" viewBox="0 0 520 101">
-<defs><mask id="aij-white-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="520" height="101"><g fill="#FFFFFF" color="#FFFFFF"><g clip-path="url(#clip0_3442_1316)">
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="101" viewBox="0 0 520 101" fill="none" data-aij-white="1">
+<defs><mask id="aij-white-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="520" height="101"><g color="#FFFFFF"><g clip-path="url(#clip0_3442_1316)">
 <!-- Green iU mark (unchanged from original) -->
 <path d="M28.1168 36.3975L-3.05176e-05 36.3975L-3.08518e-05 100.792L28.1168 100.792L28.1168 36.3975Z" fill="#FFFFFF"/>
 <path d="M73.1016 1.89707e-07L73.1016 72.7895L64.6598 72.7895L64.6598 1.45895e-07L36.5482 0L36.5482 100.781L42.5299 100.781L64.6598 100.781L73.1016 100.781L92.1292 100.781L101.213 100.781L101.213 3.35602e-07L73.1016 1.89707e-07Z" fill="#FFFFFF"/>
@@ -11,7 +11,7 @@
 </g>
 <defs>
 <clipPath id="clip0_3442_1316">
-<rect width="520" height="100.786" fill="#000000"/>
+<rect width="520" height="100.786" fill="white"/>
 </clipPath>
 </defs>
-</g></mask></defs><rect x="0" y="0" width="520" height="101" fill="#FFFFFF" mask="url(#aij-white-mask)"/></svg>
+</g></mask></defs><rect x="0" y="0" width="520" height="101" mask="url(#aij-white-mask)" style="fill:#FFFFFF !important;stroke:none !important;fill-opacity:1 !important;opacity:1 !important;filter:none !important;visibility:visible !important"/></svg>

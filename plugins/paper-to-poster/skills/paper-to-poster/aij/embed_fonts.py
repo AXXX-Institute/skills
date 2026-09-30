@@ -5,20 +5,24 @@ PowerPoint only shows SB Sans Display on a machine that has it installed —
 otherwise it silently substitutes (typically Calibri). The organisers' own
 template avoids that by embedding its fonts; this does the same for the export:
 
-  * the three faces the poster uses (Light 300 / Regular 400 / Bold 700) are
-    downloaded at export time from the CDN URLs in aij/fonts.css (the same
-    files the HTML renders with — nothing is read from, or written to, this
-    repo);
+  * the faces the poster's text actually uses (of Light 300 / Regular 400 /
+    Semibold 600 / Bold 700) are downloaded at export time from the CDN URLs in
+    aij/fonts.css (the same files the HTML renders with — nothing is read from,
+    or written to, this repo);
   * they are named the way the organisers' desktop fonts are (one family per
     non-RIBBI weight, like the template's "SB Sans Display Semibold"):
-    "SB Sans Display" Regular + Bold, and "SB Sans Display Light" Regular —
-    exactly the typefaces export_pptx.py writes on every text run;
+    "SB Sans Display" Regular + Bold, "SB Sans Display Light" and
+    "SB Sans Display Semibold" — exactly the typefaces export_pptx.py writes on
+    every text run;
   * each face is wrapped as an Embedded OpenType (EOT 2.2, uncompressed) part
     `ppt/fonts/fontN.fntdata` and listed in presentation.xml's
     <p:embeddedFontLst> with embedTrueTypeFonts="1" — the structure PowerPoint
     itself writes (the organisers' template was the reference).
 
-The faces are installable-embedding fonts (OS/2 fsType 0).
+The faces are installable-embedding fonts (OS/2 fsType 0). Renaming rewrites
+only the naming records (nameIDs 1/2/4/6; 16/17 dropped) and the style bits
+(OS/2 fsSelection, head.macStyle) of each embedded face; outlines and metrics are
+untouched.
 """
 from __future__ import annotations
 
@@ -41,8 +45,11 @@ R_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 FACES = {
     300: ("SB Sans Display Light", "regular", "Regular"),
     400: ("SB Sans Display", "regular", "Regular"),
+    600: ("SB Sans Display Semibold", "regular", "Regular"),
     700: ("SB Sans Display", "bold", "Bold"),
 }
+#: (pptx typeface, style slot) -> CSS weight
+SLOT_WEIGHT = {(face, slot): w for w, (face, slot, _sub) in FACES.items()}
 
 
 @dataclass
@@ -99,14 +106,33 @@ def rename(ttf: bytes, family: str, subfamily: str) -> bytes:
     return buf.getvalue()
 
 
-def fetch_faces(timeout: float = 20.0) -> list[Face]:
-    """Download + convert + name the three faces (raises on any failure)."""
+def used_weights(slide_xml) -> list[int]:
+    """CSS weights of the faces the slide's text runs use ((typeface, b) of
+    every <a:rPr> with an SB Sans <a:latin>)."""
+    a = "http://schemas.openxmlformats.org/drawingml/2006/main"
+    out = set()
+    for rpr in slide_xml.iter(f"{{{a}}}rPr"):
+        latin = rpr.find(f"{{{a}}}latin")
+        if latin is None:
+            continue
+        slot = "bold" if rpr.get("b") in ("1", "true") else "regular"
+        w = SLOT_WEIGHT.get((latin.get("typeface"), slot))
+        if w is not None:
+            out.add(w)
+    return sorted(out)
+
+
+def fetch_faces(weights: list[int] | None = None, timeout: float = 20.0) -> list[Face]:
+    """Download + convert + name the faces for `weights` (default: all four);
+    raises on any failure."""
     urls = cdn_urls()
-    missing = set(FACES) - set(urls)
+    weights = sorted(FACES) if weights is None else weights
+    missing = set(weights) - set(urls)
     if missing:
         raise ValueError(f"aij/fonts.css has no @font-face for weight(s) {sorted(missing)}")
     faces = []
-    for weight, (typeface, slot, sub) in FACES.items():
+    for weight in weights:
+        typeface, slot, sub = FACES[weight]
         with urllib.request.urlopen(urls[weight], timeout=timeout) as r:
             ttf = woff2_to_ttf(r.read())
         faces.append(Face(typeface, slot, rename(ttf, typeface, sub)))

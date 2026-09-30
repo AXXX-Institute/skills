@@ -40,6 +40,7 @@ EDGE_BODY = r"""
             <rect width="100" height="40" fill="#26359A"/><text x="10" y="25" fill="#fff">SVG</text>
           </svg>
         </div>
+        <img id="fx-logo" alt="filtered" src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 10"><rect width="20" height="10" fill="%23C0392B"/></svg>' style="display:block;width:20mm;height:10mm;filter:brightness(0) invert(1)">
         <p id="icon-para">Text with an inline icon <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10"><circle cx="5" cy="5" r="5" fill="#1E9E53"/></svg> in the middle.</p>
         <div id="gradient-box" style="height: 20px; background-image: linear-gradient(90deg, #26359A, #43D374);"></div>
       </div>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 710 170.08" style="enable-background:new 0 0 710 170.08;" xml:space="preserve">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 710 170.08" style="enable-background:new 0 0 710 170.08;" xml:space="preserve" data-aij-white="1">
 <defs><mask id="aij-white-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="710" height="170.08"><g fill="#FFFFFF" color="#FFFFFF"><style type="text/css">
 	.st0{fill:#FFFFFF;}
 	.st1{fill:#000000;}
@@ -23,4 +23,4 @@
 		<path class="st0" d="M660.78,94.63h7.82l16.79,32.69l16.79-32.69H710l-21.14,41.04v21.14h-6.93v-21.14L660.78,94.63z"/>
 	</g>
 </g>
-</g></mask></defs><rect x="0" y="0" width="710" height="170.08" fill="#FFFFFF" mask="url(#aij-white-mask)"/></svg>
+</g></mask></defs><rect x="0" y="0" width="710" height="170.08" mask="url(#aij-white-mask)" style="fill:#FFFFFF !important;stroke:none !important;fill-opacity:1 !important;opacity:1 !important;filter:none !important;visibility:visible !important"/></svg>

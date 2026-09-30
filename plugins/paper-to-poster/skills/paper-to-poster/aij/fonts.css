@@ -1,5 +1,5 @@
 /* SB Sans Display — the AIJ format's only typeface (Light 300 / Regular 400 /
-   Bold 700). Loaded from Sber's public design-system CDN; the font files are
+   Semibold 600 / Bold 700). Loaded from Sber's public design-system CDN; the font files are
    NEVER vendored into this repo, its gallery examples, or a poster repo
    (docs/adr/0011). This file is the single source of the CDN URLs:
    aij/sync_fonts.py copies it into the marked block of an AIJ poster. */
@@ -13,6 +13,12 @@
   font-family: "SB Sans Display";
   src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansDisplay.0.2.0/SBSansDisplay-Regular.woff2") format("woff2");
   font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "SB Sans Display";
+  src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansDisplay.0.2.0/SBSansDisplay-Semibold.woff2") format("woff2");
+  font-weight: 600;
   font-style: normal;
 }
 @font-face {

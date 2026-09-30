@@ -59,9 +59,9 @@ def test_template_font_block_matches_fonts_css():
 def test_fonts_come_from_the_cdn_only():
     css = FONTS_CSS.read_text()
     urls = re.findall(r'url\("([^"]+)"\)', css)
-    assert len(urls) == 3
+    assert len(urls) == 4
     assert all(u.startswith("https://cdn-app.sberdevices.ru/") for u in urls)
-    assert {w for w in re.findall(r"font-weight:\s*(\d+)", css)} == {"300", "400", "700"}
+    assert {w for w in re.findall(r"font-weight:\s*(\d+)", css)} == {"300", "400", "600", "700"}
 
 
 def test_no_font_binaries_in_the_skill():
@@ -201,7 +201,7 @@ def test_type_roles_render_in_sb_sans_display(scaffold_dir):
     got = _render(scaffold_dir / "poster.html", _STYLE_JS)
     assert got["fonts"] == [True, True, True], "SB Sans Display Light/Regular/Bold did not load"
     roles = {  # element -> (weight, pt)
-        "title": ("700", 13), "number": ("700", 13),   # the template's title size
+        "title": ("600", 13), "number": ("600", 13),   # Semibold 13pt, as the template
         "authors": ("400", 7), "heading": ("400", 7), "th": ("400", 7),
         "body": ("300", 7), "li": ("300", 7), "caption": ("300", 7), "td": ("300", 7),
         "affiliations": ("300", 7), "contact": ("300", 7),
@@ -266,8 +266,8 @@ def test_frame_sits_on_the_pptx_coordinates(which, scaffold_dir):
                       ("affiliations", "TextBox 31"), ("contact", "TextBox 34")):
         x, y, _w, _h = ref[name]
         assert near(got[key][:2], (x, y + INSET_MM)), (key, got[key][:2], (x, y + INSET_MM))
-    lx, ly = ref["Рисунок 13"][:2]            # first sample-logo slot
-    assert near(got["logos"][:1], (lx,)), got["logos"]
+    lx, ly = ref["Рисунок 13"][:2]            # first sample-logo slot: the logo band's corner
+    assert near(got["logos"][:2], (lx, ly)), got["logos"]
     if which == "example":                    # one QR -> the outer tile
         assert near(got["qr"], ref["Скругленный прямоугольник 66"]), got["qr"]
 
@@ -279,7 +279,7 @@ def test_example_pdf_embeds_sb_sans_display():
     if not shutil.which("pdffonts"):
         pytest.skip("pdffonts (poppler-utils) not installed")
     fonts = subprocess.run(["pdffonts", str(pdf)], capture_output=True, text=True, check=True).stdout
-    for face in ("SBSansDisplay-Light", "SBSansDisplay-Regular", "SBSansDisplay-Bold"):
+    for face in ("SBSansDisplay-Light", "SBSansDisplay-Regular", "SBSansDisplay-Semibold", "SBSansDisplay-Bold"):
         assert face in fonts, fonts
 
 
@@ -319,30 +319,82 @@ _TWO_TONE = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50">
 <path d="M60 10 H90 V40 H60 Z"/></svg>"""
 
 
-def test_white_logo_turns_colours_white_and_white_details_into_cut_outs():
+SVG_NS = {"s": "http://www.w3.org/2000/svg"}
+
+
+def _whiten(svg):
+    pytest.importorskip("lxml")
     import white_logo
     from lxml import etree
 
-    out = etree.fromstring(white_logo.whiten_svg(_TWO_TONE).encode())
-    ns = {"s": "http://www.w3.org/2000/svg"}
-    mask = out.find(".//s:mask", ns)
-    assert mask is not None
-    rect = out.find("s:rect", ns)
-    assert rect.get("fill") == "#FFFFFF" and rect.get("mask") == "url(#aij-white-mask)"
-    css = mask.find(".//s:style", ns).text
-    assert ".st0{fill:#FFFFFF;}" in css.replace(" ", "")     # blue plate -> shown (white)
-    assert ".st1{fill:#000000;}" in css.replace(" ", "")     # white letter -> cut out
-    assert mask.find("s:g", ns).get("fill") == "#FFFFFF"      # unpainted (black) shapes -> white
+    return etree.fromstring(white_logo.whiten_svg(svg).encode())
+
+
+def test_white_logo_turns_colours_white_and_white_details_into_cut_outs():
+    out = _whiten(_TWO_TONE)
+    mask = out.find(".//s:mask", SVG_NS)
+    rect = out.find("s:rect", SVG_NS)
+    assert rect.get("mask") == f"url(#{mask.get('id')})"
+    assert "fill:#FFFFFF !important" in rect.get("style")      # beats any rect{fill:…} in the logo's CSS
+    css = mask.find(".//s:style", SVG_NS).text.replace(" ", "")
+    assert ".st0{fill:#FFFFFF;}" in css                        # blue plate -> shown (white)
+    assert ".st1{fill:#000000;}" in css                        # white letter -> cut out
+    assert mask.find("s:g", SVG_NS).get("fill") == "#FFFFFF"   # unpainted (black) shapes -> white
+    assert out.get("data-aij-white") == "1"
 
 
 def test_white_logo_leaves_an_all_white_logo_alone():
+    pytest.importorskip("lxml")
     import white_logo
 
     svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path fill="#fff" d="M0 0H10V10Z"/></svg>'
     assert white_logo.whiten_svg(svg) == svg
 
 
+def test_white_logo_is_idempotent():
+    pytest.importorskip("lxml")
+    import white_logo
+
+    once = white_logo.whiten_svg(_TWO_TONE)
+    assert white_logo.whiten_svg(once) == once
+
+
+def test_white_logo_keeps_existing_masks_and_outline_artwork():
+    """Figma exports: an inside-stroke <mask fill="white"> must stay a mask
+    (not be inverted), and a root fill="none" (outline artwork) must not turn
+    into solid shapes."""
+    figma = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">'
+             '<mask id="m1" fill="white"><path d="M2 2H38V38H2Z"/></mask>'
+             '<path d="M2 2H38V38H2Z" stroke="#123456" stroke-width="8" mask="url(#m1)"/></svg>')
+    out = _whiten(figma)
+    assert out.find(".//s:mask[@id='m1']", SVG_NS).get("fill") == "white"
+    assert out.get("fill") == "none"
+    art = [m for m in out.iter("{http://www.w3.org/2000/svg}mask") if m.get("id") != "m1"][0].find("s:g", SVG_NS)
+    assert art.get("fill") is None                             # inherits the root's fill="none"
+
+
+def test_white_logo_recognises_every_spelling_of_white():
+    svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 30"><rect width="90" height="30" fill="#00A"/>'
+           '<circle r="8" style="fill:rgba(255,255,255,1) !important"/><circle r="8" fill="#ffffffff"/>'
+           '<circle r="8" fill="hsl(0, 0%, 100%)"/><circle r="8" fill="#FFF"/></svg>')
+    circles = list(_whiten(svg).iter("{http://www.w3.org/2000/svg}circle"))
+    assert "fill:#000000 !important" in circles[0].get("style")
+    assert [c.get("fill") for c in circles[1:]] == ["#000000"] * 3
+
+
+def test_white_logo_without_viewbox_and_with_embedded_raster():
+    svg = ('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20mm" '
+           'height="10mm"><circle cx="38" cy="19" r="15" fill="#123"/><image href="data:image/png;base64,AA==" '
+           'width="10" height="10"/></svg>')
+    out = _whiten(svg)
+    rect = out.find("s:rect", SVG_NS)
+    assert (rect.get("width"), rect.get("height")) == ("100%", "100%")
+    img = next(out.iter("{http://www.w3.org/2000/svg}image"))
+    assert img.get("filter", "").startswith("url(#aij-white-image")
+
+
 def test_white_logo_raster_keeps_alpha(tmp_path):
+    pytest.importorskip("PIL")
     from PIL import Image
     import white_logo
 
@@ -352,6 +404,19 @@ def test_white_logo_raster_keeps_alpha(tmp_path):
     im.save(src)
     out = Image.open(white_logo.make_white(src)).convert("RGBA")
     assert out.getpixel((1, 1)) == (255, 255, 255, 255) and out.getpixel((0, 0))[3] == 0
+
+
+def test_white_logo_opaque_raster_keeps_light_marks_solid(tmp_path):
+    pytest.importorskip("PIL")
+    from PIL import Image, ImageDraw
+    import white_logo
+
+    im = Image.new("RGB", (60, 30), "white")
+    ImageDraw.Draw(im).rectangle((10, 5, 50, 25), fill=(255, 210, 0))   # yellow mark on white
+    src = tmp_path / "yellow.png"
+    im.save(src)
+    out = Image.open(white_logo.make_white(src)).convert("RGBA")
+    assert out.getpixel((30, 15)) == (255, 255, 255, 255) and out.getpixel((2, 2))[3] == 0
 
 
 def test_example_uses_white_logos_without_plates():

@@ -76,6 +76,7 @@ KEEP_SHAPE_NAMES = ("Рисунок 10", "Рисунок 8")   # background, AIJ
 #: uses the "SB Sans Display Semibold" family-per-weight convention).
 TYPEFACE_LIGHT = "SB Sans Display Light"
 TYPEFACE_REGULAR = "SB Sans Display"
+TYPEFACE_SEMIBOLD = "SB Sans Display Semibold"
 MATH_TYPEFACE = "Cambria Math"
 
 EMU_PER_PX = 9525            # 914400 EMU/in / 96 px/in
@@ -331,8 +332,19 @@ EXTRACT_JS = r"""
     decor(el);
     if (isGraphic(el)) {
       const b = contentBox(el), img = el.tagName === 'IMG';
+      // Any CSS that changes how the image looks (on it or an ancestor) means the
+      // original file is not what is on the sheet.
+      let fx = false;
+      for (let e = el; e && e !== poster; e = e.parentElement) {
+        const s = cs(e);
+        if (s.filter !== 'none' || parseFloat(s.opacity) < 1 || s.transform !== 'none' ||
+            s.clipPath !== 'none' || s.mixBlendMode !== 'normal') fx = true;
+      }
+      const s0 = cs(el);
+      if (s0.borderTopLeftRadius !== '0px' || s0.borderBottomRightRadius !== '0px' ||
+          (s0.objectFit !== 'fill' && s0.objectPosition !== '50% 50%')) fx = true;
       out.images.push(Object.assign(b, {id: tag(el), src: img ? (el.currentSrc || el.src) : '',
-        natW: img ? el.naturalWidth : 0, natH: img ? el.naturalHeight : 0, fit: cs(el).objectFit}));
+        natW: img ? el.naturalWidth : 0, natH: img ? el.naturalHeight : 0, fit: s0.objectFit, fx}));
       return;
     }
     if (el.tagName === 'TABLE') { out.tables.push(tableOf(el)); return; }
@@ -468,6 +480,8 @@ def _typeface(run: dict) -> tuple[str, bool]:
     if "sb sans" in fam.lower() or not fam:
         if w <= 350:
             return TYPEFACE_LIGHT, False
+        if 550 <= w < 650:
+            return TYPEFACE_SEMIBOLD, False
         return TYPEFACE_REGULAR, w >= 650
     return fam, w >= 650
 
@@ -545,25 +559,21 @@ class _Exporter:
             self.report.equations_as_picture.append(
                 {"tex": tex, "error": f"inside content exported as a picture ({reason})"})
 
-    def _render_isolated(self, src: str, w: float, h: float, fit: str) -> bytes:
-        """Render one image by itself at (w x h) CSS px, transparent background."""
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as d:
-            page_html = Path(d) / "img.html"
-            page_html.write_text(
-                "<!DOCTYPE html><html><head><style>html,body{margin:0;background:transparent}</style></head>"
-                f'<body><img src="{src}" style="display:block;width:{w}px;height:{h}px;object-fit:{fit}">'
-                "</body></html>")
-            page = self.page.context.new_page()
-            try:
-                page.set_viewport_size({"width": max(1, int(w + 2)), "height": max(1, int(h + 2))})
-                page.goto(page_html.as_uri())
-                page.wait_for_function("() => [...document.images].every(i => i.complete)")
-                return page.screenshot(clip={"x": 0, "y": 0, "width": max(w, 1), "height": max(h, 1)},
-                                       omit_background=True, type="png")
-            finally:
-                page.close()
+    def _render_alone(self, im: dict) -> bytes:
+        """Screenshot one graphic IN PLACE with everything else on the page
+        hidden and a transparent page: the result keeps every CSS effect on it
+        (filter, opacity, object-fit/-position, radius, clip, transform) and has
+        no frame gradient baked in behind a white logo."""
+        sel = f'[data-aij-export-id="{im["id"]}"]'
+        css = (f"body * {{ visibility: hidden !important; }} "
+               f"{sel}, {sel} * {{ visibility: visible !important; }} "
+               f"html, body {{ background: transparent !important; }}")
+        self.page.evaluate("(css) => { const s = document.createElement('style'); s.id = 'aij-alone';"
+                           " s.textContent = css; document.head.appendChild(s); }", css)
+        try:
+            return self._shot(im["x"], im["y"], im["w"], im["h"])
+        finally:
+            self.page.evaluate("() => { const s = document.getElementById('aij-alone'); if (s) s.remove(); }")
 
     def _add_rect(self, r: dict) -> None:
         from pptx.dml.color import RGBColor
@@ -598,16 +608,12 @@ class _Exporter:
         natural_ar = (im["natW"] / im["natH"]) if im.get("natW") and im.get("natH") else None
         box_ar = im["w"] / im["h"] if im["h"] else None
         raster_ok = path is not None and path.suffix.lower() in (".png", ".jpg", ".jpeg", ".gif", ".bmp")
-        if raster_ok and natural_ar and box_ar and abs(natural_ar / box_ar - 1) < 0.01:
-            stream = str(path)
-        elif src:
-            # SVG / data: URI / object-fit: rasterise the image ALONE, on a
-            # transparent page — a screenshot of the poster would bake the
-            # frame gradient behind a white logo into an opaque patch.
-            stream = io.BytesIO(self._render_isolated(src, im["w"], im["h"], im.get("fit") or "fill"))
+        if raster_ok and not im.get("fx") and natural_ar and box_ar and abs(natural_ar / box_ar - 1) < 0.01:
+            stream = str(path)        # the original file, untouched
         else:
-            # inline <svg>/<canvas>/…: rasterise what Chromium drew in place.
-            stream = io.BytesIO(self._shot(im["x"], im["y"], im["w"], im["h"]))
+            # SVG, data: URI, cropping, CSS effects, inline <svg>/<canvas>: what
+            # Chromium drew, alone on a transparent page (no gradient patch).
+            stream = io.BytesIO(self._render_alone(im))
         self.slide.shapes.add_picture(stream, _emu(im["x"]), _emu(im["y"]), _emu(im["w"]), _emu(im["h"]))
         self.report.pictures += 1
 
@@ -972,7 +978,8 @@ class _Exporter:
         if embed_fonts:
             import embed_fonts as _ef
             try:
-                self.report.fonts_embedded = _ef.embed(self.prs, _ef.fetch_faces())
+                weights = _ef.used_weights(self.slide._element)
+                self.report.fonts_embedded = _ef.embed(self.prs, _ef.fetch_faces(weights)) if weights else []
             except Exception as e:  # noqa: BLE001 — never lose the export over fonts; say so loudly
                 self.report.warnings.append(
                     f"could not embed SB Sans Display ({type(e).__name__}: {e}) — the .pptx references the "
@@ -1044,14 +1051,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {html} not found", file=sys.stderr)
         return 2
     try:
-        import brotli  # noqa: F401 — woff2 decoding for the embedded fonts
-        import fontTools  # noqa: F401
         import lxml  # noqa: F401
         import mathml2omml  # noqa: F401
         import pptx  # noqa: F401
+        if not args.no_embed_fonts:
+            import fontTools  # noqa: F401 — woff2 -> TrueType for the embedded fonts
+            try:
+                import brotli  # noqa: F401
+            except ImportError:
+                import brotlicffi  # noqa: F401 — fontTools accepts either
     except ImportError as e:
         print(f"error: {e.name} is not installed — pip install python-pptx mathml2omml lxml fonttools brotli "
-              "(the skill's [pptx] extra)", file=sys.stderr)
+              "(the skill's [pptx] extra; fonttools/brotli only for embedding fonts)", file=sys.stderr)
         return 2
     out = Path(args.output) if args.output else html.with_suffix(".pptx")
     rep = export(html, out, mathjax_timeout_ms=args.mathjax_timeout_ms, embed_fonts=not args.no_embed_fonts)
@@ -1065,7 +1076,7 @@ def main(argv: list[str] | None = None) -> int:
     for w in rep.warnings:
         print(f"  WARN: {w}")
     if rep.fonts_embedded:
-        print(f"  fonts embedded: {', '.join(rep.fonts_embedded)} (Light / Regular / Bold)")
+        print(f"  fonts embedded: {', '.join(rep.fonts_embedded)}")
     else:
         print("  NOTE: fonts are referenced by name only (SB Sans Display / SB Sans Display Light) — the file shows"
               " a substitute font wherever they are not installed.")
