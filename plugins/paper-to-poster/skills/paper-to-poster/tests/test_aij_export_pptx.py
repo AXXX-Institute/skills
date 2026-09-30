@@ -167,14 +167,80 @@ def _norm(s: str) -> str:
 # structure
 # --------------------------------------------------------------------------
 
-def test_one_slide_on_the_organisers_canvas_without_embedded_fonts(exported):
+def test_one_slide_on_the_organisers_canvas(exported):
     out, _ = exported
     prs = pptx.Presentation(str(out))
     assert (prs.slide_width, prs.slide_height) == (6858000, 9907588)
     assert len(prs.slides) == 1
+
+
+def test_every_run_typeface_is_embedded(exported, slide_xml):
+    """PowerPoint shows a substitute (Calibri) for fonts that are neither
+    installed nor embedded: every typeface the text uses must be embedded, as
+    EOT parts whose font really is that family (docs/adr/0013)."""
+    import io
+
+    import embed_fonts
+    from fontTools.ttLib import TTFont
+
+    out, report = exported
+    used = {r.get("typeface") for r in slide_xml.iter(f"{{{NS['a']}}}latin")} - {"Cambria Math"}
+    assert used == {"SB Sans Display", "SB Sans Display Light"}
+    assert set(report.fonts_embedded) == used
+    with zipfile.ZipFile(out) as z:
+        pres = etree.fromstring(z.read("ppt/presentation.xml"))
+        assert pres.get("embedTrueTypeFonts") == "1"
+        rels = etree.fromstring(z.read("ppt/_rels/presentation.xml.rels"))
+        target = {r.get("Id"): r.get("Target") for r in rels}
+        slots = {}
+        for ef in pres.find("p:embeddedFontLst", NS):
+            face = ef.find("p:font", NS).get("typeface")
+            for slot in ef[1:]:
+                eot = embed_fonts.parse_eot(z.read("ppt/" + target[slot.get(f"{{{NS['r']}}}id")]))
+                ttf = TTFont(io.BytesIO(eot["font_data"]))
+                assert eot["version"] == 0x00020002 and eot["magic"] == 0x504C and eot["fsType"] == 0
+                assert eot["family"] == face == ttf["name"].getDebugName(1)
+                slots[(face, etree.QName(slot).localname)] = ttf["OS/2"].usWeightClass
+    assert slots == {("SB Sans Display Light", "regular"): 300,
+                     ("SB Sans Display", "regular"): 400, ("SB Sans Display", "bold"): 700}
+
+
+def test_eot_round_trip_keeps_the_font_bytes():
+    import embed_fonts
+
+    faces = embed_fonts.fetch_faces()
+    for f in faces:
+        eot = embed_fonts.ttf_to_eot(f.ttf)
+        h = embed_fonts.parse_eot(eot)
+        assert h["size"] == len(eot) and h["font_data"] == f.ttf
+
+
+def test_no_embed_fonts_option(tmp_path):
+    import export_pptx
+
+    out = tmp_path / "plain.pptx"
+    report = export_pptx.export(EXAMPLE, out, embed_fonts=False)
+    assert report.fonts_embedded == []
     with zipfile.ZipFile(out) as z:
         assert not [n for n in z.namelist() if n.startswith("ppt/fonts/")]
         assert "embeddedFont" not in z.read("ppt/presentation.xml").decode()
+
+
+def test_footer_logos_are_transparent_pictures(exported):
+    """White logos sit straight on the gradient: their pictures must be
+    transparent around the mark, not a patch of the page behind them."""
+    import io
+
+    from PIL import Image
+
+    out, _ = exported
+    prs = pptx.Presentation(str(out))
+    logos = [s for s in prs.slides[0].shapes if s.shape_type == 13 and 255 < s.top / EMU_PER_MM < 262
+             and 74 < s.left / EMU_PER_MM < 147]
+    assert len(logos) == 4
+    for s in logos:
+        alpha = Image.open(io.BytesIO(s.image.blob)).convert("RGBA").getchannel("A")
+        assert alpha.getextrema()[0] == 0
 
 
 def test_package_thumbnail_is_the_poster_not_the_template(exported):
@@ -258,12 +324,12 @@ def test_fonts_sizes_and_weights_follow_the_three_roles(slide_xml):
         bold = rpr.get("b") == "1"
         seen.add((face, size, bold))
         assert face in ("SB Sans Display", "SB Sans Display Light"), face
-        assert size in (700, 1400), size
-        if size == 1400:
+        assert size in (700, 1300), size
+        if size == 1300:
             assert face == "SB Sans Display" and bold
         if face == "SB Sans Display Light":
             assert not bold
-    assert ("SB Sans Display", 1400, True) in seen          # Title
+    assert ("SB Sans Display", 1300, True) in seen          # Title (the template's 13pt)
     assert ("SB Sans Display", 700, False) in seen          # Subtitle
     assert ("SB Sans Display Light", 700, False) in seen    # Body
 

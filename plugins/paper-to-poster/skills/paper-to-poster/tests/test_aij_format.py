@@ -201,7 +201,7 @@ def test_type_roles_render_in_sb_sans_display(scaffold_dir):
     got = _render(scaffold_dir / "poster.html", _STYLE_JS)
     assert got["fonts"] == [True, True, True], "SB Sans Display Light/Regular/Bold did not load"
     roles = {  # element -> (weight, pt)
-        "title": ("700", 14), "number": ("700", 14),
+        "title": ("700", 13), "number": ("700", 13),   # the template's title size
         "authors": ("400", 7), "heading": ("400", 7), "th": ("400", 7),
         "body": ("300", 7), "li": ("300", 7), "caption": ("300", 7), "td": ("300", 7),
         "affiliations": ("300", 7), "contact": ("300", 7),
@@ -306,3 +306,57 @@ def test_example_pdf_passes_verify_final():
                         str(EXAMPLE.with_name("poster.pdf")), "--from-html", str(EXAMPLE)],
                        capture_output=True, text=True)
     assert r.returncode == 0, r.stdout + r.stderr
+
+
+
+# --------------------------------------------------------------------------
+# white affiliation logos (the template's footer logos are white, no plate)
+# --------------------------------------------------------------------------
+
+_TWO_TONE = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50">
+<style>.st0{fill:#002F87;} .st1{fill:#FFFFFF;}</style>
+<circle class="st0" cx="25" cy="25" r="25"/><path class="st1" d="M20 10 H30 V40 H20 Z"/>
+<path d="M60 10 H90 V40 H60 Z"/></svg>"""
+
+
+def test_white_logo_turns_colours_white_and_white_details_into_cut_outs():
+    import white_logo
+    from lxml import etree
+
+    out = etree.fromstring(white_logo.whiten_svg(_TWO_TONE).encode())
+    ns = {"s": "http://www.w3.org/2000/svg"}
+    mask = out.find(".//s:mask", ns)
+    assert mask is not None
+    rect = out.find("s:rect", ns)
+    assert rect.get("fill") == "#FFFFFF" and rect.get("mask") == "url(#aij-white-mask)"
+    css = mask.find(".//s:style", ns).text
+    assert ".st0{fill:#FFFFFF;}" in css.replace(" ", "")     # blue plate -> shown (white)
+    assert ".st1{fill:#000000;}" in css.replace(" ", "")     # white letter -> cut out
+    assert mask.find("s:g", ns).get("fill") == "#FFFFFF"      # unpainted (black) shapes -> white
+
+
+def test_white_logo_leaves_an_all_white_logo_alone():
+    import white_logo
+
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path fill="#fff" d="M0 0H10V10Z"/></svg>'
+    assert white_logo.whiten_svg(svg) == svg
+
+
+def test_white_logo_raster_keeps_alpha(tmp_path):
+    from PIL import Image
+    import white_logo
+
+    im = Image.new("RGBA", (4, 4), (0, 47, 135, 0))
+    im.putpixel((1, 1), (0, 47, 135, 255))
+    src = tmp_path / "logo.png"
+    im.save(src)
+    out = Image.open(white_logo.make_white(src)).convert("RGBA")
+    assert out.getpixel((1, 1)) == (255, 255, 255, 255) and out.getpixel((0, 0))[3] == 0
+
+
+def test_example_uses_white_logos_without_plates():
+    html = EXAMPLE.read_text()
+    logos = re.findall(r'<div class="aij-logo"><img src="images/([^"]+)"', html)
+    assert logos and all(l.endswith("_white.svg") for l in logos)
+    assert all((EXAMPLE.parent / "images" / l).exists() for l in logos)
+    assert "aij-logo-chip" not in html and "aij-logo-chip" not in TEMPLATE_HTML.read_text()

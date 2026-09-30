@@ -10,8 +10,10 @@ embedded fonts stripped, docs/adr/0011):
 
   * text (title, № , authors, section headings, paragraphs, lists, captions,
     footer)  -> native, editable text frames at the rendered geometry, typed
-    by name in SB Sans Display / SB Sans Display Light (not embedded — the
-    machine opening the file needs the fonts installed);
+    in SB Sans Display / SB Sans Display Light — and those faces are
+    EMBEDDED in the file (aij/embed_fonts.py, docs/adr/0013), so it shows the
+    real typeface on machines without SB Sans installed (--no-embed-fonts
+    references them by name only);
   * tables   -> native PowerPoint tables;
   * figures, logos, QR codes, inline <svg>/<canvas>, CSS background images
     -> pictures;
@@ -36,7 +38,7 @@ The organisers' instruction text boxes, arrows, sample logos and sample QR
 codes are removed; only the background and the AIJ mark are kept, and the
 package thumbnail is replaced by this poster's.
 
-Needs the `[pptx]` extra:  pip install python-pptx mathml2omml lxml
+Needs the `[pptx]` extra:  pip install python-pptx mathml2omml lxml fonttools brotli
 (and Playwright/Chromium, like the rest of the skill).
 
 Usage:
@@ -58,6 +60,7 @@ from typing import Any, Callable
 HERE = Path(__file__).resolve().parent
 SKILL_DIR = HERE.parent
 sys.path.insert(0, str(SKILL_DIR / "tools"))
+sys.path.insert(0, str(HERE))
 
 from _posterly import canvas as _canvas  # noqa: E402
 from _posterly import render as _render  # noqa: E402
@@ -446,6 +449,7 @@ class ExportReport:
     equations_inline_native: int = 0
     equations_as_picture: list[dict] = field(default_factory=list)
     frames_as_picture: list[dict] = field(default_factory=list)
+    fonts_embedded: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict:
@@ -541,6 +545,26 @@ class _Exporter:
             self.report.equations_as_picture.append(
                 {"tex": tex, "error": f"inside content exported as a picture ({reason})"})
 
+    def _render_isolated(self, src: str, w: float, h: float, fit: str) -> bytes:
+        """Render one image by itself at (w x h) CSS px, transparent background."""
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as d:
+            page_html = Path(d) / "img.html"
+            page_html.write_text(
+                "<!DOCTYPE html><html><head><style>html,body{margin:0;background:transparent}</style></head>"
+                f'<body><img src="{src}" style="display:block;width:{w}px;height:{h}px;object-fit:{fit}">'
+                "</body></html>")
+            page = self.page.context.new_page()
+            try:
+                page.set_viewport_size({"width": max(1, int(w + 2)), "height": max(1, int(h + 2))})
+                page.goto(page_html.as_uri())
+                page.wait_for_function("() => [...document.images].every(i => i.complete)")
+                return page.screenshot(clip={"x": 0, "y": 0, "width": max(w, 1), "height": max(h, 1)},
+                                       omit_background=True, type="png")
+            finally:
+                page.close()
+
     def _add_rect(self, r: dict) -> None:
         from pptx.dml.color import RGBColor
         from pptx.enum.shapes import MSO_SHAPE
@@ -576,8 +600,13 @@ class _Exporter:
         raster_ok = path is not None and path.suffix.lower() in (".png", ".jpg", ".jpeg", ".gif", ".bmp")
         if raster_ok and natural_ar and box_ar and abs(natural_ar / box_ar - 1) < 0.01:
             stream = str(path)
+        elif src:
+            # SVG / data: URI / object-fit: rasterise the image ALONE, on a
+            # transparent page — a screenshot of the poster would bake the
+            # frame gradient behind a white logo into an opaque patch.
+            stream = io.BytesIO(self._render_isolated(src, im["w"], im["h"], im.get("fit") or "fill"))
         else:
-            # SVG, data: URI, remote, or object-fit cropping: rasterise what Chromium drew.
+            # inline <svg>/<canvas>/…: rasterise what Chromium drew in place.
             stream = io.BytesIO(self._shot(im["x"], im["y"], im["w"], im["h"]))
         self.slide.shapes.add_picture(stream, _emu(im["x"]), _emu(im["y"]), _emu(im["w"]), _emu(im["h"]))
         self.report.pictures += 1
@@ -923,7 +952,7 @@ class _Exporter:
             self._alternate(gf._element, pic._element)
 
     # ---- driver ------------------------------------------------------------
-    def run(self, out_path: Path) -> ExportReport:
+    def run(self, out_path: Path, embed_fonts: bool = True) -> ExportReport:
         self.strip_template()
         d = self.data
         for r in d["rects"]:
@@ -940,6 +969,14 @@ class _Exporter:
             self._add_equation(eq)
         self.report.warnings.extend(d.get("warnings", []))
         self._set_thumbnail()
+        if embed_fonts:
+            import embed_fonts as _ef
+            try:
+                self.report.fonts_embedded = _ef.embed(self.prs, _ef.fetch_faces())
+            except Exception as e:  # noqa: BLE001 — never lose the export over fonts; say so loudly
+                self.report.warnings.append(
+                    f"could not embed SB Sans Display ({type(e).__name__}: {e}) — the .pptx references the "
+                    "fonts by name only and shows a substitute (e.g. Calibri) where they are not installed")
         self.prs.save(str(out_path))
         self.report.pptx = str(out_path)
         return self.report
@@ -951,7 +988,7 @@ def _plain(t: dict) -> str:
 
 
 def export(html_path: Path, out_path: Path, *, mathml_to_omml: Callable[[str], Any] | None = None,
-           mathjax_timeout_ms: int = 15000) -> ExportReport:
+           mathjax_timeout_ms: int = 15000, embed_fonts: bool = True) -> ExportReport:
     """Render `html_path` and write the editable .pptx to `out_path`."""
     from playwright.sync_api import sync_playwright
 
@@ -986,7 +1023,7 @@ def export(html_path: Path, out_path: Path, *, mathml_to_omml: Callable[[str], A
             if not fonts_ok:
                 ex.report.warnings.append("SB Sans Display did not load (CDN unreachable?) — geometry was "
                                           "measured with a fallback font; re-export with network access")
-            return ex.run(Path(out_path))
+            return ex.run(Path(out_path), embed_fonts=embed_fonts)
         finally:
             browser.close()
 
@@ -997,6 +1034,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("-o", "--output", help="output .pptx (default: <html stem>.pptx next to the HTML)")
     ap.add_argument("--report", help="also write the export report as JSON here")
     ap.add_argument("--mathjax-timeout-ms", type=int, default=15000)
+    ap.add_argument("--no-embed-fonts", action="store_true",
+                    help="reference SB Sans Display by name only (smaller file; shows a substitute font "
+                         "wherever SB Sans Display is not installed)")
     args = ap.parse_args(argv)
 
     html = Path(args.html)
@@ -1004,15 +1044,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {html} not found", file=sys.stderr)
         return 2
     try:
+        import brotli  # noqa: F401 — woff2 decoding for the embedded fonts
+        import fontTools  # noqa: F401
         import lxml  # noqa: F401
         import mathml2omml  # noqa: F401
         import pptx  # noqa: F401
     except ImportError as e:
-        print(f"error: {e.name} is not installed — pip install python-pptx mathml2omml lxml "
+        print(f"error: {e.name} is not installed — pip install python-pptx mathml2omml lxml fonttools brotli "
               "(the skill's [pptx] extra)", file=sys.stderr)
         return 2
     out = Path(args.output) if args.output else html.with_suffix(".pptx")
-    rep = export(html, out, mathjax_timeout_ms=args.mathjax_timeout_ms)
+    rep = export(html, out, mathjax_timeout_ms=args.mathjax_timeout_ms, embed_fonts=not args.no_embed_fonts)
     print(f"[export_pptx] wrote {out}")
     print(f"  text frames: {rep.text_frames}  tables: {rep.tables}  pictures: {rep.pictures}  "
           f"equations: {rep.equations_native} display + {rep.equations_inline_native} inline native")
@@ -1022,8 +1064,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  FRAME AS PICTURE: {f['text']!r} ({f['reason']})")
     for w in rep.warnings:
         print(f"  WARN: {w}")
-    print("  NOTE: fonts are referenced by name (SB Sans Display / SB Sans Display Light) and not embedded —"
-          " install them on the machine that opens the .pptx.")
+    if rep.fonts_embedded:
+        print(f"  fonts embedded: {', '.join(rep.fonts_embedded)} (Light / Regular / Bold)")
+    else:
+        print("  NOTE: fonts are referenced by name only (SB Sans Display / SB Sans Display Light) — the file shows"
+              " a substitute font wherever they are not installed.")
     if args.report:
         Path(args.report).write_text(json.dumps(rep.as_dict(), ensure_ascii=False, indent=2))
     return 0

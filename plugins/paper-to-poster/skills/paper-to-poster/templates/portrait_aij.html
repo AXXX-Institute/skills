@@ -12,11 +12,11 @@
             from the .pptx (EMU / 36000 = mm) and must stay at those positions.
   FRAME:    gradient background + white panel (one image), AIJ mark, green
             poster number (№), title, author line, footer affiliations, group
-            contact, affiliation-logo chips, QR tiles. Never recolour the frame.
+            contact, WHITE affiliation logos, QR tiles. Never recolour the frame.
   CONTENT:  the white panel holds TWO COLUMNS of FLAT SECTIONS (Subtitle heading,
             Body text, figures, tables, equations) — no card chrome / shadows.
   TYPE:     SB Sans Display only (aij/fonts.css, loaded from Sber's CDN):
-              Title    = Bold 700, 14pt   (poster title, poster number)
+              Title    = Bold 700, 13pt   (poster title, poster number — the template's size)
               Subtitle = Regular 400, 7pt (author line, section headings, table heads)
               Body     = Light 300, 7pt   (text, lists, captions, footer)
   MEASURE:  every layout-critical element keeps its data-measure-role.
@@ -81,7 +81,7 @@
     /* Frame colours (sampled from the organisers' template — do not change). */
     --aij-number:     #43D374;   /* poster number "№" */
     --aij-on-frame:   #FFFFFF;   /* header / footer text on the gradient */
-    --aij-chip:       #FFFFFF;   /* QR tiles + logo chips */
+    --aij-chip:       #FFFFFF;   /* QR tiles */
     --aij-slide:      #FFFFFF;   /* slide background — shows through the panel, which is transparent in the frame image */
 
     /* Content-area colours (inside the white panel). */
@@ -98,7 +98,7 @@
     --u: 3.7795px;
 
     /* The three AIJ type roles (organisers' spec). 1pt = 0.35278mm. */
-    --fs-title:    calc(4.9389 * var(--u));   /* 14pt */
+    --fs-title:    calc(4.5861 * var(--u));   /* 13pt — as the organisers' template sets title and № */
     --fs-subtitle: calc(2.4694 * var(--u));   /* 7pt  */
     --fs-body:     calc(2.4694 * var(--u));   /* 7pt  */
 
@@ -277,28 +277,25 @@
   }
   .aij-affiliations { left: calc(13.746 * var(--u)); top: calc(1.287 * var(--u)); }
   .aij-contact      { left: calc(13.603 * var(--u)); top: calc(10.58 * var(--u)); }
-  /* Affiliation logos: the ORIGINAL-colour mark on a white rounded chip the
-     height of a QR tile. Starts where the pptx logo group starts (x 75.149mm)
-     and stops short of the QR tiles. Only this paper's own institutions. */
+  /* Affiliation logos, as in the template: WHITE marks straight on the gradient
+     (no plate), in the pptx logo group's band — "Группа 32" at (2705350,
+     9272966) EMU, slots 10.853mm tall — stopping short of the QR tiles. Use the
+     white versions from `python aij/white_logo.py images/<logo>.svg`. Only this
+     paper's own institutions. */
   .aij-logos {
     position: absolute;
-    left: calc(75.149 * var(--u)); top: calc(1.089 * var(--u));
-    width: calc(70.8 * var(--u)); height: calc(12.707 * var(--u));
-    display: flex; align-items: center; gap: calc(2 * var(--u));
+    left: calc(75.149 * var(--u)); top: 0;
+    width: calc(70.8 * var(--u)); height: calc(10.853 * var(--u));
+    display: flex; align-items: center; gap: calc(3 * var(--u));
   }
-  /* Chips share the strip equally (up to 34mm each); the mark fills its chip's
-     width and is capped at 6.5mm tall — so 1–2 logos stay large and 4 wide
-     wordmarks still fit (~3mm tall each). */
-  .aij-logo-chip {
+  /* Logos share the band equally (up to 34mm each), each mark fitted inside
+     its slot — 1–2 logos stay large, 4 wide wordmarks still fit. */
+  .aij-logo {
     flex: 1 1 0; max-width: calc(34 * var(--u));
-    height: calc(12.707 * var(--u));
+    height: 100%;
     min-width: 0;
-    padding: 0 calc(1.5 * var(--u));
-    display: flex; align-items: center; justify-content: center;
-    background: var(--aij-chip);
-    border-radius: calc(1.06 * var(--u));
   }
-  .aij-logo-chip img { display: block; width: 100%; height: auto; max-height: calc(6.5 * var(--u)); object-fit: contain; }
+  .aij-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
   /* pptx rounded tiles "Скругленный прямоугольник 64/66": 457465 EMU squares at
      x 5359734 / 5930532, y 9312133; QR 360766 EMU centred inside. Right-aligned
      so a single QR takes the outer slot. */
@@ -339,7 +336,7 @@
     <!-- Poster number: assigned by the organisers. Leave "№TODO" until you
          have it; it is filled in later (by you or the organisers). -->
     <div class="aij-number" data-aij-field="number">№TODO</div>
-    <h1 class="aij-title" data-aij-field="title">TODO: Poster title — keep it to two lines at 14pt</h1>
+    <h1 class="aij-title" data-aij-field="title">TODO: Poster title — keep it to two lines at 13pt</h1>
     <div class="aij-authors" data-aij-field="authors">TODO Author<sup>1</sup>, TODO Author<sup>2</sup>, TODO Author<sup>1,2</sup></div>
     <img class="aij-mark" src="images/aij_mark.svg" alt="AI Journey">
   </header>
@@ -397,11 +394,12 @@
   <footer class="aij-footer" data-measure-role="footer">
     <div class="aij-affiliations" data-aij-field="affiliations"><sup>1</sup> TODO Institution, <sup>2</sup> TODO Institution</div>
     <div class="aij-contact" data-aij-field="contact">Group contact: TODO@example.com</div>
-    <!-- Affiliation logos: ONLY this paper's institutions, original colours, one
-         chip each (e.g. from `python axxx/fetch_assets.py --dest images --logos airi hse`).
+    <!-- Affiliation logos: ONLY this paper's institutions, in WHITE, straight on the
+         gradient as in the template: `python axxx/fetch_assets.py --dest images --logos airi hse`,
+         then `python aij/white_logo.py images/airi_logo.svg images/hse_logo.svg`.
          No logos? Delete the whole .aij-logos block. -->
     <div class="aij-logos">
-      <!-- <div class="aij-logo-chip"><img src="images/airi_logo.svg" alt="AIRI"></div> -->
+      <!-- <div class="aij-logo"><img src="images/airi_logo_white.svg" alt="AIRI"></div> -->
     </div>
     <!-- QR tiles: 0, 1 or 2. Generate QR codes offline (qrencode / python -m qrcode);
          never a remote QR-service URL. No QR? Delete the whole .aij-qrs block. -->
