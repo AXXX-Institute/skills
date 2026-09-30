@@ -41,6 +41,11 @@ NS = {
     "mc": "http://schemas.openxmlformats.org/markup-compatibility/2006",
 }
 EMU_PER_MM = 36000
+#: sha256 of the unmodified files in OfficeOpenXML-XMLSchema-Transitional.zip.
+ECMA_SHA256 = {
+    "shared-math.xsd": "132e44dc10f2959e3f585584e5d82e7b2e329691e3010646e497710bd9774152",
+    "shared-commonSimpleTypes.xsd": "48675c4f82f6b097434d4b7e313635b790257cca58fa90dd0e8f19c9affa18ed",
+}
 PX_PER_MM = 96 / 25.4
 TOL_MM = 0.5
 
@@ -93,9 +98,18 @@ _BLOCKS_JS = """
     return [b.x - P.x + pl, b.y - P.y + pt]; };
   const sel = '.aij-number, .aij-title, .aij-authors, .aij-affiliations, .aij-contact, '
             + '.section-title, .section > p, .figure .caption';
+  const runs = (el) => { const out = [];
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      if (n.parentElement.closest('mjx-container') || !n.nodeValue.trim()) continue;
+      const pe = n.parentElement, s = getComputedStyle(pe);
+      const sup = pe.closest('sup, sub');
+      out.push({text: n.nodeValue.replace(/\\s+/g, ' ').trim(), weight: parseInt(s.fontWeight, 10),
+                px: parseFloat(getComputedStyle(sup ? sup.parentElement : pe).fontSize)}); }
+    return out; };
   const blocks = [...document.querySelectorAll(sel)].map(el => {
     const s = getComputedStyle(el);
-    return {text: text(el), pos: box(el), weight: s.fontWeight, px: parseFloat(s.fontSize)}; });
+    return {text: text(el), pos: box(el), weight: s.fontWeight, px: parseFloat(s.fontSize), runs: runs(el)}; });
   const lists = [...document.querySelectorAll('.section > ul')].map(ul => ({
     items: [...ul.children].map(li => text(li)), pos: [ul.getBoundingClientRect().x - P.x, ul.getBoundingClientRect().y - P.y]}));
   const tables = [...document.querySelectorAll('table')].map(t => ({
@@ -163,6 +177,13 @@ def test_one_slide_on_the_organisers_canvas_without_embedded_fonts(exported):
         assert "embeddedFont" not in z.read("ppt/presentation.xml").decode()
 
 
+def test_package_thumbnail_is_the_poster_not_the_template(exported):
+    out, _ = exported
+    tpl = SKILL / "aij" / "assets" / "aij_template.pptx"
+    with zipfile.ZipFile(out) as z, zipfile.ZipFile(tpl) as t:
+        assert z.read("docProps/thumbnail.jpeg") != t.read("docProps/thumbnail.jpeg")
+
+
 def test_frame_background_and_mark_kept_instructions_removed(exported, slide_xml):
     out, _ = exported
     prs = pptx.Presentation(str(out))
@@ -182,6 +203,34 @@ def test_every_text_block_is_native_text_at_its_rendered_place(html_facts, slide
         x_mm, y_mm = (v / PX_PER_MM for v in b["pos"])
         assert any(abs(s["x"] - x_mm) <= TOL_MM and abs(s["y"] - y_mm) <= TOL_MM for s in match), \
             (want[:40], x_mm, y_mm, [(s["x"], s["y"]) for s in match])
+
+
+def _expected_face(weight: int) -> tuple[str, bool]:
+    if weight <= 350:
+        return "SB Sans Display Light", False
+    return "SB Sans Display", weight >= 650
+
+
+def test_each_block_keeps_its_role_font_size_and_weight(html_facts, slide_xml):
+    """Per block, every text run in the pptx carries the typeface, size and bold
+    flag of the HTML text it came from (Title 14pt Bold, Subtitle 7pt Regular,
+    Body 7pt Light, <strong> Bold, keywords Regular)."""
+    sps = _sps(slide_xml)
+    for b in html_facts["blocks"]:
+        sp = next(s for s in sps if _norm(s["text"]) == _norm(b["text"]))
+        pptx_runs = []
+        for r in sp["el"].iter(f"{{{NS['a']}}}r"):
+            if any(a.tag == f"{{{NS['m']}}}oMath" for a in r.iterancestors()):
+                continue
+            rpr = r.find("a:rPr", NS)
+            pptx_runs.append((_norm(r.find("a:t", NS).text or ""), rpr.find("a:latin", NS).get("typeface"),
+                              int(rpr.get("sz")), rpr.get("b") == "1"))
+        for hr in b["runs"]:
+            want_face, want_bold = _expected_face(hr["weight"])
+            want_sz = int(round(hr["px"] * 0.75 * 100))
+            match = [r for r in pptx_runs if r[0] == _norm(hr["text"])]
+            assert match, (b["text"][:40], hr["text"])
+            assert (match[0][1], match[0][2], match[0][3]) == (want_face, want_sz, want_bold), (hr, match[0])
 
 
 def test_lists_are_one_bulleted_frame_each(html_facts, slide_xml):
@@ -260,6 +309,7 @@ def test_every_formula_is_a_native_equation_with_a_fallback(exported, html_facts
     assert len(ms) == n_math
     assert report.equations_native + report.equations_inline_native == n_math
     assert report.equations_as_picture == [] and report.frames_as_picture == []
+    assert report.warnings == []
     for m in ms:
         choice = next(a for a in m.iterancestors() if a.tag == f"{{{NS['mc']}}}Choice")
         assert choice.get("Requires") == "a14"
@@ -277,7 +327,26 @@ def _omml_roots(slide_xml):
 
 
 def _schema():
-    return etree.XMLSchema(etree.parse(str(XSD)))
+    """ECMA-376 shared-math.xsd, byte-identical to Ecma's file; its WordprocessingML
+    and xml: imports are pointed at the local stubs in memory (the Ecma notice
+    forbids editing the file itself)."""
+    src = XSD.read_text()
+    src = src.replace('schemaLocation="wml.xsd"', 'schemaLocation="wml-stub.xsd"')
+    src = src.replace('<xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>',
+                      '<xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml-stub.xsd"/>')
+    assert "wml-stub.xsd" in src and "xml-stub.xsd" in src
+    doc = etree.fromstring(src.encode(), base_url=XSD.as_uri())
+    return etree.XMLSchema(etree.ElementTree(doc))
+
+
+def test_vendored_ecma_schemas_are_unmodified():
+    """The Ecma copyright notice forbids modifying the schema files: pin their
+    content (sha256 of the files in ECMA-376 Part 4 Transitional, 5th ed.)."""
+    import hashlib
+
+    got = {f: hashlib.sha256((XSD.parent / f).read_bytes()).hexdigest()
+           for f in ("shared-math.xsd", "shared-commonSimpleTypes.xsd")}
+    assert got == ECMA_SHA256, got
 
 
 def _strip_drawingml(om):
@@ -353,3 +422,119 @@ def test_refuses_a_non_aij_poster(tmp_path):
 
     with pytest.raises(SystemExit, match="not an AIJ poster"):
         export_pptx.export(SKILL / "templates" / "portrait_2col_axxx.html", tmp_path / "x.pptx")
+
+
+# --------------------------------------------------------------------------
+# edge cases (tests/aij_edge_poster.py): math in tables, TeX errors, graphics,
+# mixed content — nothing may vanish silently
+# --------------------------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def edge(tmp_path_factory):
+    import aij_edge_poster
+    import export_pptx
+
+    d = tmp_path_factory.mktemp("aij_edge")
+    html = aij_edge_poster.build(d)
+    out = d / "edge.pptx"
+    report = export_pptx.export(html, out)
+    with zipfile.ZipFile(out) as z:
+        xml = etree.fromstring(z.read("ppt/slides/slide1.xml"))
+    return html, out, report, xml
+
+
+def _math_count(html: Path) -> int:
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as p:
+        b = p.chromium.launch()
+        pg = b.new_page()
+        pg.goto(html.as_uri())
+        pg.wait_for_function("() => window.MathJax && MathJax.startup && MathJax.startup.promise")
+        n = pg.evaluate("() => MathJax.startup.promise.then(() => "
+                        "MathJax.startup.document.getMathItemsWithin(document.body).length)")
+        b.close()
+    return n
+
+
+def test_edge_every_formula_is_accounted_for(edge):
+    html, _, report, _ = edge
+    n = _math_count(html)
+    assert n == 5   # \alpha, 0.1, 91.2 \pm 0.3, \foo{x}, x^2
+    native = report.equations_native + report.equations_inline_native
+    assert native + len(report.equations_as_picture) == n
+
+
+def test_edge_table_with_math_is_native_with_a_picture_fallback(edge):
+    _, _, report, xml = edge
+    frames = [gf for gf in xml.iter(f"{{{NS['p']}}}graphicFrame") if gf.find(".//a:tbl", NS) is not None]
+    assert len(frames) == 1 and report.tables == 1
+    gf = frames[0]
+    choice = gf.getparent()
+    assert choice.tag == f"{{{NS['mc']}}}Choice" and choice.get("Requires") == "a14"
+    assert len(list(gf.iter(f"{{{NS['a14']}}}m"))) == 3        # \alpha, 0.1, 91.2 \pm 0.3
+    fb = choice.getnext()
+    assert fb.tag == f"{{{NS['mc']}}}Fallback"
+    pic = fb.find("p:pic", NS)
+    assert pic is not None and pic.find(".//a:blip", NS).get(f"{{{NS['r']}}}embed")
+    for om in gf.iter(f"{{{NS['m']}}}oMath"):
+        assert _schema().validate(_strip_drawingml(om)), _schema().error_log
+
+
+def test_edge_tex_error_becomes_a_reported_picture(edge):
+    _, _, report, xml = edge
+    bad = [f for f in report.equations_as_picture if "foo" in (f["tex"] or "")]
+    assert bad and "undefined TeX macro" in bad[0]["error"]
+    assert any("broken formula" in f["text"] for f in report.frames_as_picture)
+    assert "\\foo" not in "".join(t.text or "" for t in xml.iter(f"{{{NS['m']}}}t"))
+
+
+def test_edge_graphics_and_mixed_content_are_pictures_with_warnings(edge):
+    _, _, report, _ = edge
+    reasons = [f["text"] for f in report.frames_as_picture if "mixed" in f["reason"]]
+    assert any("inline icon" in t for t in reasons)           # <p> with an inline <svg>
+    assert any("Loose text" in t for t in reasons)            # text next to a block child
+    assert sum("exported as a picture" in w for w in report.warnings) == 2
+    # block <svg> figure, gradient background, the two mixed blocks, the TeX-error paragraph
+    assert report.pictures >= 5
+
+
+def test_edge_ordered_list_and_line_break(edge):
+    _, _, _, xml = edge
+    sps = _sps(xml)
+    ol = next(s for s in sps if [_norm(p) for p in s["paras"]] == ["First step.", "Second step."])
+    for p in ol["el"].findall(".//a:p", NS):
+        assert p.find("a:pPr/a:buAutoNum", NS) is not None
+    para = next(s for s in sps if _norm(s["text"]).startswith("Line one"))
+    assert para["el"].find(".//a:br", NS) is not None
+
+
+def test_edge_edge_slide_is_schema_valid_math(edge):
+    _, _, _, xml = edge
+    for om in _omml_roots(xml):
+        assert _schema().validate(_strip_drawingml(om)), _schema().error_log
+
+
+def test_edge_table_formula_failure_turns_the_table_into_a_reported_picture(tmp_path):
+    import aij_edge_poster
+    import export_pptx
+
+    real = export_pptx._default_mathml_to_omml
+
+    def fail_on_pm(mml):
+        if "&#xB1;" in mml or "±" in mml:
+            raise ValueError("forced failure")
+        return real(mml)
+
+    html = aij_edge_poster.build(tmp_path / "e")
+    out = tmp_path / "e.pptx"
+    report = export_pptx.export(html, out, mathml_to_omml=fail_on_pm)
+    assert report.tables == 0
+    table_entries = [f for f in report.equations_as_picture if "table" in f["error"] or "forced" in f["error"]]
+    assert {f["tex"] for f in table_entries} >= {"\\alpha", "0.1", "91.2 \\pm 0.3"}
+    assert any("table" in f["reason"] for f in report.frames_as_picture)
+    n = _math_count(html)
+    assert report.equations_native + report.equations_inline_native + len(report.equations_as_picture) == n
+    with zipfile.ZipFile(out) as z:
+        xml = etree.fromstring(z.read("ppt/slides/slide1.xml"))
+    assert not [gf for gf in xml.iter(f"{{{NS['p']}}}graphicFrame") if gf.find(".//a:tbl", NS) is not None]

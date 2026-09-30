@@ -13,16 +13,23 @@ embedded fonts stripped, docs/adr/0011):
     by name in SB Sans Display / SB Sans Display Light (not embedded — the
     machine opening the file needs the fonts installed);
   * tables   -> native PowerPoint tables;
-  * figures, logos, QR codes -> pictures;
-  * math (inline and display) -> native Office equations: MathJax's own
-    MathML -> OMML (mathml2omml) inside <a14:m>, each math-bearing shape
-    wrapped in <mc:AlternateContent> with a rendered-PNG fallback for
-    non-Office viewers. An equation that fails to convert degrades its
-    shape to that picture and is listed in the export report — never
-    dropped silently.
+  * figures, logos, QR codes, inline <svg>/<canvas>, CSS background images
+    -> pictures;
+  * math (inline, display, and inside table cells) -> native Office
+    equations: MathJax's own MathML -> OMML (mathml2omml) inside <a14:m>,
+    each math-bearing shape (text frame, equation, table) wrapped in
+    <mc:AlternateContent> with a rendered-PNG fallback for non-Office
+    viewers. A formula that fails to convert (converter error, or a TeX
+    error MathJax rendered as <merror>) turns its whole shape into that
+    picture and is listed in the export report.
+  * content with no native form — text mixed with block content or with an
+    inline graphic — is kept as the rendered picture and reported.
 
+Nothing on the sheet is dropped silently: every formula is counted either as
+a native equation or as a picture, and every picture fallback is reported.
 The organisers' instruction text boxes, arrows, sample logos and sample QR
-codes are removed; only the background and the AIJ mark are kept.
+codes are removed; only the background and the AIJ mark are kept, and the
+package thumbnail is replaced by this poster's.
 
 Needs the `[pptx]` extra:  pip install python-pptx mathml2omml lxml
 (and Playwright/Chromium, like the rest of the skill).
@@ -98,7 +105,7 @@ EXTRACT_JS = r"""
   const P = poster.getBoundingClientRect();
   const out = {poster: {x: P.x, y: P.y, w: P.width, h: P.height},
                lang: document.documentElement.lang || 'en',
-               rects: [], images: [], texts: [], tables: [], equations: [], warnings: []};
+               rects: [], images: [], snapshots: [], texts: [], tables: [], equations: [], warnings: []};
   let nextId = 0;
   const tag = (el) => { const id = String(nextId++); el.setAttribute('data-aij-export-id', id); return id; };
   const cs = (el) => getComputedStyle(el);
@@ -122,6 +129,12 @@ EXTRACT_JS = r"""
   const isInline = (el) => { const d = cs(el).display; return d.startsWith('inline') || d === 'contents'; };
   const isMath = (el) => el.tagName === 'MJX-CONTAINER';
   const isDisplayMath = (el) => isMath(el) && el.getAttribute('display') === 'true';
+  // Replaced / drawn content that becomes a picture (an HTML-namespace <svg>'s tagName is lowercase).
+  const GRAPHIC = new Set(['IMG', 'svg', 'CANVAS', 'VIDEO', 'OBJECT', 'EMBED', 'IFRAME']);
+  const isGraphic = (el) => GRAPHIC.has(el.tagName);
+  // Inside a formula or an inline SVG: not HTML layout, never inspected on its own.
+  const opaque = (d) => (d.closest('mjx-container') && d.tagName !== 'MJX-CONTAINER') ||
+                        (d.parentElement && d.parentElement.closest('svg'));
   const SKIP = (el) => el.classList.contains('aij-bg') || el.classList.contains('aij-mark') ||
                         ['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE'].includes(el.tagName);
 
@@ -204,18 +217,25 @@ EXTRACT_JS = r"""
     if (align === 'end') align = 'right';
     return Object.assign({align, lineHeightPx: lineHeightPx(s), fontPx: px(s.fontSize), runs: runsOf(el)}, extra || {});
   };
-  // A text block: a non-inline element whose visible content is inline only.
+  // A text block: a non-inline element whose visible content is inline text/math only
+  // (no block children, no graphics — those make it a picture, see `mixed` below).
   const inlineOnly = (el) => {
     for (const d of el.querySelectorAll('*')) {
-      if (d.closest('mjx-container') && d.tagName !== 'MJX-CONTAINER') continue;
-      if (hidden(d)) continue;
+      if (opaque(d) || hidden(d)) continue;
       if (isDisplayMath(d)) return false;
-      if (d.tagName === 'IMG' || d.tagName === 'TABLE') return false;
+      if (isGraphic(d) || d.tagName === 'TABLE') return false;
       if (!isInline(d) && !isMath(d)) return false;
     }
     return true;
   };
   const hasContent = (el) => el.textContent.trim().length > 0 || el.querySelector('mjx-container');
+  // Text or inline math sitting directly next to block content / graphics — it
+  // cannot become one native text frame, so the element becomes a picture.
+  const mixed = (el) => [...el.childNodes].some(ch =>
+      (ch.nodeType === 3 && ch.nodeValue.trim()) ||
+      (ch.nodeType === 1 && !hidden(ch) && !isGraphic(ch) && isInline(ch) && hasContent(ch)) ||
+      (ch.nodeType === 1 && isMath(ch) && !isDisplayMath(ch)));
+  const texOf = (root) => [...root.querySelectorAll('mjx-container')].map(m => (mathOf.get(m) || {}).tex || m.textContent);
 
   const decor = (el) => {
     if (el === poster) return;
@@ -224,6 +244,10 @@ EXTRACT_JS = r"""
     if (r.width < 0.5 || r.height < 0.5) return;
     const fill = rgba(s.backgroundColor);
     if (fill) out.rects.push(Object.assign(box(r), {fill, radius: px(s.borderTopLeftRadius)}));
+    // CSS background images / gradients: rasterised in Python with the element's
+    // content hidden, so the picture carries only the background.
+    if (s.backgroundImage && s.backgroundImage !== 'none')
+      out.rects.push(Object.assign(box(r), {bgimage: true, id: tag(el)}));
     const sides = [['Top', 0, 0, r.width, px(s.borderTopWidth)], ['Bottom', 0, r.height - px(s.borderBottomWidth), r.width, px(s.borderBottomWidth)],
                    ['Left', 0, 0, px(s.borderLeftWidth), r.height], ['Right', r.width - px(s.borderRightWidth), 0, px(s.borderRightWidth), r.height]];
     for (const [side, dx, dy, w, h] of sides) {
@@ -260,11 +284,22 @@ EXTRACT_JS = r"""
 
   const walk = (el) => {
     if (SKIP(el) || hidden(el)) return;
+    // Content that has no native pptx form is kept as the rendered picture and
+    // reported — never dropped silently.
+    if (!isGraphic(el) && !isMath(el) && el.tagName !== 'TABLE' && !(!isInline(el) && hasContent(el) && inlineOnly(el))
+        && mixed(el)) {
+      const r = el.getBoundingClientRect();
+      out.snapshots.push(Object.assign(box(r), {id: tag(el), tex: texOf(el),
+        text: el.textContent.replace(/\s+/g, ' ').trim().slice(0, 80)}));
+      out.warnings.push('text mixed with block content or an inline graphic is exported as a picture: "'
+                        + el.textContent.replace(/\s+/g, ' ').trim().slice(0, 60) + '"');
+      return;
+    }
     decor(el);
-    if (el.tagName === 'IMG') {
-      const b = contentBox(el);
-      out.images.push(Object.assign(b, {id: tag(el), src: el.currentSrc || el.src,
-        natW: el.naturalWidth, natH: el.naturalHeight, fit: cs(el).objectFit}));
+    if (isGraphic(el)) {
+      const b = contentBox(el), img = el.tagName === 'IMG';
+      out.images.push(Object.assign(b, {id: tag(el), src: img ? (el.currentSrc || el.src) : '',
+        natW: img ? el.naturalWidth : 0, natH: img ? el.naturalHeight : 0, fit: cs(el).objectFit}));
       return;
     }
     if (el.tagName === 'TABLE') { out.tables.push(tableOf(el)); return; }
@@ -274,7 +309,12 @@ EXTRACT_JS = r"""
         fontPx: px(s.fontSize), color: rgba(s.color) || '#000000', align: 'center'}));
       return;
     }
-    if (isMath(el)) return;   // stray inline math outside a text block (unusual)
+    if (isMath(el)) {   // inline math whose parent is inline too, under a block-content parent
+      const r = el.getBoundingClientRect();
+      out.snapshots.push(Object.assign(box(r), {id: tag(el), tex: [(mathOf.get(el) || {}).tex || el.textContent], text: ''}));
+      out.warnings.push('an inline formula outside any text block is exported as a picture');
+      return;
+    }
     if ((el.tagName === 'UL' || el.tagName === 'OL') && [...el.children].every(li => li.tagName === 'LI' && inlineOnly(li))) {
       const s = cs(el), items = [...el.children].filter(li => !hidden(li));
       if (!items.length) return;
@@ -293,10 +333,7 @@ EXTRACT_JS = r"""
       out.texts.push(Object.assign(contentBox(el), {id: tag(el), paragraphs: [paraOf(el)]}));
       return;
     }
-    for (const ch of el.childNodes) {
-      if (ch.nodeType === 3 && ch.nodeValue.trim()) out.warnings.push('loose text next to block content is not exported: "' + ch.nodeValue.trim().slice(0, 40) + '"');
-      if (ch.nodeType === 1) walk(ch);
-    }
+    for (const ch of el.children) walk(ch);
   };
   walk(poster);
   return out;
@@ -445,9 +482,39 @@ class _Exporter:
         return self.page.screenshot(clip={"x": P["x"] + x, "y": P["y"] + y, "width": max(w, 1), "height": max(h, 1)},
                                     omit_background=True, type="png")
 
+    def _add_background(self, r: dict) -> None:
+        """A CSS background image / gradient: rasterise the element with its
+        own content hidden, so the picture is only the background."""
+        sel = f'[data-aij-export-id="{r["id"]}"]'
+        css = f"{sel} * {{ visibility: hidden !important; }} {sel} {{ color: transparent !important; }}"
+        self.page.evaluate("(css) => { const s = document.createElement('style'); s.id = 'aij-bg-only';"
+                           " s.textContent = css; document.head.appendChild(s); }", css)
+        try:
+            png = self._shot(r["x"], r["y"], r["w"], r["h"])
+        finally:
+            self.page.evaluate("() => { const s = document.getElementById('aij-bg-only'); if (s) s.remove(); }")
+        self.slide.shapes.add_picture(io.BytesIO(png), _emu(r["x"]), _emu(r["y"]), _emu(r["w"]), _emu(r["h"]))
+        self.report.pictures += 1
+
+    def _add_snapshot(self, s: dict) -> None:
+        """Content with no native pptx form (text mixed with block content or an
+        inline graphic): the rendered picture, reported."""
+        self.slide.shapes.add_picture(io.BytesIO(self._shot(s["x"], s["y"], s["w"], s["h"])),
+                                      _emu(s["x"]), _emu(s["y"]), _emu(s["w"]), _emu(s["h"]))
+        self.report.pictures += 1
+        self.report.frames_as_picture.append({"reason": "text mixed with block content or an inline graphic",
+                                              "text": s.get("text", "")})
+        for tex in s.get("tex", []):
+            self.report.equations_as_picture.append(
+                {"tex": tex, "error": "inside content exported as a picture (mixed inline/block content)"})
+
     def _add_rect(self, r: dict) -> None:
         from pptx.dml.color import RGBColor
         from pptx.enum.shapes import MSO_SHAPE
+
+        if r.get("bgimage"):
+            self._add_background(r)
+            return
 
         rounded = r.get("radius", 0) > 0.3
         shp = self.slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE if rounded else MSO_SHAPE.RECTANGLE,
@@ -562,19 +629,46 @@ class _Exporter:
         end = etree.SubElement(p_el, a("endParaRPr"), lang=_lang("", self.lang), sz=str(int(round(last_size * 100))))
         del end
 
-    def _math_elements(self, paragraphs: list[dict]) -> tuple[dict[str, Any], list[dict]]:
-        ok, failed = {}, []
+    def _convert(self, item: dict):
+        """MathML of one MathJax item -> <m:oMath> (raises on any failure)."""
+        mml = item.get("mml")
+        if not mml:
+            raise ValueError("MathJax produced no MathML for this formula")
+        # MathJax renders bad TeX instead of failing: syntax errors as <merror>,
+        # undefined macros (its `noundefined` extension) as red <mtext>\name.
+        m = re.search(r"<merror[^>]*>(.*?)</merror>", mml, re.DOTALL)
+        if m:
+            msg = re.sub(r"<[^>]+>|\s+", " ", m.group(1)).strip()
+            raise ValueError(f"MathJax could not typeset this TeX ({msg})")
+        m = re.search(r'<mtext[^>]*mathcolor="red"[^>]*>(\\[A-Za-z]+)</mtext>', mml)
+        if m:
+            raise ValueError(f"undefined TeX macro {m.group(1)}")
+        return self.to_omml(mml)
+
+    def _math_elements(self, paragraphs: list[dict]) -> tuple[dict[str, Any], list[dict], list[dict]]:
+        """Convert every formula in `paragraphs`: (ok by run id, failures, all math runs)."""
+        ok, failed, runs = {}, [], []
         for para in paragraphs:
             for run in para["runs"]:
                 if run["type"] != "math":
                     continue
+                runs.append(run)
                 try:
-                    if not run.get("mml"):
-                        raise ValueError("MathJax produced no MathML for this formula")
-                    ok[run["id"]] = self.to_omml(run["mml"])
+                    ok[run["id"]] = self._convert(run)
                 except Exception as e:  # noqa: BLE001 — any converter failure degrades to a picture
                     failed.append({"tex": run.get("tex"), "error": f"{type(e).__name__}: {e}"})
-        return ok, failed
+        return ok, failed, runs
+
+    def _report_as_picture(self, failed: list[dict], runs: list[dict], ok: dict, where: str, text: str) -> None:
+        """Every formula of a shape that fell back to a picture is accounted for:
+        the failing ones with their error, the converted ones as carried along."""
+        self.report.equations_as_picture.extend(failed)
+        for run in runs:
+            if run["id"] in ok:
+                self.report.equations_as_picture.append(
+                    {"tex": run.get("tex"), "error": f"converted, but kept as a picture with its {where} "
+                                                     "(another formula in it failed)"})
+        self.report.frames_as_picture.append({"reason": f"equation conversion failed ({where})", "text": text})
 
     def _textbox(self, t: dict):
         x, w = t["x"], t["w"]
@@ -597,17 +691,15 @@ class _Exporter:
     def _add_text(self, t: dict) -> None:
         from lxml import etree
 
-        math_ok, failed = self._math_elements(t["paragraphs"])
-        has_math = any(r["type"] == "math" for p in t["paragraphs"] for r in p["runs"])
+        math_ok, failed, math_runs = self._math_elements(t["paragraphs"])
+        has_math = bool(math_runs)
         if failed:
             # One formula could not become a native equation: keep the whole
             # frame faithful as the rendered picture and say so.
             self.slide.shapes.add_picture(io.BytesIO(self._shot(t["x"], t["y"], t["w"], t["h"])),
                                           _emu(t["x"]), _emu(t["y"]), _emu(t["w"]), _emu(t["h"]))
-            for f in failed:
-                self.report.equations_as_picture.append(f)
-            self.report.frames_as_picture.append({"reason": "equation conversion failed",
-                                                  "text": _plain(t)[:80]})
+            self.report.pictures += 1
+            self._report_as_picture(failed, math_runs, math_ok, "text frame", _plain(t)[:80])
             return
         shp = self._textbox(t)
         body = shp.text_frame._txBody
@@ -624,12 +716,11 @@ class _Exporter:
         from lxml import etree
 
         try:
-            if not eq.get("mml"):
-                raise ValueError("MathJax produced no MathML for this formula")
-            om = self.to_omml(eq["mml"])
+            om = self._convert(eq)
         except Exception as e:  # noqa: BLE001
             self.slide.shapes.add_picture(io.BytesIO(self._shot(eq["x"], eq["y"], eq["w"], eq["h"])),
                                           _emu(eq["x"]), _emu(eq["y"]), _emu(eq["w"]), _emu(eq["h"]))
+            self.report.pictures += 1
             self.report.equations_as_picture.append({"tex": eq.get("tex"), "error": f"{type(e).__name__}: {e}"})
             return
         om = copy.deepcopy(om)
@@ -679,13 +770,37 @@ class _Exporter:
             tx.remove(p)
         etree.SubElement(tx, _q("a:p"))
 
+        self._alternate(sp, fb)
+
+    @staticmethod
+    def _alternate(choice_el, fallback_el) -> None:
+        """Replace `choice_el` in place by mc:AlternateContent: Choice (needs a14,
+        i.e. Office math) = `choice_el`, Fallback = `fallback_el`."""
+        from lxml import etree
+
         ac = etree.Element(_q("mc:AlternateContent"), nsmap={"mc": NS["mc"]})
         choice = etree.SubElement(ac, _q("mc:Choice"), Requires="a14", nsmap={"a14": NS["a14"]})
         fallback = etree.SubElement(ac, _q("mc:Fallback"))
-        parent = sp.getparent()
-        parent.replace(sp, ac)
-        choice.append(sp)
-        fallback.append(fb)
+        parent = choice_el.getparent()
+        parent.replace(choice_el, ac)
+        choice.append(choice_el)
+        if fallback_el.getparent() is not None:
+            fallback_el.getparent().remove(fallback_el)
+        fallback.append(fallback_el)
+
+    def _set_thumbnail(self) -> None:
+        """The package thumbnail (file browsers) = this poster, not the template."""
+        from PIL import Image
+
+        P = self.data["poster"]
+        shot = self.page.screenshot(clip={"x": P["x"], "y": P["y"], "width": P["w"], "height": P["h"]}, type="png")
+        im = Image.open(io.BytesIO(shot)).convert("RGB")
+        im.thumbnail((256, 256))
+        buf = io.BytesIO()
+        im.save(buf, "JPEG", quality=85)
+        for part in self.prs.part.package.iter_parts():
+            if str(part.partname) == "/docProps/thumbnail.jpeg":
+                part._blob = buf.getvalue()
 
     def _add_table(self, tb: dict) -> None:
         from lxml import etree
@@ -696,6 +811,17 @@ class _Exporter:
         lefts = [v for v in tb["colLefts"]]
         n_cols = max(len(lefts), 1)
         if not n_rows:
+            return
+        cells = [c for row in tb["rows"] for c in row["cells"]]
+        math_ok, failed, math_runs = self._math_elements([c["para"] for c in cells])
+        if failed:
+            # A formula in a cell cannot become a native equation: the whole table
+            # stays the rendered picture (faithful, not editable) and is reported.
+            self.slide.shapes.add_picture(io.BytesIO(self._shot(tb["x"], tb["y"], tb["w"], tb["h"])),
+                                          _emu(tb["x"]), _emu(tb["y"]), _emu(tb["w"]), _emu(tb["h"]))
+            self.report.pictures += 1
+            first = " | ".join(_plain({"paragraphs": [c["para"]]}) for c in cells[:3])
+            self._report_as_picture(failed, math_runs, math_ok, "table", first[:80])
             return
         gf = self.slide.shapes.add_table(n_rows, n_cols, _emu(tb["x"]), _emu(tb["y"]), _emu(tb["w"]), _emu(tb["h"]))
         table = gf.table
@@ -748,18 +874,18 @@ class _Exporter:
                         etree.SubElement(ln, _q("a:noFill"))
                     # line elements must precede the cell fill in CT_TableCellProperties
                     tc_pr.insert(("l", "r", "t", "b").index(side), ln)
-                math_ok, failed = self._math_elements([cell["para"]])
-                if failed:
-                    self.report.equations_as_picture.extend(failed)
-                    self.report.warnings.append("a formula inside a table cell could not be converted; "
-                                                "its text is left without it")
-                    cell["para"]["runs"] = [r for r in cell["para"]["runs"] if r["type"] != "math" or r["id"] in math_ok]
                 tx = c._tc.get_or_add_txBody()
                 for p in tx.findall(_q("a:p")):
                     tx.remove(p)
                 p_el = etree.SubElement(tx, _q("a:p"))
                 self._fill_paragraph(p_el, cell["para"], math_ok)
         self.report.tables += 1
+        if math_runs:
+            # Office-math table: Choice = the native table; Fallback = the
+            # rendered picture of it, for viewers without Office math.
+            pic = self.slide.shapes.add_picture(io.BytesIO(self._shot(tb["x"], tb["y"], tb["w"], tb["h"])),
+                                                _emu(tb["x"]), _emu(tb["y"]), _emu(tb["w"]), _emu(tb["h"]))
+            self._alternate(gf._element, pic._element)
 
     # ---- driver ------------------------------------------------------------
     def run(self, out_path: Path) -> ExportReport:
@@ -769,6 +895,8 @@ class _Exporter:
             self._add_rect(r)
         for im in d["images"]:
             self._add_image(im)
+        for sn in d.get("snapshots", []):
+            self._add_snapshot(sn)
         for tb in d["tables"]:
             self._add_table(tb)
         for t in d["texts"]:
@@ -776,13 +904,15 @@ class _Exporter:
         for eq in d["equations"]:
             self._add_equation(eq)
         self.report.warnings.extend(d.get("warnings", []))
+        self._set_thumbnail()
         self.prs.save(str(out_path))
         self.report.pptx = str(out_path)
         return self.report
 
 
 def _plain(t: dict) -> str:
-    return " ".join(r.get("text", "") for p in t["paragraphs"] for r in p["runs"] if r["type"] == "text")
+    text = " ".join(r.get("text", "") for p in t["paragraphs"] for r in p["runs"] if r["type"] == "text")
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def export(html_path: Path, out_path: Path, *, mathml_to_omml: Callable[[str], Any] | None = None,

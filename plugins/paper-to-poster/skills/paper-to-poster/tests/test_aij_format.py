@@ -79,8 +79,19 @@ def test_bundled_template_has_its_embedded_fonts_stripped():
     assert not [n for n in names if n.startswith("ppt/fonts/")]
     assert "embeddedFont" not in pres and "embedTrueTypeFonts" not in pres
     assert "fonts/" not in rels and "fntdata" not in types
-    # the frame survives: background + AIJ mark
-    assert "ppt/media/image1.png" in names and "ppt/media/image6.svg" in names
+    # the frame survives byte-for-byte: background + AIJ mark
+    assert (SKILL / "aij" / "assets" / "aij_background.png").read_bytes() == zipfile.ZipFile(TEMPLATE_PPTX).read("ppt/media/image1.png")
+    assert (SKILL / "aij" / "assets" / "aij_mark.svg").read_bytes() == zipfile.ZipFile(TEMPLATE_PPTX).read("ppt/media/image6.svg")
+
+
+def test_bundled_template_carries_no_sample_artwork():
+    """The organisers' arrows, "COMPANY" sample-logo sheet and sample QR are
+    blanked (the shapes stay, so the frame geometry is untouched)."""
+    with zipfile.ZipFile(TEMPLATE_PPTX) as z:
+        for part in ("ppt/media/image2.png", "ppt/media/image3.png", "ppt/media/image4.png",
+                     "ppt/media/image5.png", "ppt/media/image7.svg"):
+            assert z.getinfo(part).file_size < 200, part
+        assert z.getinfo("docProps/thumbnail.jpeg").file_size < 20000
 
 
 def test_template_has_no_pptx_instructions_and_keeps_the_number_placeholder():
