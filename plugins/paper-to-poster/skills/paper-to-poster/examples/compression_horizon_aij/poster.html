@@ -73,9 +73,10 @@
 
     /* Content-area colours (inside the white panel). */
     --aij-ink:        #1B1F2A;   /* Body text */
+    --aij-heading:    #000000;   /* section + table headings: black only, as the template */
     --aij-ink-soft:   #5A6275;   /* captions, secondary text */
-    --aij-accent:     #26359A;   /* Subtitle headings, keywords — frame blue */
-    --aij-accent-2:   #1E9E53;   /* section numbers, "best" cells — frame green, darkened for white */
+    --aij-accent:     #26359A;   /* keywords — frame blue (never headings) */
+    --aij-accent-2:   #1E9E53;   /* "best" table cells — frame green, darkened for white */
     --aij-alert:      #C0392B;   /* negatives only */
     --aij-rule:       #D5DAE6;   /* hairlines */
     --aij-tint:       #F1F4FA;   /* table head / equation tint */
@@ -194,14 +195,14 @@
   .section-title {
     font-weight: 400; font-size: var(--fs-subtitle);
     line-height: 1.2;
-    color: var(--aij-accent);
+    color: var(--aij-heading);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-bottom: calc(1.5 * var(--u));
   }
   /* Keep a real space between the number and the heading text (not a margin):
      the pptx export carries text, not inline-box margins. */
-  .section-title .num { color: var(--aij-accent-2); }
+  .section-title .num { color: var(--aij-heading); }
 
   p, li, .caption, td {
     font-weight: 300; font-size: var(--fs-body);
@@ -234,7 +235,7 @@
   .result-table { width: 100%; border-collapse: collapse; }
   .result-table th {
     font-weight: 400; font-size: var(--fs-subtitle); line-height: 1.2;
-    color: var(--aij-accent);
+    color: var(--aij-heading);
     background: var(--aij-tint);
     padding: calc(0.8 * var(--u)) calc(1.2 * var(--u));
     text-align: center;
@@ -275,14 +276,16 @@
     width: calc(70.8 * var(--u)); height: calc(10.853 * var(--u));
     display: flex; align-items: center; gap: calc(3 * var(--u));
   }
-  /* Logos share the band equally (up to 34mm each), each mark fitted inside
-     its slot — 1–2 logos stay large, 4 wide wordmarks still fit. */
-  .aij-logo {
-    flex: 1 1 0; max-width: calc(34 * var(--u));
-    height: 100%;
-    min-width: 0;
+  /* All logos share ONE height (equal heights, not equal cells), widths follow
+     each mark's own proportions. The height is the template slot's 10.853mm,
+     scaled down just enough for the whole row to fit the band — the script at
+     the end of <body> sets --aij-logo-scale from the logos' real proportions. */
+  .aij-logo { flex: 0 0 auto; }
+  .aij-logo img {
+    display: block;
+    height: calc(10.853 * var(--u) * var(--aij-logo-scale, 1));
+    width: auto;
   }
-  .aij-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
   /* pptx rounded tiles "Скругленный прямоугольник 64/66": 457465 EMU squares at
      x 5359734 / 5930532, y 9312133; QR 360766 EMU centred inside. Right-aligned
      so a single QR takes the outer slot. */
@@ -436,10 +439,10 @@
     <div class="aij-affiliations" data-aij-field="affiliations"><sup>1</sup> FusionBrain Lab, AIRI, <sup>2</sup> HSE University, Moscow,<br><sup>3</sup> Innopolis University</div>
     <div class="aij-contact" data-aij-field="contact">Group contact: dtarasov@hse.ru</div>
     <div class="aij-logos">
-      <div class="aij-logo"><img src="images/fusionbrain_combined_white.svg" alt="FusionBrain Lab"></div>
-      <div class="aij-logo"><img src="images/airi_logo_white.svg" alt="AIRI"></div>
-      <div class="aij-logo"><img src="images/hse_logo_white.svg" alt="HSE University"></div>
-      <div class="aij-logo"><img src="images/innopolis_logo_white.svg" alt="Innopolis University"></div>
+      <div class="aij-logo"><img src="images/fusionbrain_combined_white.png" alt="FusionBrain Lab"></div>
+      <div class="aij-logo"><img src="images/airi_logo_white.png" alt="AIRI"></div>
+      <div class="aij-logo"><img src="images/hse_logo_white.png" alt="HSE University"></div>
+      <div class="aij-logo"><img src="images/innopolis_logo_white.png" alt="Innopolis University"></div>
     </div>
     <div class="aij-qrs">
       <div class="aij-qr"><img src="images/qr_code.png" alt="Project page QR"></div>
@@ -447,6 +450,30 @@
   </footer>
 
 </div>
+
+<script>
+  /* AIJ footer logos: one common height — the largest (<= the template's 10.853mm
+     slot) at which the whole row fits the logo band. Unitless scale, so it holds
+     for screen and print alike. */
+  (function () {
+    function fit() {
+      var band = document.querySelector('.aij-logos');
+      if (!band) return;
+      var imgs = [].slice.call(band.querySelectorAll('img'));
+      if (!imgs.length) return;
+      band.style.setProperty('--aij-logo-scale', '1');
+      var gap = parseFloat(getComputedStyle(band).columnGap) || 0;
+      var total = imgs.reduce(function (s, i) { return s + i.getBoundingClientRect().width; }, 0);
+      var room = band.getBoundingClientRect().width - gap * (imgs.length - 1);
+      band.style.setProperty('--aij-logo-scale', String(total > room && total > 0 ? room / total : 1));
+    }
+    [].forEach.call(document.querySelectorAll('.aij-logos img'), function (i) {
+      if (!i.complete) i.addEventListener('load', fit);
+    });
+    window.addEventListener('load', fit);
+    fit();
+  })();
+</script>
 
 </body>
 </html>

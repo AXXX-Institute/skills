@@ -19,7 +19,7 @@ formats), `0011` (fonts from the CDN, frame bundled), `0012` (PPTX export).
 | `prepare_assets.py` | Copies the two frame graphics into a poster's `images/`. |
 | `export_pptx.py` | Renders a finished AIJ poster and writes the editable `.pptx`: native text, native tables, pictures, and formulas as native Office equations with picture fallbacks, with SB Sans Display embedded. Needs the `[pptx]` extra. |
 | `embed_fonts.py` | Fetches the SB Sans Display faces the text uses (Light/Regular/Semibold/Bold) from the CDN at export time and embeds them in the `.pptx` (EOT parts + `<p:embeddedFontLst>`, the structure PowerPoint writes) — `docs/adr/0013`. |
-| `white_logo.py` | Makes the white version of an affiliation logo (`<name>_white.svg`/`.png`) — the template shows logos in white, straight on the gradient. |
+| `white_logo.py` | Makes the white version of an affiliation logo (`<name>_white.png`, high-resolution; `--svg` for a vector) — the template shows logos in white, straight on the gradient, all at one height. |
 
 The frame assets are the organisers' — see `../NOTICE.md`.
 

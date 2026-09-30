@@ -3,7 +3,8 @@
 
 The AIJ template shows affiliation logos in WHITE, straight on the gradient
 footer (no plate behind them). The AXXX asset release ships colour logos, so
-this derives the white version next to each one (`<name>_white.svg|png`):
+this derives the white version next to each one (`<name>_white.png`, or with
+`--svg` a vector `<name>_white.svg`):
 
   * SVG — the artwork becomes a luminance mask over one white rectangle: every
     colour (fill, stroke, stop-color, CSS rules, the default black fill) shows
@@ -12,7 +13,9 @@ this derives the white version next to each one (`<name>_white.svg|png`):
     instead of turning into a solid white blob. Existing <mask>/<clipPath>
     content, `fill="none"` outlines and embedded <image>s (whitened by their
     alpha) keep working. An all-white logo, or one already produced by this
-    tool, is left as is.
+    tool, is left as is. The result is rendered (Chromium, transparent) to a
+    600 px tall PNG — a masked SVG group can show a faint seam in some PDF
+    viewers, a plain PNG with alpha cannot; `--svg` keeps the vector instead.
   * PNG/other rasters — every visible pixel becomes white, keeping its alpha;
     an opaque image gets its alpha from how far each pixel is from the
     background colour (so light-coloured marks stay solid too).
@@ -136,13 +139,17 @@ def whiten_svg(svg: str) -> str:
     # Embedded rasters: white wherever they are opaque (their alpha), inside the mask.
     images = [el for el in root.iter() if paintable(el) and local(el) == "image"]
 
+    # The mask region and the white rectangle overshoot the visible area by 10% on
+    # every side: the edge of a soft mask then lies outside the logo's viewport,
+    # where some PDF rasterisers would otherwise draw a hairline along it.
     vb = root.get("viewBox")
     if vb:
-        x, y, w, h = re.split(r"[\s,]+", vb.strip())[:4]
+        vx, vy, vw, vh = (float(v) for v in re.split(r"[\s,]+", vb.strip())[:4])
+        x, y, w, h = (f"{v:g}" for v in (vx - 0.1 * vw, vy - 0.1 * vh, 1.2 * vw, 1.2 * vh))
     else:
-        # No viewBox: user units are CSS px of the viewport; 100% covers it whatever
-        # the width/height units are.
-        x, y, w, h = "0", "0", "100%", "100%"
+        # No viewBox: user units are CSS px of the viewport; percentages cover it
+        # whatever the width/height units are.
+        x, y, w, h = "-10%", "-10%", "120%", "120%"
     mask = etree.Element(q("mask"), id=mask_id, maskUnits="userSpaceOnUse", x=x, y=y, width=w, height=h)
     if images:
         flt = etree.SubElement(mask, q("filter"), id=img_filter_id)
@@ -190,24 +197,62 @@ def whiten_raster(src: Path, dst: Path) -> None:
     white.save(dst)
 
 
-def white_path(src: Path) -> Path:
-    return src.with_name(f"{src.stem}_white{'.svg' if src.suffix.lower() == '.svg' else '.png'}")
+#: Height of the rendered white PNG. A footer logo prints at most 10.853mm tall,
+#: so this is > 1400 dpi even at that size.
+PNG_HEIGHT_PX = 600
 
 
-def make_white(src: Path) -> Path:
-    """Write the white version beside `src` and return its path (a file this tool
-    already produced is returned unchanged)."""
+def white_path(src: Path, svg: bool = False) -> Path:
+    return src.with_name(f"{src.stem}_white{'.svg' if svg else '.png'}")
+
+
+def render_svg_png(svg_text: str, dst: Path, height_px: int = PNG_HEIGHT_PX) -> None:
+    """Rasterise an SVG with Chromium on a transparent page, `height_px` tall.
+
+    The white SVG is a masked group; some PDF viewers draw a faint seam along the
+    edge of such a group at certain zoom levels. A plain PNG with alpha has no
+    such edge, so the white logo ships as a high-resolution PNG by default."""
+    import tempfile
+
+    from playwright.sync_api import sync_playwright
+
+    with tempfile.TemporaryDirectory() as d:
+        svg_file = Path(d) / "logo.svg"
+        svg_file.write_text(svg_text)
+        page_file = Path(d) / "logo.html"
+        page_file.write_text(
+            "<!DOCTYPE html><html><head><style>html,body{margin:0;background:transparent}</style></head>"
+            f'<body><img id="l" src="{svg_file.as_uri()}" style="display:block;height:{height_px}px;width:auto">'
+            "</body></html>")
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch()
+            try:
+                page = browser.new_page(viewport={"width": 8 * height_px, "height": height_px + 2})
+                page.goto(page_file.as_uri())
+                page.wait_for_function("() => document.getElementById('l').complete")
+                page.locator("#l").screenshot(path=str(dst), omit_background=True)
+            finally:
+                browser.close()
+
+
+def make_white(src: Path, svg: bool = False) -> Path:
+    """Write the white version beside `src` and return its path.
+
+    SVG logos are whitened (mask + knock-outs) and, by default, rendered to a
+    high-resolution PNG `<name>_white.png`; `svg=True` keeps the vector
+    `<name>_white.svg`. Rasters become `<name>_white.png`. A file this tool
+    already produced is returned unchanged."""
     src = Path(src)
-    if src.suffix.lower() == ".svg":
-        text = src.read_text()
-        out = whiten_svg(text)
-        if src.stem.endswith("_white") and out == text:
-            return src
-        dst = white_path(src)
-        dst.write_text(out)
-        return dst
     if src.stem.endswith("_white"):
         return src
+    if src.suffix.lower() == ".svg":
+        out = whiten_svg(src.read_text())
+        dst = white_path(src, svg=svg)
+        if svg:
+            dst.write_text(out)
+        else:
+            render_svg_png(out, dst)
+        return dst
     dst = white_path(src)
     whiten_raster(src, dst)
     return dst
@@ -216,13 +261,15 @@ def make_white(src: Path) -> Path:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("logos", nargs="+", help="colour logo files (e.g. from axxx/fetch_assets.py)")
+    ap.add_argument("--svg", action="store_true",
+                    help="keep SVG logos as a white vector SVG instead of the default high-resolution PNG")
     args = ap.parse_args(argv)
     for f in args.logos:
         p = Path(f)
         if not p.exists():
             print(f"error: {p} not found", file=sys.stderr)
             return 2
-        print(f"white logo -> {make_white(p)}")
+        print(f"white logo -> {make_white(p, svg=args.svg)}")
     return 0
 
 

@@ -388,7 +388,7 @@ def test_white_logo_without_viewbox_and_with_embedded_raster():
            'width="10" height="10"/></svg>')
     out = _whiten(svg)
     rect = out.find("s:rect", SVG_NS)
-    assert (rect.get("width"), rect.get("height")) == ("100%", "100%")
+    assert (rect.get("width"), rect.get("height")) == ("120%", "120%")   # overshoots the viewport
     img = next(out.iter("{http://www.w3.org/2000/svg}image"))
     assert img.get("filter", "").startswith("url(#aij-white-image")
 
@@ -419,9 +419,73 @@ def test_white_logo_opaque_raster_keeps_light_marks_solid(tmp_path):
     assert out.getpixel((30, 15)) == (255, 255, 255, 255) and out.getpixel((2, 2))[3] == 0
 
 
+def test_white_logo_mask_overshoots_the_viewbox():
+    """The soft-mask edge must lie outside the visible logo (PDF viewers can draw
+    a seam along it)."""
+    out = _whiten(_TWO_TONE)                       # viewBox 0 0 100 50
+    mask = out.find(".//s:mask", SVG_NS)
+    assert [float(mask.get(k)) for k in ("x", "y", "width", "height")] == [-10, -5, 120, 60]
+
+
+def test_white_logo_renders_svg_to_a_high_res_png(tmp_path):
+    pytest.importorskip("lxml")
+    if not _chromium_available():
+        pytest.skip("needs playwright + chromium")
+    from PIL import Image
+    import white_logo
+
+    src = tmp_path / "logo.svg"
+    src.write_text(_TWO_TONE)
+    out = white_logo.make_white(src)
+    assert out.name == "logo_white.png"
+    im = Image.open(out)
+    assert im.mode == "RGBA" and im.height == white_logo.PNG_HEIGHT_PX
+    assert im.getchannel("A").getextrema() == (0, 255)
+    assert white_logo.make_white(src, svg=True).name == "logo_white.svg"
+
+
 def test_example_uses_white_logos_without_plates():
     html = EXAMPLE.read_text()
     logos = re.findall(r'<div class="aij-logo"><img src="images/([^"]+)"', html)
-    assert logos and all(l.endswith("_white.svg") for l in logos)
+    assert logos and all(l.endswith("_white.png") for l in logos)
     assert all((EXAMPLE.parent / "images" / l).exists() for l in logos)
     assert "aij-logo-chip" not in html and "aij-logo-chip" not in TEMPLATE_HTML.read_text()
+
+
+
+_LOGOS_JS = """
+() => {
+  const band = document.querySelector('.aij-logos').getBoundingClientRect();
+  const imgs = [...document.querySelectorAll('.aij-logos img')].map(i => i.getBoundingClientRect());
+  return {band: [band.x, band.y, band.width, band.height], imgs: imgs.map(r => [r.x, r.y, r.width, r.height])};
+}
+"""
+
+
+@needs_render
+def test_footer_logos_share_one_height_and_fit_the_band():
+    """Designer review: logos are scaled to ONE common height (their widths follow
+    their own proportions), not each fitted into an equal cell."""
+    got = _render(EXAMPLE, _LOGOS_JS)
+    band = [v / PX_PER_MM for v in got["band"]]
+    imgs = [[v / PX_PER_MM for v in r] for r in got["imgs"]]
+    assert len(imgs) == 4
+    heights = [r[3] for r in imgs]
+    assert max(heights) - min(heights) < 0.05, heights
+    assert max(heights) <= 10.853 + 0.01
+    assert imgs[-1][0] + imgs[-1][2] <= band[0] + band[2] + 0.1     # the row fits the band
+    centres = [r[1] + r[3] / 2 for r in imgs]
+    assert max(centres) - min(centres) < 0.05                          # and sits on one line
+
+
+_HEADINGS_JS = """
+() => ['.section-title', '.section-title .num', '.result-table th']
+  .map(s => getComputedStyle(document.querySelector(s)).color)
+"""
+
+
+@needs_render
+@pytest.mark.parametrize("which", ["scaffold", "example"])
+def test_headings_are_black(which, scaffold_dir):
+    html = scaffold_dir / "poster.html" if which == "scaffold" else EXAMPLE
+    assert _render(html, _HEADINGS_JS) == ["rgb(0, 0, 0)"] * 3

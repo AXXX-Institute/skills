@@ -703,3 +703,23 @@ def test_edge_image_css_effects_survive_in_the_picture(edge):
     im = Image.open(io.BytesIO(pic[0].image.blob)).convert("RGBA")
     r, g, b, a = im.getpixel((im.width // 2, im.height // 2))
     assert a > 200 and min(r, g, b) > 240, (r, g, b, a)
+
+
+
+def test_single_lines_do_not_wrap_in_powerpoint(slide_xml):
+    """Designer review: '№TODO' broke onto two lines in PowerPoint. Text that is
+    one line in the HTML is exported with wrap="none"; multi-line text wraps."""
+    frames = {_norm(s["text"]): s["el"].find("p:txBody/a:bodyPr", NS).get("wrap") for s in _sps(slide_xml)}
+    assert frames["№TODO"] == "none"
+    assert frames["1 Progressive cramming"] == "none"
+    title = "Progressive Cramming: Reliable Token Compression and What It Reveals"
+    assert frames[title] == "square"                 # two lines in the HTML
+
+
+def test_heading_runs_are_black(slide_xml):
+    headings = [s for s in _sps(slide_xml)          # section titles: the only all-caps runs
+                if any(r.get("cap") == "all" for r in s["el"].iter(f"{{{NS['a']}}}rPr"))]
+    assert len(headings) == 7
+    for s in headings:
+        colours = {c.get("val") for c in s["el"].iter(f"{{{NS['a']}}}srgbClr")}
+        assert colours == {"000000"}, (s["text"], colours)

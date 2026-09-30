@@ -373,7 +373,13 @@ EXTRACT_JS = r"""
       return;
     }
     if (!isInline(el) && hasContent(el) && inlineOnly(el)) {
-      out.texts.push(Object.assign(contentBox(el), {id: tag(el), paragraphs: [paraOf(el)]}));
+      const cb = contentBox(el), para = paraOf(el), ws = cs(el).whiteSpace;
+      // One rendered line (or white-space: nowrap): the pptx frame must not wrap —
+      // PowerPoint measures text slightly differently and would break it ("№" /
+      // "TODO"); a hair too wide simply runs on, which keeps the layout.
+      const oneLine = !para.runs.some(r => r.type === 'br') && cb.h < 1.5 * para.lineHeightPx;
+      out.texts.push(Object.assign(cb, {id: tag(el), paragraphs: [para],
+        nowrap: oneLine || ws === 'nowrap' || ws === 'pre'}));
       return;
     }
     for (const ch of el.children) walk(ch);
@@ -752,7 +758,7 @@ class _Exporter:
         shp = self.slide.shapes.add_textbox(_emu(x), _emu(t["y"]), _emu(w), max(_emu(t["h"]), 1))
         tf = shp.text_frame
         from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE
-        tf.word_wrap = True
+        tf.word_wrap = not t.get("nowrap")
         tf.auto_size = MSO_AUTO_SIZE.NONE
         tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
         tf.vertical_anchor = MSO_ANCHOR.TOP

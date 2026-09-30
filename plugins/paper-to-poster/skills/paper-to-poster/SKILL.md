@@ -140,15 +140,20 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
   | Body | SB Sans Display **Light** | 7 pt | text, lists, captions, table cells, footer |
 
   `<strong>` inside Body renders Bold for emphasis. Do not introduce other sizes
-  or families.
+  or families. **Headings are black** — section headings (and their numbers) and
+  table heads, as the template: colour belongs only to inline keywords and result
+  cells, never to a heading.
 - **Poster number:** leave `№TODO` — the organisers assign the number later. Do
   not ask for it; mention it in the final report so it is filled before printing.
 - **Affiliation logos:** only this paper's institutions (same rule as AXXX), in
   **white, straight on the gradient** — as the template shows them (no plate behind).
   Make the white versions with `python aij/white_logo.py images/<logo>.svg …`
-  (`<logo>_white.svg`; white details on coloured shapes become cut-outs) and put
-  each in an `.aij-logo` inside `.aij-logos`; the logos share the template's logo
-  band, so 1–4 fit. No logos → delete the block.
+  (`<logo>_white.png`, a 600 px-tall render — a masked SVG can show a faint seam in
+  some PDF viewers; `--svg` keeps the vector; white details on coloured shapes
+  become cut-outs) and put each in an `.aij-logo` inside `.aij-logos`. All logos get
+  **one common height** (never equal cells): the template's 10.853 mm slot, scaled
+  down just enough for the row to fit the band — a small script in the scaffold sets
+  it from the logos' real proportions. No logos → delete the block.
 - **QR codes:** 0, 1 or 2 `.aij-qr` tiles (one QR takes the outer slot), generated
   offline — never a remote QR-service URL. None → delete `.aij-qrs`.
 
@@ -157,7 +162,7 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
 | `templates/portrait_aij.html` | The AIJ scaffold (frame + two-column content area + type roles). |
 | `aij/assets/aij_background.png`, `aij/assets/aij_mark.svg` | The frame graphics, copied into the poster's `images/` by `aij/prepare_assets.py`. The panel is transparent in the background image; the slide/poster background is white. |
 | `aij/assets/aij_template.pptx` | The organisers' template with its **embedded fonts stripped** (no SB Sans file ships here) — the base of the PPTX export. |
-| `aij/white_logo.py` | Derives the white version of each affiliation logo (SVG via a mask, so knock-outs stay readable; rasters keep their alpha). |
+| `aij/white_logo.py` | Derives the white version of each affiliation logo as a high-resolution PNG (SVG whitened via a mask, so knock-outs stay readable; rasters keep their alpha; `--svg` for a vector result). |
 | `aij/embed_fonts.py` | Embeds the SB Sans Display faces the text uses (Light/Regular/Semibold/Bold, fetched from the CDN at export time) into the `.pptx` (`docs/adr/0013`). |
 | `aij/fonts.css` | The **only** place the SB Sans Display CDN URLs live (Light/Regular/Semibold/Bold from Sber's design-system CDN). Font files are **never** committed to this repo's sources (`docs/adr/0011`); an exported `.pptx` carries them embedded (`docs/adr/0013`). |
 | `aij/sync_fonts.py` | Copies `aij/fonts.css` into a poster's `/* aij-fonts:begin … end */` block; `--check` reports drift. |
@@ -168,7 +173,7 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
 cp templates/portrait_aij.html poster/poster.html
 python aij/prepare_assets.py --dest poster/images                        # frame graphics
 python axxx/fetch_assets.py --dest poster/images --logos airi hse        # ONLY this paper's logos
-python aij/white_logo.py poster/images/airi_logo.svg poster/images/hse_logo.svg   # -> *_white.svg
+python aij/white_logo.py poster/images/airi_logo.svg poster/images/hse_logo.svg   # -> *_white.png
 # … fill content, then the gates (Steps 4–7) and the export (Step 8)
 ```
 
@@ -480,8 +485,10 @@ organisers' template does, so PowerPoint can show the real typeface on machines
 without SB Sans installed (`docs/adr/0013`) (the structure PowerPoint writes; checked structurally — schema, font names, EOT headers — not yet by opening the file in PowerPoint); if that fails the summary says so in a `WARN`
 line — then the file shows a substitute font (e.g. Calibri) and must be re-exported
 with network access. `--no-embed-fonts` references them by name only. PowerPoint
-breaks lines a little differently from Chromium, so the PDF stays the visual
-reference.
+breaks lines a little differently from Chromium, so text that is one line in the
+HTML (the №, headings, single-line captions) is exported without wrapping — it can
+run a hair wider but never breaks onto a second line; longer text wraps and may
+reflow slightly. The PDF stays the visual reference.
 
 ## Visual polish gates (Step 6 — soft gate)
 
