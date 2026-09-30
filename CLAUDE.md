@@ -39,6 +39,27 @@ glossary and `docs/adr/` for decisions.
   composes the model policy and JSON/verdict helpers around a namespaced skill.
 - Adversarial review: `/adversarial-review` or `$adversarial-review` launches a
   fresh-context reviewer for a committed change; it must be invoked explicitly.
+- `paper-to-poster` runtime: `/paper-to-poster` or `$paper-to-poster` builds a
+  poster in one of two fixed **poster formats** (Step 0.5 asks which). **AXXX**:
+  `templates/*_axxx.html` + `axxx/fetch_assets.py` + `axxx/apply_theme.py`.
+  **AIJ** (AI Journey): `templates/portrait_aij.html` + `aij/prepare_assets.py`
+  (+ `axxx/fetch_assets.py` for logos), fonts from the CDN via `aij/fonts.css`
+  (`aij/sync_fonts.py [--check]`), then the always-on editable export
+  `python aij/export_pptx.py poster/poster.html` (`[pptx]` extra:
+  python-pptx, mathml2omml, lxml).
+- `paper-to-poster` gates (both formats): `tools/poster_check.py
+  preflight|measure|polish|verify-final <poster.html|pdf>`,
+  `tools/render_preview.py`, `tools/run_gates.py` (its `style` gate fails by
+  design on AIJ — posterly's font whitelist). Run from the skill dir.
+- `paper-to-poster` tests: `python -m pytest tests` inside
+  `plugins/paper-to-poster/skills/paper-to-poster` (needs Playwright/Chromium;
+  `tests/test_aij_*.py` also need network for the SB Sans CDN and MathJax, and
+  the `[pptx]` extra — they skip otherwise). Not run in CI (CI only
+  byte-compiles this plugin).
+- Poster gallery: `plugins/paper-to-poster/skills/paper-to-poster/examples/`
+  (published at `/paper-to-poster/gallery.html`); the AIJ example
+  `compression_horizon_aij/` ships `poster.pdf` + `poster.pptx` — re-render both
+  after changing `templates/portrait_aij.html` or `aij/export_pptx.py`.
 - GitHub Pages catalog: `.github/workflows/pages.yml` publishes
   `site/index.html` after pushes to `main` that affect `site/**`.
 - Per-skill documentation: every `plugins/<plugin>/skills/<skill>/README.md`
