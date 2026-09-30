@@ -35,7 +35,8 @@ derivation — each format is fixed.
 
 - "AXXX-only" wording is retired from SKILL.md, README, Pages, both `plugin.json`
   manifests, and CONTEXT.md; they describe two formats.
-- AIJ fixes canvas and layout, so for AIJ the venue-guideline lookup (Step 0) and
-  the layout choice are skipped.
+- The format is asked first, on its own (SKILL.md Step 0). AIJ fixes canvas and
+  layout, so for AIJ the venue-guideline lookup (Step 0.1) and the layout choice
+  are skipped.
 - Adding a third format later means another sibling layer + template, not a
   neutral mode.

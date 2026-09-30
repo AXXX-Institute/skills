@@ -20,10 +20,15 @@ embedded fonts stripped, docs/adr/0011):
     each math-bearing shape (text frame, equation, table) wrapped in
     <mc:AlternateContent> with a rendered-PNG fallback for non-Office
     viewers. A formula that fails to convert (converter error, or a TeX
-    error MathJax rendered as <merror>) turns its whole shape into that
-    picture and is listed in the export report.
+    error MathJax rendered instead of failing: <merror>, or an undefined
+    macro shown literally) turns its whole shape into that picture and is
+    listed in the export report.
   * content with no native form — text mixed with block content or with an
-    inline graphic — is kept as the rendered picture and reported.
+    inline graphic, a list whose item holds a nested list / graphic / block
+    (whole list, markers included), a table whose cell holds a graphic or
+    block (whole table) — is kept as the rendered picture and reported.
+  * CSS background images/gradients are rasterised with the element's own
+    content hidden, so the text on top stays native (no doubled text).
 
 Nothing on the sheet is dropped silently: every formula is counted either as
 a native equation or as a picture, and every picture fallback is reported.
@@ -106,8 +111,11 @@ EXTRACT_JS = r"""
   const out = {poster: {x: P.x, y: P.y, w: P.width, h: P.height},
                lang: document.documentElement.lang || 'en',
                rects: [], images: [], snapshots: [], texts: [], tables: [], equations: [], warnings: []};
-  let nextId = 0;
+  let nextId = 0, nextBg = 0;
   const tag = (el) => { const id = String(nextId++); el.setAttribute('data-aij-export-id', id); return id; };
+  // Backgrounds get their own attribute: the same element is usually tagged
+  // again as a text block / table / list, which must not overwrite this id.
+  const tagBg = (el) => { const id = 'bg' + (nextBg++); el.setAttribute('data-aij-bg-id', id); return id; };
   const cs = (el) => getComputedStyle(el);
   const px = (v) => parseFloat(v) || 0;
   const rgba = (s) => {
@@ -185,7 +193,10 @@ EXTRACT_JS = r"""
             continue;
           }
           if (ch.tagName === 'BR') { runs.push({type: 'br'}); continue; }
-          if (ch.tagName === 'IMG') { out.warnings.push('inline <img> inside text is not exported: ' + (ch.getAttribute('src') || '')); continue; }
+          if (isGraphic(ch)) {   // unreachable for text blocks (inlineOnly excludes graphics); defensive
+            out.warnings.push('a graphic inside text is not exported: <' + ch.tagName.toLowerCase() + '>');
+            continue;
+          }
           rec(ch);
         }
       }
@@ -231,10 +242,21 @@ EXTRACT_JS = r"""
   const hasContent = (el) => el.textContent.trim().length > 0 || el.querySelector('mjx-container');
   // Text or inline math sitting directly next to block content / graphics — it
   // cannot become one native text frame, so the element becomes a picture.
-  const mixed = (el) => [...el.childNodes].some(ch =>
-      (ch.nodeType === 3 && ch.nodeValue.trim()) ||
-      (ch.nodeType === 1 && !hidden(ch) && !isGraphic(ch) && isInline(ch) && hasContent(ch)) ||
-      (ch.nodeType === 1 && isMath(ch) && !isDisplayMath(ch)));
+  // An inline child counts only if it is itself pure inline text (an inline
+  // wrapper around block content, e.g. <a><div>…</div></a>, is walked as a
+  // container); `display: contents` wrappers are transparent.
+  const mixed = (el) => [...el.childNodes].some(ch => {
+    if (ch.nodeType === 3) return ch.nodeValue.trim().length > 0;
+    if (ch.nodeType !== 1 || hidden(ch) || isGraphic(ch) || SKIP(ch)) return false;
+    if (isMath(ch)) return !isDisplayMath(ch);
+    if (cs(ch).display === 'contents') return mixed(ch);
+    return isInline(ch) && inlineOnly(ch) && hasContent(ch);
+  });
+  const snapshot = (el, why) => {
+    const r = el.getBoundingClientRect(), text = el.textContent.replace(/\s+/g, ' ').trim();
+    out.snapshots.push(Object.assign(box(r), {id: tag(el), tex: texOf(el), text: text.slice(0, 80), reason: why}));
+    out.warnings.push(why + ' — exported as a picture: "' + text.slice(0, 60) + '"');
+  };
   const texOf = (root) => [...root.querySelectorAll('mjx-container')].map(m => (mathOf.get(m) || {}).tex || m.textContent);
 
   const decor = (el) => {
@@ -247,7 +269,7 @@ EXTRACT_JS = r"""
     // CSS background images / gradients: rasterised in Python with the element's
     // content hidden, so the picture carries only the background.
     if (s.backgroundImage && s.backgroundImage !== 'none')
-      out.rects.push(Object.assign(box(r), {bgimage: true, id: tag(el)}));
+      out.rects.push(Object.assign(box(r), {bgimage: true, bgId: tagBg(el)}));
     const sides = [['Top', 0, 0, r.width, px(s.borderTopWidth)], ['Bottom', 0, r.height - px(s.borderBottomWidth), r.width, px(s.borderBottomWidth)],
                    ['Left', 0, 0, px(s.borderLeftWidth), r.height], ['Right', r.width - px(s.borderRightWidth), 0, px(s.borderRightWidth), r.height]];
     for (const [side, dx, dy, w, h] of sides) {
@@ -286,13 +308,21 @@ EXTRACT_JS = r"""
     if (SKIP(el) || hidden(el)) return;
     // Content that has no native pptx form is kept as the rendered picture and
     // reported — never dropped silently.
-    if (!isGraphic(el) && !isMath(el) && el.tagName !== 'TABLE' && !(!isInline(el) && hasContent(el) && inlineOnly(el))
-        && mixed(el)) {
-      const r = el.getBoundingClientRect();
-      out.snapshots.push(Object.assign(box(r), {id: tag(el), tex: texOf(el),
-        text: el.textContent.replace(/\s+/g, ' ').trim().slice(0, 80)}));
-      out.warnings.push('text mixed with block content or an inline graphic is exported as a picture: "'
-                        + el.textContent.replace(/\s+/g, ' ').trim().slice(0, 60) + '"');
+    const isList = el.tagName === 'UL' || el.tagName === 'OL';
+    if (!isGraphic(el) && !isMath(el) && el.tagName !== 'TABLE' && !isList
+        && !(!isInline(el) && hasContent(el) && inlineOnly(el)) && mixed(el)) {
+      snapshot(el, 'text mixed with block content or an inline graphic');
+      return;
+    }
+    // (2) A list that cannot be ONE native bulleted frame (a nested list, a
+    // graphic or a block inside an item) stays a picture WITH its markers.
+    if (isList && ![...el.children].every(li => li.tagName === 'LI' && (hidden(li) || inlineOnly(li)))) {
+      snapshot(el, 'list with a nested list, graphic or block inside an item');
+      return;
+    }
+    // (3) Likewise a table whose cells hold more than inline text and formulas.
+    if (el.tagName === 'TABLE' && ![...el.querySelectorAll('td, th')].every(c => hidden(c) || inlineOnly(c))) {
+      snapshot(el, 'table with a graphic or block content inside a cell');
       return;
     }
     decor(el);
@@ -309,13 +339,11 @@ EXTRACT_JS = r"""
         fontPx: px(s.fontSize), color: rgba(s.color) || '#000000', align: 'center'}));
       return;
     }
-    if (isMath(el)) {   // inline math whose parent is inline too, under a block-content parent
-      const r = el.getBoundingClientRect();
-      out.snapshots.push(Object.assign(box(r), {id: tag(el), tex: [(mathOf.get(el) || {}).tex || el.textContent], text: ''}));
-      out.warnings.push('an inline formula outside any text block is exported as a picture');
+    if (isMath(el)) {   // defensive: inline math reached outside any text block
+      snapshot(el, 'an inline formula outside any text block');
       return;
     }
-    if ((el.tagName === 'UL' || el.tagName === 'OL') && [...el.children].every(li => li.tagName === 'LI' && inlineOnly(li))) {
+    if (isList) {
       const s = cs(el), items = [...el.children].filter(li => !hidden(li));
       if (!items.length) return;
       const ulBox = contentBox(el);
@@ -485,8 +513,13 @@ class _Exporter:
     def _add_background(self, r: dict) -> None:
         """A CSS background image / gradient: rasterise the element with its
         own content hidden, so the picture is only the background."""
-        sel = f'[data-aij-export-id="{r["id"]}"]'
-        css = f"{sel} * {{ visibility: hidden !important; }} {sel} {{ color: transparent !important; }}"
+        sel = f'[data-aij-bg-id="{r["bgId"]}"]'
+        if self.page.evaluate("(sel) => document.querySelectorAll(sel).length", sel) != 1:
+            self.report.warnings.append(f"background {r['bgId']}: element not found — background not exported")
+            return
+        css = (f"{sel} * {{ visibility: hidden !important; }} "
+               f"{sel}, {sel}::before, {sel}::after, {sel}::marker {{ color: transparent !important; "
+               f"text-shadow: none !important; }}")
         self.page.evaluate("(css) => { const s = document.createElement('style'); s.id = 'aij-bg-only';"
                            " s.textContent = css; document.head.appendChild(s); }", css)
         try:
@@ -502,11 +535,11 @@ class _Exporter:
         self.slide.shapes.add_picture(io.BytesIO(self._shot(s["x"], s["y"], s["w"], s["h"])),
                                       _emu(s["x"]), _emu(s["y"]), _emu(s["w"]), _emu(s["h"]))
         self.report.pictures += 1
-        self.report.frames_as_picture.append({"reason": "text mixed with block content or an inline graphic",
-                                              "text": s.get("text", "")})
+        reason = s.get("reason") or "content with no native pptx form"
+        self.report.frames_as_picture.append({"reason": reason, "text": s.get("text", "")})
         for tex in s.get("tex", []):
             self.report.equations_as_picture.append(
-                {"tex": tex, "error": "inside content exported as a picture (mixed inline/block content)"})
+                {"tex": tex, "error": f"inside content exported as a picture ({reason})"})
 
     def _add_rect(self, r: dict) -> None:
         from pptx.dml.color import RGBColor
@@ -635,14 +668,16 @@ class _Exporter:
         if not mml:
             raise ValueError("MathJax produced no MathML for this formula")
         # MathJax renders bad TeX instead of failing: syntax errors as <merror>,
-        # undefined macros (its `noundefined` extension) as red <mtext>\name.
+        # undefined macros (its `noundefined` extension) as an <mtext> holding
+        # just the literal \name — red, unless inside a red region, where
+        # MathJax drops the redundant mathcolor, so match on the content.
         m = re.search(r"<merror[^>]*>(.*?)</merror>", mml, re.DOTALL)
         if m:
             msg = re.sub(r"<[^>]+>|\s+", " ", m.group(1)).strip()
             raise ValueError(f"MathJax could not typeset this TeX ({msg})")
-        m = re.search(r'<mtext[^>]*mathcolor="red"[^>]*>(\\[A-Za-z]+)</mtext>', mml)
+        m = re.search(r"<mtext[^>]*>\s*(\\[A-Za-z]+)\s*</mtext>", mml)
         if m:
-            raise ValueError(f"undefined TeX macro {m.group(1)}")
+            raise ValueError(f"undefined TeX macro {m.group(1)} (rendered literally)")
         return self.to_omml(mml)
 
     def _math_elements(self, paragraphs: list[dict]) -> tuple[dict[str, Any], list[dict], list[dict]]:

@@ -460,7 +460,7 @@ def _math_count(html: Path) -> int:
 def test_edge_every_formula_is_accounted_for(edge):
     html, _, report, _ = edge
     n = _math_count(html)
-    assert n == 5   # \alpha, 0.1, 91.2 \pm 0.3, \foo{x}, x^2
+    assert n == 6   # \alpha, 0.1, 91.2 \pm 0.3, \foo{x}, x^2, \textcolor{red}{\foo}
     native = report.equations_native + report.equations_inline_native
     assert native + len(report.equations_as_picture) == n
 
@@ -483,9 +483,12 @@ def test_edge_table_with_math_is_native_with_a_picture_fallback(edge):
 
 def test_edge_tex_error_becomes_a_reported_picture(edge):
     _, _, report, xml = edge
-    bad = [f for f in report.equations_as_picture if "foo" in (f["tex"] or "")]
-    assert bad and "undefined TeX macro" in bad[0]["error"]
+    bad = {f["tex"]: f["error"] for f in report.equations_as_picture if "foo" in (f["tex"] or "")}
+    # an undefined macro, also inside a red region (where MathJax drops the red mathcolor)
+    assert set(bad) == {"\\foo{x}", "\\textcolor{red}{\\foo}"}, bad
+    assert all("undefined TeX macro" in e for e in bad.values())
     assert any("broken formula" in f["text"] for f in report.frames_as_picture)
+    assert any("Red region" in f["text"] for f in report.frames_as_picture)
     assert "\\foo" not in "".join(t.text or "" for t in xml.iter(f"{{{NS['m']}}}t"))
 
 
@@ -494,7 +497,8 @@ def test_edge_graphics_and_mixed_content_are_pictures_with_warnings(edge):
     reasons = [f["text"] for f in report.frames_as_picture if "mixed" in f["reason"]]
     assert any("inline icon" in t for t in reasons)           # <p> with an inline <svg>
     assert any("Loose text" in t for t in reasons)            # text next to a block child
-    assert sum("exported as a picture" in w for w in report.warnings) == 2
+    assert len(reasons) == 2                                  # and nothing else is "mixed"
+    assert sum("exported as a picture" in w for w in report.warnings) == 4   # + icon list, svg table
     # block <svg> figure, gradient background, the two mixed blocks, the TeX-error paragraph
     assert report.pictures >= 5
 
@@ -538,3 +542,68 @@ def test_edge_table_formula_failure_turns_the_table_into_a_reported_picture(tmp_
     with zipfile.ZipFile(out) as z:
         xml = etree.fromstring(z.read("ppt/slides/slide1.xml"))
     assert not [gf for gf in xml.iter(f"{{{NS['p']}}}graphicFrame") if gf.find(".//a:tbl", NS) is not None]
+
+
+def _edge_rect(html: Path, selector: str) -> tuple[float, float, float, float]:
+    """Border box of `selector` in mm, relative to the poster (print render)."""
+    from _posterly import canvas as _canvas, render as _r
+    from playwright.sync_api import sync_playwright
+
+    _, viewport = _canvas.resolve_canvas(html, None, label="[test]")
+    with sync_playwright() as p:
+        browser, _ctx, page = _r.open_print_emulated_page(p, viewport)
+        try:
+            page.goto(html.as_uri())
+            page.wait_for_load_state("networkidle")
+            _r.settle_page(page)
+            r = page.evaluate("(sel) => { const P = document.querySelector('.poster').getBoundingClientRect();"
+                              " const b = document.querySelector(sel).getBoundingClientRect();"
+                              " return [b.x - P.x, b.y - P.y, b.width, b.height]; }", selector)
+        finally:
+            browser.close()
+    return tuple(v / PX_PER_MM for v in r)
+
+
+def test_edge_background_picture_carries_no_text(edge):
+    """A CSS gradient behind text is a picture of the gradient ONLY; the text
+    stays one native frame (no doubled 'ghost' text in the background)."""
+    import io
+
+    from PIL import Image
+
+    html, out, report, xml = edge
+    assert not [w for w in report.warnings if "background" in w and "not found" in w]
+    assert any(_norm(s["text"]) == "GHOSTTEXT callout on a gradient" for s in _sps(xml))
+    x, y, w, h = _edge_rect(html, "#grad-text")
+    prs = pptx.Presentation(str(out))
+    pics = [s for s in prs.slides[0].shapes if s.shape_type == 13
+            and abs(s.left / EMU_PER_MM - x) <= TOL_MM and abs(s.top / EMU_PER_MM - y) <= TOL_MM
+            and abs(s.width / EMU_PER_MM - w) <= TOL_MM]
+    assert len(pics) == 1, "the gradient behind the text should be exactly one picture"
+    im = Image.open(io.BytesIO(pics[0].image.blob)).convert("L")
+    assert im.getextrema()[0] > 150, "dark (text) pixels in the background-only picture"
+
+
+def test_edge_list_with_a_graphic_item_is_one_picture_with_markers(edge):
+    _, _, report, xml = edge
+    texts = " ".join(s["text"] for s in _sps(xml))
+    assert "BULLETA" not in texts and "BULLETC" not in texts   # not split into marker-less frames
+    lists = [f for f in report.frames_as_picture if f["reason"].startswith("list with")]
+    assert len(lists) == 1 and "BULLETA" in lists[0]["text"]
+    assert any(w.startswith("list with") for w in report.warnings)
+
+
+def test_edge_table_with_a_graphic_cell_is_one_picture_without_leaked_text(edge):
+    _, _, report, xml = edge
+    all_text = "".join(t.text or "" for t in xml.iter(f"{{{NS['a']}}}t"))
+    assert "checkmark" not in all_text and "SVGCELL" not in all_text
+    assert [f for f in report.frames_as_picture if f["reason"].startswith("table with")]
+
+
+def test_edge_inline_and_contents_wrappers_stay_native(edge):
+    """<a><div>…</div></a> and a display:contents wrapper are walked as
+    containers — their blocks are native text, the section is not a picture."""
+    _, _, report, xml = edge
+    texts = {_norm(s["text"]) for s in _sps(xml)}
+    assert {"LINKCAPTION inside a link", "CONTENTSP1 first paragraph", "CONTENTSP2 second paragraph"} <= texts
+    assert not [f for f in report.frames_as_picture if "Backgrounds, lists" in f["text"]]

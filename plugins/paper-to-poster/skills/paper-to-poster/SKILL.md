@@ -460,10 +460,13 @@ math-bearing shape carrying a rendered-picture fallback for non-Office viewers.
 Read its summary: `EQUATION AS PICTURE` / `FRAME AS PICTURE` lines mean a shape
 was kept as the rendered picture (faithful, but not editable) — because a formula
 in it could not be converted (the whole text frame / table goes, not just the
-formula; a TeX error MathJax drew in red counts too — fix the TeX), or because the
-HTML mixes text with block content or an inline graphic (wrap that text in its own
-`<p>`). Nothing is dropped silently: every formula is either a native equation or
-listed there. Fonts are
+formula; a TeX error such as an undefined macro counts too — fix the TeX), or
+because the HTML has no native PowerPoint form: text mixed with block content or an
+inline graphic (wrap that text in its own `<p>`, move the icon out), a list whose
+item holds a nested list / graphic / block (the whole list, markers included), or
+a table whose cell holds a graphic or block content (the whole table). Nothing is
+dropped silently: every formula is either a native equation or listed there, and
+every such picture is listed with its reason. Fonts are
 referenced **by name and not embedded**: tell the user the machine that opens the
 `.pptx` needs SB Sans Display (incl. Light) installed. PowerPoint breaks lines a
 little differently from Chromium, so the PDF stays the visual reference.

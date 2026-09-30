@@ -2,8 +2,10 @@
 
 Used by tests/test_aij_export_pptx.py: the scaffold's frame and styles with a
 content area holding everything the gallery example does not — formulas in
-table cells, a TeX error, block and inline <svg>, an ordered list, <br>, a CSS
-gradient background, and text mixed with block content.
+table cells, TeX errors (incl. an undefined macro inside a red region), block and
+inline <svg>, an ordered list, <br>, CSS gradient backgrounds (empty and behind
+text), text mixed with block content, a list item / table cell holding a graphic,
+and inline / display:contents wrappers around block content.
 """
 from __future__ import annotations
 
@@ -48,6 +50,21 @@ EDGE_BODY = r"""
         <p id="tex-error">A broken formula $\foo{x}$ in text.</p>
         <div id="mixed">Loose text next to a block <div>block child</div></div>
         <p>A clean formula $x^2$ stays native.</p>
+      </div>
+      <div class="section" data-measure-role="card">
+        <div class="section-title"><span class="num">4</span>&ensp;Backgrounds, lists, wrappers</div>
+        <p id="grad-text" style="background-image: linear-gradient(90deg, #EEF4FA, #E2ECF6); color: #111111;">GHOSTTEXT callout on a gradient</p>
+        <ul id="icon-list">
+          <li>BULLETA plain item</li>
+          <li>BULLETB item with an icon <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10"><circle cx="5" cy="5" r="5" fill="#1E9E53"/></svg></li>
+          <li>BULLETC plain item</li>
+        </ul>
+        <table class="result-table" id="svg-table">
+          <tbody><tr><td class="method">SVGCELL</td><td><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10"><title>checkmark</title><path d="M1 5 L4 8 L9 1" stroke="#1E9E53" fill="none"/></svg></td></tr></tbody>
+        </table>
+        <a href="#"><div class="caption">LINKCAPTION inside a link</div></a>
+        <div style="display: contents"><p>CONTENTSP1 first paragraph</p><p>CONTENTSP2 second paragraph</p></div>
+        <p id="red-region">Red region $\textcolor{red}{\foo}$ here.</p>
       </div>
     </div>
   </div>
