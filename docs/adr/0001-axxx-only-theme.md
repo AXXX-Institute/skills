@@ -1,6 +1,6 @@
 # 1. paper-to-poster is AXXX-only (remove posterly's neutral / palette-derivation paths)
 
-- Status: accepted
+- Status: superseded by [0010](0010-two-fixed-poster-formats-axxx-and-aij.md)
 - Date: 2026-06-30
 - Component: #2 paper-to-poster skill (AXXX restyle)
 
