@@ -8,6 +8,17 @@ GPL/AGPL-compatible, so they are lawfully combined into this AGPL project while 
 individually available under their original MIT terms (see below). This file records the vendor
 boundary so the relationship stays clean and attribution is preserved in both directions.
 
+## AIJ frame assets (AI Journey organisers)
+
+`aij/assets/aij_template.pptx`, `aij/assets/aij_background.png` and `aij/assets/aij_mark.svg`
+are the **AI Journey (AIJ) organisers' poster template** and its frame graphics (the gradient
+background and the AIJ mark), distributed by the organisers to conference participants. They
+are bundled only so the AIJ poster format can reproduce that template; they are **not**
+posterly/AXXX work and are **not** covered by this project's AGPL-3.0 or MIT grants — all
+rights stay with their owners. The bundled `.pptx` has the organisers' embedded fonts
+removed; SB Sans Display (Sber) is loaded by posters from Sber's public CDN and is never
+redistributed here (repo `docs/adr/0011`).
+
 ## Licensing of this combined work
 
 - The project **as a whole** is **AGPL-3.0** (`LICENSE`). Any distributed or network-deployed

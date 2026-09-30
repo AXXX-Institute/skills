@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- STUB of the W3C xml: namespace schema — only the xml:space attribute that
+     shared-math.xsd references. -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="http://www.w3.org/XML/1998/namespace">
+  <xsd:attribute name="space">
+    <xsd:simpleType>
+      <xsd:restriction base="xsd:NCName">
+        <xsd:enumeration value="default"/>
+        <xsd:enumeration value="preserve"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+  </xsd:attribute>
+</xsd:schema>

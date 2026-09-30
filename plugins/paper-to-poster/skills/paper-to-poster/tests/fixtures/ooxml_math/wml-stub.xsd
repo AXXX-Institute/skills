@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- STUB, not part of ECMA-376. shared-math.xsd references four WordprocessingML
+     groups. Math inside a PowerPoint slide must not carry any w: content, so
+     they are declared EMPTY here: any w: element in exported OMML fails
+     validation, while every m: structure is checked against the real schema. -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+  elementFormDefault="qualified">
+  <xsd:group name="EG_RPr"><xsd:sequence/></xsd:group>
+  <xsd:group name="EG_RPrMath"><xsd:sequence/></xsd:group>
+  <xsd:group name="EG_RunInnerContent"><xsd:sequence/></xsd:group>
+  <xsd:group name="EG_PContentMath"><xsd:sequence/></xsd:group>
+</xsd:schema>

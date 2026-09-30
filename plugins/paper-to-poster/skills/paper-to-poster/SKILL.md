@@ -1,10 +1,10 @@
 ---
 name: paper-to-poster
-description: "Build an AXXX-branded academic conference poster (ICML/NeurIPS/ICLR/CVPR/etc.) as a single HTML/CSS file and render it to print-ready PDF via headless Chromium. Always applies the AXXX theme (blue palette, Inter, accent bar, arrow bullets, affiliation logos). Use when user says \"paper to poster\", \"poster\", \"AXXX poster\", \"ICML/NeurIPS/ICLR poster\", or asks to design/edit a research poster."
+description: "Build an academic conference poster (ICML/NeurIPS/ICLR/CVPR/AI Journey/etc.) as a single HTML/CSS file and render it to print-ready PDF via headless Chromium, in one of two fixed poster formats: AXXX (the AXXX brand — blue palette, Inter, accent bar, arrow bullets, affiliation logos — on venue-sized canvases) or AIJ (the AI Journey organisers' template — fixed 190.5×275.2 mm frame, SB Sans Display — also exported to an editable .pptx). Use when user says \"paper to poster\", \"poster\", \"AXXX poster\", \"AIJ poster\", \"AI Journey poster\", \"ICML/NeurIPS/ICLR poster\", or asks to design/edit a research poster."
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, AskUserQuestion, WebFetch, WebSearch
 ---
 
-# paper-to-poster — AXXX-branded Academic Poster Workflow
+# paper-to-poster — AXXX & AIJ Academic Poster Workflow
 
 > **Provenance & license.** This skill is a derivative of **posterly** (© 2026
 > Ruishuo Chen), restyled to emit the **AXXX** brand look only. posterly is
@@ -13,12 +13,19 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, AskUserQuestion, WebFetch
 > See `docs/adr/0003` in the repo root. Upstream:
 > https://github.com/Chenruishuo/posterly
 
-> **AXXX-only.** Unlike upstream posterly, this skill is **not** venue/lab-neutral
-> and has **no palette-derivation step**: it always applies the fixed AXXX theme
-> (`axxx/theme_tokens.css` + `axxx/brand.css`) via `axxx/apply_theme.py`, and pulls
-> affiliation logos from the AXXX asset release via `axxx/fetch_assets.py`. To make
-> a differently-branded poster, use upstream posterly instead. See the
-> **AXXX theme &amp; assets** section below.
+> **Two fixed poster formats — AXXX and AIJ.** Unlike upstream posterly, this
+> skill is **not** venue/lab-neutral and has **no palette-derivation step**. Every
+> poster is built in exactly one of two fixed formats (`docs/adr/0010`):
+>
+> - **AXXX** — the AXXX brand (`axxx/theme_tokens.css` + `axxx/brand.css`, applied by
+>   `axxx/apply_theme.py`) on posterly's three layout scaffolds, at the venue's
+>   canvas size. See **AXXX format — theme & assets** below.
+> - **AIJ** — the AI Journey organisers' poster template: a fixed 190.5×275.2 mm
+>   frame, SB Sans Display type, one two-column scaffold, plus an editable `.pptx`
+>   export. See **AIJ format — frame, type, assets, PPTX export** below.
+>
+> Affiliation logos come from the AXXX asset release (`axxx/fetch_assets.py`) in
+> both formats. To make a differently-branded poster, use upstream posterly.
 
 A poster is **one HTML file** styled for an exact print canvas, rendered to PDF via Playwright + Chromium. Iterate by **measuring**, not eyeballing — the screen preview lies; only `emulate_media("print")` at the correct viewport tells the truth.
 
@@ -41,12 +48,13 @@ A poster is **one HTML file** styled for an exact print canvas, rendered to PDF 
      └──→ tools/poster_check.py verify-final  (PDF page count / dims / size)
 ```
 
-Pick an **AXXX template** from `templates/README.md` (the `*_axxx.html` variants), fill TODO placeholders with your paper's content, and keep the AXXX theme — **do not** re-derive or change the palette (this skill is AXXX-only). The branding lives entirely in `axxx/` and is re-appliable to any template at any time.
+**Pick the poster format first** (Step 0.5): **AXXX** or **AIJ**. For AXXX, pick an **AXXX template** from `templates/README.md` (the `*_axxx.html` variants) and keep the AXXX theme — **do not** re-derive or change the palette; the branding lives entirely in `axxx/` and is re-appliable to any template at any time. For AIJ there is one scaffold, `templates/portrait_aij.html`, whose frame is fixed. Either way, fill the TODO placeholders with your paper's content.
 
-## AXXX theme & assets (always applied)
+## AXXX format — theme & assets
 
 The AXXX look is a token override + brand rules + a fixed affiliation-logo set,
-all under `axxx/`. There is **one** brand; there is no "pick your colors" step.
+all under `axxx/`, applied to every AXXX-format poster. There is no "pick your
+colors" step.
 
 | File | What it is |
 |---|---|
@@ -89,8 +97,9 @@ all four on every poster is wrong (it misattributes authorship). Rules:
   release).
 
 Place the strip with the **local** committed files and the Gate-E class from
-`logos.json` (the AXXX wordmarks are `logo-wide`). Example for a paper co-authored
-by AIRI + HSE only:
+`logos.json` (the AXXX wordmarks are `logo-wide`). Example (AXXX format) for a
+paper co-authored by AIRI + HSE only — the AIJ format puts the same logos on chips
+in its footer instead (see the AIJ section):
 
 ```html
 <div class="affiliations-logos">
@@ -102,13 +111,79 @@ by AIRI + HSE only:
 Keep posterly's `.logo-slot` / `.logo-chip` class names if you wrap logos in chips
 so **Gate E — Header logos** still applies.
 
+## AIJ format — frame, type, assets, PPTX export
+
+The **AIJ** format reproduces the AI Journey organisers' poster template
+(`aij/assets/aij_template.pptx`) as one HTML scaffold, `templates/portrait_aij.html`
+(`docs/adr/0010`–`0012`).
+
+- **Canvas:** fixed **190.5 × 275.2 mm** portrait — exactly the organisers' slide.
+  Skip the venue-size lookup and never retarget it.
+- **Frame (never move or recolour it):** the gradient background around a white
+  panel, the AIJ mark (top right), the green poster number **№**, the title and
+  author line (top left), and the footer — numbered affiliations, "Group contact:"
+  line, affiliation-logo chips, QR tiles. Every frame element sits on the `.pptx`
+  coordinates (±1 mm; the tests check this). The title and author boxes are
+  widened to 95 mm (the organisers' 83.9 mm box wraps most paper titles to three
+  lines) — **keep the title to two lines**, or it runs into the author line.
+- **Content area:** the white panel holds **two columns of flat sections** — a
+  Subtitle heading, Body text, figures, tables, equations — with **no card chrome
+  or shadows** (a hairline separates sections). Sections carry
+  `data-measure-role="card"`, so `measure` / `polish` work unchanged.
+- **Type — SB Sans Display only**, three roles (the organisers' spec):
+
+  | Role | Face | Size | Used for |
+  |---|---|---|---|
+  | Title | SB Sans Display **Bold** | 14 pt | poster title, poster number |
+  | Subtitle | SB Sans Display (Regular) | 7 pt | author line, section headings, table heads |
+  | Body | SB Sans Display **Light** | 7 pt | text, lists, captions, table cells, footer |
+
+  `<strong>` inside Body renders Bold for emphasis. Do not introduce other sizes
+  or families.
+- **Poster number:** leave `№TODO` — the organisers assign the number later. Do
+  not ask for it; mention it in the final report so it is filled before printing.
+- **Affiliation logos:** only this paper's institutions (same rule as AXXX), each
+  in its **original colours on a white rounded chip** the height of a QR tile, in
+  `.aij-logos`. Chips share the strip, so 1–4 logos fit. No logos → delete the block.
+- **QR codes:** 0, 1 or 2 `.aij-qr` tiles (one QR takes the outer slot), generated
+  offline — never a remote QR-service URL. None → delete `.aij-qrs`.
+
+| File | What it is |
+|---|---|
+| `templates/portrait_aij.html` | The AIJ scaffold (frame + two-column content area + type roles). |
+| `aij/assets/aij_background.png`, `aij/assets/aij_mark.svg` | The frame graphics, copied into the poster's `images/` by `aij/prepare_assets.py`. The panel is transparent in the background image; the slide/poster background is white. |
+| `aij/assets/aij_template.pptx` | The organisers' template with its **embedded fonts stripped** (no SB Sans file ships here) — the base of the PPTX export. |
+| `aij/fonts.css` | The **only** place the SB Sans Display CDN URLs live (Light/Regular/Bold from Sber's design-system CDN). Font files are **never** vendored — not here, not in a poster repo (`docs/adr/0011`). |
+| `aij/sync_fonts.py` | Copies `aij/fonts.css` into a poster's `/* aij-fonts:begin … end */` block; `--check` reports drift. |
+| `aij/export_pptx.py` | Step 8 — the editable `.pptx` export. |
+
+```bash
+# scaffold an AIJ poster
+cp templates/portrait_aij.html poster/poster.html
+python aij/prepare_assets.py --dest poster/images                        # frame graphics
+python axxx/fetch_assets.py --dest poster/images --logos airi hse        # ONLY this paper's logos
+# … fill content, then the gates (Steps 4–7) and the export (Step 8)
+```
+
+**Fonts need the network.** The poster loads SB Sans Display from the CDN; offline,
+Chromium silently falls back to another face. After rendering, confirm the PDF
+embeds the real faces — `pdffonts poster_preview.pdf` must list
+`SBSansDisplay-Light`, `-Regular` and `-Bold` — before calling the poster done.
+
+**Gates.** `preflight`, `measure`, `polish` and `verify-final` apply unchanged (the
+defaults fit the AIJ geometry: a balanced poster lands ~40 px above the footer).
+`style_check`'s posterly type rules (serif/sans pairing, font whitelist, `--fs-N`
+scale) do not fit the organisers' single mandated typeface — its rules 6–8 fail by
+design on an AIJ poster, so `run_gates.py` reports `style` FAIL; judge an AIJ poster
+by the other gates.
+
 ## Output location & Pages deploy
 
 - **Default output is `./poster/` of the user's CURRENT repo** (the paper repo
   where the skill is invoked), mirroring `compression_horizon/poster/`. Write
   `poster.html`, its `images/`, and the rendered `poster_preview.pdf`/`.png`
-  there, and **save them as part of that repo** (the poster is a tracked
-  artifact, not a throwaway).
+  there — plus `poster.pptx` for an AIJ poster — and **save them as part of that
+  repo** (the poster is a tracked artifact, not a throwaway).
 - **After a successful build, ask once** (one `AskUserQuestion`):
   *"Add a Pages deploy workflow? GitHub Actions / GitLab CI / No."* If the user
   picks one, copy the matching workflow from `axxx/deploy/` into the poster repo
@@ -130,6 +205,10 @@ so **Gate E — Header logos** still applies.
 
 ### Step 0 — Pull the venue's official poster guidelines
 
+**AIJ format: skip this step** — the canvas, frame and type are fixed by the
+organisers' template (see the AIJ section); only confirm anything the user was
+told separately (deadline, file name). Everything below is for the AXXX format.
+
 Conference specs change year-to-year and vary wildly between venues:
 
 - ICML often goes 60×36 in landscape; **ICLR has been 24×36 in portrait** in recent years; **NeurIPS** historically allowed multiple sizes; **CVPR** has used A0 portrait. Don't assume.
@@ -143,18 +222,19 @@ Procedure:
 
 ### Step 0.5 — Design discovery (one round of AskUserQuestion)
 
-Don't pick a template, logos, or a QR target silently. The **palette is fixed (AXXX)** — never ask about colors. Ask the user, in one batch (≤ 4 questions — the AskUserQuestion cap):
+Don't pick a format, template, logos, or a QR target silently. Each **format's palette is fixed** — never ask about colors. Ask the user, in one batch (≤ 4 questions — the AskUserQuestion cap):
 
-- **Layout**: "Which gallery template fits best? (a) 4-column landscape, (b) hero + supporting column landscape, (c) 2-column portrait." Show them `templates/README.md`'s table.
-- **Palette**: nothing to ask — the **AXXX theme is always applied** (`axxx/apply_theme.py`). Do not offer color choices.
+- **Format** (always the first question): "**AXXX** or **AIJ**?" Recommend **AIJ** when the venue is AI Journey (the organisers require their template), **AXXX** otherwise — but always let the user confirm. The rest of the workflow branches on this answer.
+- **Layout** (AXXX only — AIJ has one fixed scaffold): "Which gallery template fits best? (a) 4-column landscape, (b) hero + supporting column landscape, (c) 2-column portrait." Show them `templates/README.md`'s table.
+- **Palette**: nothing to ask — the chosen format fixes it (AXXX: `axxx/apply_theme.py`; AIJ: the scaffold's tokens). Do not offer color choices.
 - **Affiliation logos**: ask which of the AXXX consortium (AIRI, FusionBrain, HSE, Innopolis) **actually authored this paper**, and fetch **only that subset** (`axxx/fetch_assets.py --logos <subset>`). There is **no default set** — do not place all four on a poster unless all four co-authored it, and for a non-AXXX paper use that paper's own logos. Then ask separately about an extra *venue* mark; don't assume a venue logo is wanted; cross-check the logo policy from Step 0 (some venues forbid them). Inspect each logo file (aspect ratio, transparency, background — Step 2 item 5) and pick a size class + chip treatment per **Gate E — Header logos** below; don't just drop them in at the default size.
 - **QR code**: "Want a QR code? If so, pointing at which link — paper / arXiv / code repo / project page — or none?" Generate it **offline** as a local image (see Customizing in README / `qrencode`); never leave a remote QR-service URL in the poster — it hangs `measure`'s networkidle wait and link-rots in print/archive.
 
 Persist the user's answers as you go — re-reading them later prevents "improvement" loops that revert deliberate decisions.
 
-### AXXX theme — no palette choice
+### No palette choice (either format)
 
-This skill is **AXXX-only**: the palette is fixed and applied by `axxx/apply_theme.py` (see the **AXXX theme & assets** section above). There is no seed-from-logo / brand-derivation step — do **not** re-derive or "correct" the colors. The six brand tokens (`--accent` `#0689D4`, `--accent-deep` `#053957`, light-blue tints, one semantic `--red-alert` for negatives) live in `axxx/theme_tokens.css` and are the single source of truth. If a poster genuinely needs a different brand, that is out of scope for this skill — use upstream posterly.
+Each format's palette is fixed. For **AIJ**, the frame colours come from the organisers' template and the content-area tokens live in the scaffold's `:root` — do not recolour the frame. For **AXXX**, the palette is applied by `axxx/apply_theme.py` (see the **AXXX format — theme & assets** section above). There is no seed-from-logo / brand-derivation step — do **not** re-derive or "correct" the colors. The six brand tokens (`--accent` `#0689D4`, `--accent-deep` `#053957`, light-blue tints, one semantic `--red-alert` for negatives) live in `axxx/theme_tokens.css` and are the single source of truth. If a poster genuinely needs a different brand, that is out of scope for this skill — use upstream posterly.
 
 ### Step 1 — Confirm content & figures
 
@@ -232,8 +312,10 @@ For each paper figure you'll use:
 
 ### Step 3 — Scaffold from the gallery
 
+**AIJ format:** `cp templates/portrait_aij.html <work-dir>/poster.html`, then `python aij/prepare_assets.py --dest <work-dir>/images` and `python axxx/fetch_assets.py --dest <work-dir>/images --logos <only-this-paper's-institutions>`. Fill the frame fields (`data-aij-field`: title ≤ 2 lines, authors with affiliation superscripts, numbered affiliations, group contact; leave `№TODO`), put the logos on `.aij-logo-chip`s and the QR in `.aij-qr`, and write the content as flat `.section`s in the two columns. Items 2–6 below apply to AIJ too, except that there is no header logo slot, venue badge, or takeaways strip. **AXXX format:**
+
 1. `cp templates/<chosen>_axxx.html <work-dir>/poster.html` (always the **`_axxx`** variant — it ships the AXXX theme). Then fetch this paper's own affiliation logos + the bullet — `python axxx/fetch_assets.py --dest <work-dir>/images --logos <only-this-paper's-institutions>` — and `python axxx/apply_theme.py <work-dir>/poster.html` (idempotent; safe even on an `_axxx` template).
-2. **Do not edit the `:root` palette** — it is the fixed AXXX brand (`axxx/theme_tokens.css`). Edit only content, not brand tokens.
+2. **Do not edit the `:root` palette** — it is the fixed format brand (AXXX: `axxx/theme_tokens.css`; AIJ: the scaffold's tokens). Edit only content, not brand tokens.
 3. Replace `<title>`, header (title/subtitle/authors/affiliation), banner (if any), column cards, takeaways strip (if any), footer.
 4. Match the template's `data-measure-role` scheme — DO NOT remove these attributes. The measurement script depends on them.
 5. **No logo / QR provided:** keep the venue as its **text** badge — don't fabricate a venue logo. With no affiliation logo, **delete the empty `.logo-slot`** rather than leave a hollow box; the text affiliation line and the corner `.ornament` carry attribution. With no QR, delete `.qr-block`. Never fetch or invent an asset the user didn't give, and never leave a remote QR-service URL in the poster (offline local image only).
@@ -300,6 +382,8 @@ pdftoppm -r 100 poster_preview.pdf poster_check -png -f 1 -l 1
 
 For dense regions, crop with PIL and read the slice — full poster at r=100 is ~6000 px wide; useful regions (header, banner, takeaways, one column) at full res reveal text wrapping issues invisible in the thumbnail.
 
+**AIJ:** crop the header at ≥150 dpi and check the title is at most two lines and clear of the author line, and that the footer logo chips and QR tiles sit level. Run `pdffonts poster_preview.pdf` — it must list `SBSansDisplay-Light/-Regular/-Bold` (a fallback face means the CDN fonts did not load; re-render with network access).
+
 ### Step 6 — Polish
 
 After alignment is solid, run the **visual polish gate**:
@@ -334,11 +418,41 @@ python <skill>/tools/poster_check.py verify-final poster_preview.pdf \
 
 Checks: page count == 1, dimensions match canvas, file size ≤ limit. `--canvas` accepts inch dimensions (`60x36in`) or named sizes (`A0 portrait`, `A1 landscape`). By default rejects swapped W/H unless the PDF declares `Page rot ∈ {90, 270}` or you pass `--allow-rotated`. `--from-html <path>` reads `@page { size: … }` from the HTML so they can't drift apart.
 
+(AIJ: `--canvas 190.5x275.2mm`, or `--from-html poster.html`.)
+
 Then report to the user:
-- File path of PDF
+- File path of PDF (and, for AIJ, of `poster.pptx` — Step 8)
 - Final spread (px) and gap-to-footer range
 - Any unresolved Codex feedback
 - Page-fit confirmation
+- AIJ only: the `№TODO` poster number still to be filled, and that the `.pptx` needs SB Sans Display installed to open correctly
+
+### Step 8 — Export the editable PPTX (AIJ only, always)
+
+An AIJ poster **always** ships an editable `.pptx` in the organisers' template next
+to the PDF; an AXXX poster never does (`docs/adr/0012`). Run it after Step 7, and
+re-run it after **every** change to the HTML — the HTML is the single source of
+truth and the export is one-way (edits made in PowerPoint do not flow back).
+
+```bash
+pip install python-pptx mathml2omml lxml        # the skill's [pptx] extra
+python aij/export_pptx.py poster/poster.html    # -> poster/poster.pptx (+ --report r.json)
+```
+
+It renders the poster like `measure` does and rebuilds it inside
+`aij/assets/aij_template.pptx` (the organisers' master, background and AIJ mark;
+their instruction boxes, arrows and sample logos are removed): text becomes native,
+editable text frames at the rendered geometry in SB Sans Display / SB Sans Display
+Light, tables become native PowerPoint tables, figures/logos/QR become pictures, and
+every formula becomes a **native Office equation** (MathJax MathML → OMML), each
+math-bearing shape carrying a rendered-picture fallback for non-Office viewers.
+
+Read its summary: `EQUATION AS PICTURE` / `FRAME AS PICTURE` lines mean a formula
+could not be converted and its shape was kept as the rendered picture (faithful,
+but not editable) — simplify that TeX if it must stay editable. Fonts are
+referenced **by name and not embedded**: tell the user the machine that opens the
+`.pptx` needs SB Sans Display (incl. Light) installed. PowerPoint breaks lines a
+little differently from Chromium, so the PDF stays the visual reference.
 
 ## Visual polish gates (Step 6 — soft gate)
 
@@ -608,11 +722,16 @@ See `templates/README.md` for the gallery. Current set (all **tokenized** — pa
 - `landscape_hero_neutral.html` (60×36 in, hero + supporting col)
 - `portrait_2col_neutral.html` (24×36 in, 2 cols)
 
+AXXX format: the `*_axxx.html` variants of the three layouts above. AIJ format:
+`portrait_aij.html` (190.5×275.2 mm, fixed frame, 2 columns of flat sections — see
+the AIJ section; outside `style_check`'s type rules by design).
+
 Adding a template: keep it neutral (no lab branding), preserve the `data-measure-role` scheme, tokenize it (DESIGN TOKENS block + `--fs-*` scale, colors via `var(--…)`, no inline `style=` / gradients) so it passes `style_check`, and document the row in `templates/README.md`.
 
 ## Key rules
 
 - **Never invent paper numbers.** Read the `.tex` source. Bench numbers, datasets, model names — all verifiable.
-- **Card-shadow visibility is non-negotiable.** A poster looks cheap when shadows are clipped.
+- **Card-shadow visibility is non-negotiable** (AXXX format). A poster looks cheap when shadows are clipped. AIJ sections are flat by design.
+- **Never move or recolour the AIJ frame**, and always ship the AIJ `.pptx` export alongside its PDF (Step 8).
 - **Strict alignment is non-negotiable.** Spread < 5 px or it's not done — do not report success until `measure` exits 0.
 - **Preserve user-judgment decisions across sessions.** "Do not revert" notes (`✉ stays on Author X`, `α-sensitivity card removed`) — re-read the user's prior messages before "improving" a section.

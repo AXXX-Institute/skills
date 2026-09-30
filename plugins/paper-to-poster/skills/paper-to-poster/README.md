@@ -38,8 +38,18 @@ codex plugin add paper-to-poster@axxx-institute
 - Claude Code: `/paper-to-poster`
 - OpenAI Codex: `$paper-to-poster`
 
-Ask the skill to build or revise an AXXX-branded poster from your paper source.
-See [SKILL.md](SKILL.md) for the complete workflow.
+Ask the skill to build or revise a poster from your paper source in one of two
+fixed **poster formats**:
+
+- **AXXX** — the AXXX brand (blue palette, Inter, accent bar, arrow bullets,
+  affiliation logos) on 4-column / hero landscape or 2-column portrait layouts,
+  at the venue's canvas size.
+- **AIJ** — the AI Journey organisers' poster template (fixed 190.5×275.2 mm
+  frame, SB Sans Display), rendered to PDF **and** exported to an editable `.pptx`
+  in the organisers' own template (`aij/export_pptx.py`; needs the `[pptx]` extra:
+  `pip install python-pptx mathml2omml lxml`).
+
+The skill asks which format first. See [SKILL.md](SKILL.md) for the complete workflow.
 
 [Open the skill page](https://axxx-institute.github.io/skills/paper-to-poster/)
 
@@ -47,7 +57,7 @@ See [SKILL.md](SKILL.md) for the complete workflow.
 > **Built with Claude, works with Codex too.** posterly is developed primarily with Claude (Opus 4.7 / 4.8), but in testing Codex (GPT-5.5) drives it just as well — and any coding agent with skill support should be fine. Hit a snag? A ⭐ and an issue are always welcome!
 
 A poster is **one HTML file** styled for an exact print canvas. The skill ships
-AXXX-branded templates, four sanity-check CLIs, and a render pipeline that
+AXXX and AIJ templates, four sanity-check CLIs, and a render pipeline that
 produces a PDF at exact ICML / NeurIPS / ICLR / CVPR dimensions. Inside your
 agent, `/paper-to-poster` walks through venue lookup → template pick → content
 fill → render; see `SKILL.md` for the full workflow.
