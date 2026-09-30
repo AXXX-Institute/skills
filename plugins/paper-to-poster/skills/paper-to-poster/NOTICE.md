@@ -17,8 +17,10 @@ are bundled only so the AIJ poster format can reproduce that template; they are 
 posterly/AXXX work and are **not** covered by this project's AGPL-3.0 or MIT grants — all
 rights stay with their owners. The bundled `.pptx` has the organisers' embedded fonts
 removed and their sample/instruction artwork (arrows, sample logos, sample QR) blanked; SB Sans Display (Sber) is loaded by posters from Sber's public CDN and is never
-redistributed here (repo `docs/adr/0011`); the AIJ `.pptx` export embeds it into the user's
-own exported file, downloaded from that CDN at export time (repo `docs/adr/0013`).
+committed to this repo's sources (repo `docs/adr/0011`); the AIJ `.pptx` export embeds it into
+the exported file, downloaded from that CDN at export time — including the gallery example's
+`examples/compression_horizon_aij/poster.pptx` (repo `docs/adr/0013`). SB Sans Display is Sber's
+typeface; it is not covered by this project's AGPL-3.0 or MIT grants.
 
 ## Licensing of this combined work
 

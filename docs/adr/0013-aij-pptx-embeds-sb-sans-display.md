@@ -15,27 +15,30 @@ bundled template had its embedded fonts stripped (ADR 0011).
 
 ## Decision
 
-- `aij/export_pptx.py` **embeds** the three faces the poster uses by default
+- `aij/export_pptx.py` **embeds** the faces the poster's text uses by default
   (`aij/embed_fonts.py`; `--no-embed-fonts` opts out). They are downloaded **at
   export time** from the CDN URLs in `aij/fonts.css` — the files the HTML renders
   with — so no font file is committed to this repo's sources.
 - They are named the way the organisers' desktop fonts are (one family per
-  non-RIBBI weight, like the template's "SB Sans Display Semibold"): "SB Sans
-  Display" Regular + Bold, and "SB Sans Display Light" as its own family — the
-  typefaces every text run names. The Light face's name table is rewritten for
-  that; nothing else in the fonts changes.
+  non-RIBBI weight, like the template's own "SB Sans Display Semibold"): "SB Sans
+  Display" Regular + Bold, "SB Sans Display Light" and "SB Sans Display Semibold"
+  as their own families — the typefaces every text run names (the title is
+  Semibold 13 pt, as in the template). For every embedded face only the naming
+  records (nameIDs 1/2/4/6; 16/17 dropped) and the style bits (OS/2 fsSelection,
+  head.macStyle) are rewritten; outlines and metrics are untouched.
 - Each face is an uncompressed **EOT 2.2** part `ppt/fonts/fontN.fntdata`, listed in
   `<p:embeddedFontLst>` with `embedTrueTypeFonts="1"` — the structure PowerPoint
   writes (its own parts are MTX-compressed EOT 2.2; the faces are installable,
   OS/2 fsType 0).
-- The public gallery example's `.pptx` is exported with `--no-embed-fonts`, so the
-  public repo still carries no font data (ADR 0011); publishing an embedded copy is
-  a separate maintainers' decision.
+- The public gallery example's `.pptx` embeds the fonts too (maintainers' decision,
+  2026-09-30), so the published showcase opens in SB Sans Display. This is the one
+  place font data enters the public repo — inside that exported file, as in the
+  organisers' own template; the skill's sources still carry none (ADR 0011).
 
 ## Consequences
 
-- An exported poster opens in the real typeface on any machine; the file grows by
-  ~330 KB. A user's `.pptx` now contains the fonts, as the organisers' template does.
+- An exported poster can open in the real typeface on any machine; the file grows
+  by ~100 KB per embedded face. A user's `.pptx` now contains the fonts, as the organisers' template does.
 - Embedding needs network access at export time (like the rendering). If the fetch
   fails the export still completes, by-name only, with a loud `WARN`.
 - Verified structurally only (schema-valid `presentation.xml`, EOT header

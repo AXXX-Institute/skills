@@ -131,11 +131,11 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
   or shadows** (a hairline separates sections). Sections carry
   `data-measure-role="card"`, so `measure` / `polish` work unchanged.
 - **Type — SB Sans Display only**, three roles (the organisers' spec; the title
-  size follows their template — 13 pt, as the design review confirmed):
+  follows their template — Semibold 13 pt, as the design review confirmed):
 
   | Role | Face | Size | Used for |
   |---|---|---|---|
-  | Title | SB Sans Display **Bold** | 13 pt | poster title, poster number |
+  | Title | SB Sans Display **Semibold** | 13 pt | poster title, poster number |
   | Subtitle | SB Sans Display (Regular) | 7 pt | author line, section headings, table heads |
   | Body | SB Sans Display **Light** | 7 pt | text, lists, captions, table cells, footer |
 
@@ -158,8 +158,8 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
 | `aij/assets/aij_background.png`, `aij/assets/aij_mark.svg` | The frame graphics, copied into the poster's `images/` by `aij/prepare_assets.py`. The panel is transparent in the background image; the slide/poster background is white. |
 | `aij/assets/aij_template.pptx` | The organisers' template with its **embedded fonts stripped** (no SB Sans file ships here) — the base of the PPTX export. |
 | `aij/white_logo.py` | Derives the white version of each affiliation logo (SVG via a mask, so knock-outs stay readable; rasters keep their alpha). |
-| `aij/embed_fonts.py` | Embeds SB Sans Display (Light/Regular/Bold, fetched from the CDN at export time) into the `.pptx` (`docs/adr/0013`). |
-| `aij/fonts.css` | The **only** place the SB Sans Display CDN URLs live (Light/Regular/Bold from Sber's design-system CDN). Font files are **never** committed to this repo (`docs/adr/0011`); the exported `.pptx` carries them embedded (`docs/adr/0013`). |
+| `aij/embed_fonts.py` | Embeds the SB Sans Display faces the text uses (Light/Regular/Semibold/Bold, fetched from the CDN at export time) into the `.pptx` (`docs/adr/0013`). |
+| `aij/fonts.css` | The **only** place the SB Sans Display CDN URLs live (Light/Regular/Semibold/Bold from Sber's design-system CDN). Font files are **never** committed to this repo's sources (`docs/adr/0011`); an exported `.pptx` carries them embedded (`docs/adr/0013`). |
 | `aij/sync_fonts.py` | Copies `aij/fonts.css` into a poster's `/* aij-fonts:begin … end */` block; `--check` reports drift. |
 | `aij/export_pptx.py` | Step 8 — the editable `.pptx` export. |
 
@@ -175,7 +175,8 @@ python aij/white_logo.py poster/images/airi_logo.svg poster/images/hse_logo.svg 
 **Fonts need the network.** The poster loads SB Sans Display from the CDN; offline,
 Chromium silently falls back to another face. After rendering, confirm the PDF
 embeds the real faces — `pdffonts poster_preview.pdf` must list
-`SBSansDisplay-Light`, `-Regular` and `-Bold` — before calling the poster done.
+`SBSansDisplay-Light`, `-Regular`, `-Semibold` (and `-Bold` with `<strong>`) — before
+calling the poster done.
 Other faces in that list are expected and harmless: a poster with formulas also
 shows e.g. `DejaVuSans-Bold`, which comes from MathJax's hidden accessibility
 MathML, not from visible text. Only a *missing* SB Sans face means the CDN fonts
@@ -399,7 +400,7 @@ pdftoppm -r 100 poster_preview.pdf poster_check -png -f 1 -l 1
 
 For dense regions, crop with PIL and read the slice — full poster at r=100 is ~6000 px wide; useful regions (header, banner, takeaways, one column) at full res reveal text wrapping issues invisible in the thumbnail.
 
-**AIJ:** crop the header at ≥150 dpi and check the title is at most two lines and clear of the author line, and that the white footer logos and QR tiles sit level. Run `pdffonts poster_preview.pdf` — it must list `SBSansDisplay-Light/-Regular/-Bold`; if one is missing, the CDN fonts did not load — re-render with network access. (Extra faces such as `DejaVuSans-Bold` come from MathJax's hidden accessibility MathML and are fine.)
+**AIJ:** crop the header at ≥150 dpi and check the title is at most two lines and clear of the author line, and that the white footer logos and QR tiles sit level. Run `pdffonts poster_preview.pdf` — it must list `SBSansDisplay-Light/-Regular/-Semibold` (and `-Bold` if the poster uses `<strong>`); if one is missing, the CDN fonts did not load — re-render with network access. (Extra faces such as `DejaVuSans-Bold` come from MathJax's hidden accessibility MathML and are fine.)
 
 ### Step 6 — Polish
 
@@ -474,9 +475,9 @@ item holds a nested list / graphic / block (the whole list, markers included), o
 a table whose cell holds a graphic or block content (the whole table). Nothing is
 dropped silently: every formula is either a native equation or listed there, and
 every such picture is listed with its reason. **Fonts are embedded**: the export
-fetches SB Sans Display Light/Regular/Bold from the CDN and embeds them, as the
-organisers' template does, so the file shows the real typeface on machines without
-SB Sans installed (`docs/adr/0013`); if that fails the summary says so in a `WARN`
+fetches the SB Sans Display faces the text uses from the CDN and embeds them, as the
+organisers' template does, so PowerPoint can show the real typeface on machines
+without SB Sans installed (`docs/adr/0013`) (the structure PowerPoint writes; checked structurally — schema, font names, EOT headers — not yet by opening the file in PowerPoint); if that fails the summary says so in a `WARN`
 line — then the file shows a substitute font (e.g. Calibri) and must be re-exported
 with network access. `--no-embed-fonts` references them by name only. PowerPoint
 breaks lines a little differently from Chromium, so the PDF stays the visual

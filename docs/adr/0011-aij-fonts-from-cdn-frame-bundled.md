@@ -43,6 +43,7 @@ rendering.
   place (`aij/fonts.css`, copied into posters by `aij/sync_fonts.py`).
 - A rendered PDF (including the gallery example's) carries **subsets** of the faces
   it uses, as every PDF does — that is print output, not a font file. The `.pptx`
-  export now embeds the three faces, fetched from the CDN at export time
+  export now embeds the faces it uses, fetched from the CDN at export time
   ([ADR 0013](0013-aij-pptx-embeds-sb-sans-display.md)); no font file is committed
-  to this repo's sources.
+  to this repo's sources — the gallery example's exported `.pptx` does carry them
+  (maintainers' decision, ADR 0013).

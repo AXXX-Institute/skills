@@ -62,8 +62,8 @@ glossary and `docs/adr/` for decisions.
 - Poster gallery: `plugins/paper-to-poster/skills/paper-to-poster/examples/`
   (published at `/paper-to-poster/gallery.html`); the AIJ example
   `compression_horizon_aij/` ships `poster.pdf` + `poster.pptx` — re-render both
-  after changing `templates/portrait_aij.html` or `aij/export_pptx.py`; export
-  that public copy with `--no-embed-fonts` (no font data in this repo, ADR 0011/0013).
+  after changing `templates/portrait_aij.html` or `aij/export_pptx.py` (the public
+  copy embeds SB Sans Display like any export — maintainers' decision, ADR 0013).
 - GitHub Pages catalog: `.github/workflows/pages.yml` publishes
   `site/index.html` after pushes to `main` that affect `site/**`.
 - Per-skill documentation: every `plugins/<plugin>/skills/<skill>/README.md`
