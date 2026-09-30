@@ -7,7 +7,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, AskUserQuestion, WebFetch
 # paper-to-poster — AXXX & AIJ Academic Poster Workflow
 
 > **Provenance & license.** This skill is a derivative of **posterly** (© 2026
-> Ruishuo Chen), restyled to emit the **AXXX** brand look only. posterly is
+> Ruishuo Chen), restyled to emit two fixed poster formats — **AXXX** and **AIJ**. posterly is
 > **AGPL-3.0**; this skill ships under AGPL-3.0 with `LICENSE` + `NOTICE.md`
 > preserved (the latter also records posterly's MIT-licensed ARIS components).
 > See `docs/adr/0003` in the repo root. Upstream:
@@ -48,7 +48,7 @@ A poster is **one HTML file** styled for an exact print canvas, rendered to PDF 
      └──→ tools/poster_check.py verify-final  (PDF page count / dims / size)
 ```
 
-**Pick the poster format first** (Step 0.5): **AXXX** or **AIJ**. For AXXX, pick an **AXXX template** from `templates/README.md` (the `*_axxx.html` variants) and keep the AXXX theme — **do not** re-derive or change the palette; the branding lives entirely in `axxx/` and is re-appliable to any template at any time. For AIJ there is one scaffold, `templates/portrait_aij.html`, whose frame is fixed. Either way, fill the TODO placeholders with your paper's content.
+**Pick the poster format first** (Step 0): **AXXX** or **AIJ**. For AXXX, pick an **AXXX template** from `templates/README.md` (the `*_axxx.html` variants) and keep the AXXX theme — **do not** re-derive or change the palette; the branding lives entirely in `axxx/` and is re-appliable to any template at any time. For AIJ there is one scaffold, `templates/portrait_aij.html`, whose frame is fixed. Either way, fill the TODO placeholders with your paper's content.
 
 ## AXXX format — theme & assets
 
@@ -169,13 +169,20 @@ python axxx/fetch_assets.py --dest poster/images --logos airi hse        # ONLY 
 Chromium silently falls back to another face. After rendering, confirm the PDF
 embeds the real faces — `pdffonts poster_preview.pdf` must list
 `SBSansDisplay-Light`, `-Regular` and `-Bold` — before calling the poster done.
+Other faces in that list are expected and harmless: a poster with formulas also
+shows e.g. `DejaVuSans-Bold`, which comes from MathJax's hidden accessibility
+MathML, not from visible text. Only a *missing* SB Sans face means the CDN fonts
+did not load.
 
 **Gates.** `preflight`, `measure`, `polish` and `verify-final` apply unchanged (the
 defaults fit the AIJ geometry: a balanced poster lands ~40 px above the footer).
-`style_check`'s posterly type rules (serif/sans pairing, font whitelist, `--fs-N`
-scale) do not fit the organisers' single mandated typeface — its rules 6–8 fail by
-design on an AIJ poster, so `run_gates.py` reports `style` FAIL; judge an AIJ poster
-by the other gates.
+`style_check`'s posterly design rules do not fit the organisers' template — its
+rule 4 (at most two accent hues, named `--accent`/`--gold`) against the frame's blue
+and green plus the semantic red, and rules 6–8 (serif/sans pairing, font whitelist,
+`--fs-N` scale) against the single mandated typeface. Those four rules fail by
+design on every AIJ poster, so `run_gates.py` reports `style` FAIL; **do not
+"fix" the colours or type to satisfy them** — judge an AIJ poster by the other
+gates.
 
 ## Output location & Pages deploy
 
@@ -203,11 +210,15 @@ by the other gates.
 
 ## Workflow
 
-### Step 0 — Pull the venue's official poster guidelines
+### Step 0 — Choose the poster format (ask first, on its own)
 
-**AIJ format: skip this step** — the canvas, frame and type are fixed by the
-organisers' template (see the AIJ section); only confirm anything the user was
-told separately (deadline, file name). Everything below is for the AXXX format.
+Before anything else, ask one question: "**AXXX** or **AIJ**?" Recommend **AIJ**
+when the venue is AI Journey (the organisers require their template), **AXXX**
+otherwise — but always let the user confirm. Everything after this branches on
+the answer: **AIJ** skips Step 0.1 and the layout question (canvas, frame and type
+are fixed — see the AIJ section); **AXXX** continues with Step 0.1.
+
+### Step 0.1 — Pull the venue's official poster guidelines (AXXX only)
 
 Conference specs change year-to-year and vary wildly between venues:
 
@@ -222,12 +233,11 @@ Procedure:
 
 ### Step 0.5 — Design discovery (one round of AskUserQuestion)
 
-Don't pick a format, template, logos, or a QR target silently. Each **format's palette is fixed** — never ask about colors. Ask the user, in one batch (≤ 4 questions — the AskUserQuestion cap):
+The format is already chosen (Step 0). Don't pick a template, logos, or a QR target silently. Each **format's palette is fixed** — never ask about colors. Ask the user, in one batch (≤ 4 questions — the AskUserQuestion cap):
 
-- **Format** (always the first question): "**AXXX** or **AIJ**?" Recommend **AIJ** when the venue is AI Journey (the organisers require their template), **AXXX** otherwise — but always let the user confirm. The rest of the workflow branches on this answer.
-- **Layout** (AXXX only — AIJ has one fixed scaffold): "Which gallery template fits best? (a) 4-column landscape, (b) hero + supporting column landscape, (c) 2-column portrait." Show them `templates/README.md`'s table.
+- **Layout** (AXXX only — skip it for AIJ, which has one fixed scaffold): "Which gallery template fits best? (a) 4-column landscape, (b) hero + supporting column landscape, (c) 2-column portrait." Show them `templates/README.md`'s table.
 - **Palette**: nothing to ask — the chosen format fixes it (AXXX: `axxx/apply_theme.py`; AIJ: the scaffold's tokens). Do not offer color choices.
-- **Affiliation logos**: ask which of the AXXX consortium (AIRI, FusionBrain, HSE, Innopolis) **actually authored this paper**, and fetch **only that subset** (`axxx/fetch_assets.py --logos <subset>`). There is **no default set** — do not place all four on a poster unless all four co-authored it, and for a non-AXXX paper use that paper's own logos. Then ask separately about an extra *venue* mark; don't assume a venue logo is wanted; cross-check the logo policy from Step 0 (some venues forbid them). Inspect each logo file (aspect ratio, transparency, background — Step 2 item 5) and pick a size class + chip treatment per **Gate E — Header logos** below; don't just drop them in at the default size.
+- **Affiliation logos**: ask which of the AXXX consortium (AIRI, FusionBrain, HSE, Innopolis) **actually authored this paper**, and fetch **only that subset** (`axxx/fetch_assets.py --logos <subset>`). There is **no default set** — do not place all four on a poster unless all four co-authored it, and for a non-AXXX paper use that paper's own logos. Then ask separately about an extra *venue* mark; don't assume a venue logo is wanted; cross-check the logo policy from Step 0.1 (some venues forbid them; AIJ: its footer has logo chips). Inspect each logo file (aspect ratio, transparency, background — Step 2 item 5) and pick a size class + chip treatment per **Gate E — Header logos** below; don't just drop them in at the default size.
 - **QR code**: "Want a QR code? If so, pointing at which link — paper / arXiv / code repo / project page — or none?" Generate it **offline** as a local image (see Customizing in README / `qrencode`); never leave a remote QR-service URL in the poster — it hangs `measure`'s networkidle wait and link-rots in print/archive.
 
 Persist the user's answers as you go — re-reading them later prevents "improvement" loops that revert deliberate decisions.
@@ -382,7 +392,7 @@ pdftoppm -r 100 poster_preview.pdf poster_check -png -f 1 -l 1
 
 For dense regions, crop with PIL and read the slice — full poster at r=100 is ~6000 px wide; useful regions (header, banner, takeaways, one column) at full res reveal text wrapping issues invisible in the thumbnail.
 
-**AIJ:** crop the header at ≥150 dpi and check the title is at most two lines and clear of the author line, and that the footer logo chips and QR tiles sit level. Run `pdffonts poster_preview.pdf` — it must list `SBSansDisplay-Light/-Regular/-Bold` (a fallback face means the CDN fonts did not load; re-render with network access).
+**AIJ:** crop the header at ≥150 dpi and check the title is at most two lines and clear of the author line, and that the footer logo chips and QR tiles sit level. Run `pdffonts poster_preview.pdf` — it must list `SBSansDisplay-Light/-Regular/-Bold`; if one is missing, the CDN fonts did not load — re-render with network access. (Extra faces such as `DejaVuSans-Bold` come from MathJax's hidden accessibility MathML and are fine.)
 
 ### Step 6 — Polish
 
@@ -447,9 +457,13 @@ Light, tables become native PowerPoint tables, figures/logos/QR become pictures,
 every formula becomes a **native Office equation** (MathJax MathML → OMML), each
 math-bearing shape carrying a rendered-picture fallback for non-Office viewers.
 
-Read its summary: `EQUATION AS PICTURE` / `FRAME AS PICTURE` lines mean a formula
-could not be converted and its shape was kept as the rendered picture (faithful,
-but not editable) — simplify that TeX if it must stay editable. Fonts are
+Read its summary: `EQUATION AS PICTURE` / `FRAME AS PICTURE` lines mean a shape
+was kept as the rendered picture (faithful, but not editable) — because a formula
+in it could not be converted (the whole text frame / table goes, not just the
+formula; a TeX error MathJax drew in red counts too — fix the TeX), or because the
+HTML mixes text with block content or an inline graphic (wrap that text in its own
+`<p>`). Nothing is dropped silently: every formula is either a native equation or
+listed there. Fonts are
 referenced **by name and not embedded**: tell the user the machine that opens the
 `.pptx` needs SB Sans Display (incl. Light) installed. PowerPoint breaks lines a
 little differently from Chromium, so the PDF stays the visual reference.

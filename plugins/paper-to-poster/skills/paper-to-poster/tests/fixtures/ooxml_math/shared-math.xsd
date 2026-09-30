@@ -7,10 +7,10 @@
   elementFormDefault="qualified" attributeFormDefault="qualified" blockDefault="#all"
   targetNamespace="http://schemas.openxmlformats.org/officeDocument/2006/math">
   <xsd:import namespace="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-    schemaLocation="wml-stub.xsd"/>
+    schemaLocation="wml.xsd"/>
   <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
     schemaLocation="shared-commonSimpleTypes.xsd"/>
-  <xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml-stub.xsd"/>
+  <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
   <xsd:simpleType name="ST_Integer255">
     <xsd:restriction base="xsd:integer">
       <xsd:minInclusive value="1"/>

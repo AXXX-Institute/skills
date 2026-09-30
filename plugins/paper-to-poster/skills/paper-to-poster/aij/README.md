@@ -11,7 +11,7 @@ formats), `0011` (fonts from the CDN, frame bundled), `0012` (PPTX export).
 
 | File | Role |
 |---|---|
-| `assets/aij_template.pptx` | The organisers' template (190.5×275.2 mm slide) with its **embedded fonts stripped** — the base of the PPTX export and the geometry reference the tests compare against. |
+| `assets/aij_template.pptx` | The organisers' template (190.5×275.2 mm slide) with its **embedded fonts stripped** and its sample/instruction artwork (arrows, the "COMPANY" sample-logo sheet, the sample QR, the package thumbnail) **blanked** — the slide XML, master, background and AIJ mark are byte-identical to the organisers' file. The base of the PPTX export and the geometry reference the tests compare against. |
 | `assets/aij_background.png` | Frame background: the gradient around the white panel (the panel itself is transparent; the slide is white). |
 | `assets/aij_mark.svg` | The AIJ header mark ("Путешествие в мир искусственного интеллекта"). |
 | `fonts.css` | The single source of the SB Sans Display (Light 300 / Regular 400 / Bold 700) CDN URLs. No font file is ever vendored. |
@@ -31,7 +31,7 @@ python <skill>/axxx/fetch_assets.py --dest poster/images --logos airi hse   # ON
 python <skill>/tools/poster_check.py measure poster/poster.html
 python <skill>/tools/poster_check.py polish  poster/poster.html
 python <skill>/tools/render_preview.py poster/poster.html
-pdffonts poster/poster_preview.pdf        # must list SBSansDisplay-Light/-Regular/-Bold
+pdffonts poster/poster_preview.pdf        # must list SBSansDisplay-Light/-Regular/-Bold (DejaVu from MathJax is fine)
 python <skill>/tools/poster_check.py verify-final poster/poster_preview.pdf --from-html poster/poster.html
 # ... and the editable PowerPoint file (re-run after every HTML change):
 pip install python-pptx mathml2omml lxml

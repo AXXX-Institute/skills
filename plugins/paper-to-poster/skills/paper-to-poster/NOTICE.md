@@ -16,7 +16,7 @@ background and the AIJ mark), distributed by the organisers to conference partic
 are bundled only so the AIJ poster format can reproduce that template; they are **not**
 posterly/AXXX work and are **not** covered by this project's AGPL-3.0 or MIT grants — all
 rights stay with their owners. The bundled `.pptx` has the organisers' embedded fonts
-removed; SB Sans Display (Sber) is loaded by posters from Sber's public CDN and is never
+removed and their sample/instruction artwork (arrows, sample logos, sample QR) blanked; SB Sans Display (Sber) is loaded by posters from Sber's public CDN and is never
 redistributed here (repo `docs/adr/0011`).
 
 ## Licensing of this combined work
