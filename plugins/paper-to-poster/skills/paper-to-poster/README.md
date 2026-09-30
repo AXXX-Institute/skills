@@ -47,7 +47,7 @@ fixed **poster formats**:
 - **AIJ** — the AI Journey organisers' poster template (fixed 190.5×275.2 mm
   frame, SB Sans Display), rendered to PDF **and** exported to an editable `.pptx`
   in the organisers' own template (`aij/export_pptx.py`; needs the `[pptx]` extra:
-  `pip install python-pptx mathml2omml lxml`).
+  `pip install python-pptx mathml2omml lxml fonttools brotli`).
 
 The skill asks which format first. See [SKILL.md](SKILL.md) for the complete workflow.
 

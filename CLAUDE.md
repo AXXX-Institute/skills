@@ -43,10 +43,12 @@ glossary and `docs/adr/` for decisions.
   poster in one of two fixed **poster formats** (Step 0 asks which). **AXXX**:
   `templates/*_axxx.html` + `axxx/fetch_assets.py` + `axxx/apply_theme.py`.
   **AIJ** (AI Journey): `templates/portrait_aij.html` + `aij/prepare_assets.py`
-  (+ `axxx/fetch_assets.py` for logos), fonts from the CDN via `aij/fonts.css`
-  (`aij/sync_fonts.py [--check]`), then the always-on editable export
-  `python aij/export_pptx.py poster/poster.html` (`[pptx]` extra:
-  python-pptx, mathml2omml, lxml).
+  (+ `axxx/fetch_assets.py` for logos, `aij/white_logo.py` for their white
+  versions), fonts from the CDN via `aij/fonts.css` (`aij/sync_fonts.py
+  [--check]`), then the always-on editable export
+  `python aij/export_pptx.py poster/poster.html` (embeds SB Sans Display via
+  `aij/embed_fonts.py`; `--no-embed-fonts` opts out; `[pptx]` extra:
+  python-pptx, mathml2omml, lxml, fonttools, brotli).
 - `paper-to-poster` gates (both formats): `tools/poster_check.py
   preflight|measure|polish|verify-final <poster.html|pdf>`,
   `tools/render_preview.py`, `tools/run_gates.py` (its `style` gate fails by
@@ -60,7 +62,8 @@ glossary and `docs/adr/` for decisions.
 - Poster gallery: `plugins/paper-to-poster/skills/paper-to-poster/examples/`
   (published at `/paper-to-poster/gallery.html`); the AIJ example
   `compression_horizon_aij/` ships `poster.pdf` + `poster.pptx` — re-render both
-  after changing `templates/portrait_aij.html` or `aij/export_pptx.py`.
+  after changing `templates/portrait_aij.html` or `aij/export_pptx.py`; export
+  that public copy with `--no-embed-fonts` (no font data in this repo, ADR 0011/0013).
 - GitHub Pages catalog: `.github/workflows/pages.yml` publishes
   `site/index.html` after pushes to `main` that affect `site/**`.
 - Per-skill documentation: every `plugins/<plugin>/skills/<skill>/README.md`

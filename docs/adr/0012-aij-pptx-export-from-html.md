@@ -1,6 +1,6 @@
 # 12. AIJ posters are exported to an editable .pptx from the finished HTML (HTML stays the source of truth)
 
-- Status: accepted
+- Status: accepted — the "fonts by name, not embedded" clause is superseded by [0013](0013-aij-pptx-embeds-sb-sans-display.md)
 - Date: 2026-09-30
 - Component: #paper-to-poster (AIJ format)
 

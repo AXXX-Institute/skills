@@ -98,7 +98,7 @@ all four on every poster is wrong (it misattributes authorship). Rules:
 
 Place the strip with the **local** committed files and the Gate-E class from
 `logos.json` (the AXXX wordmarks are `logo-wide`). Example (AXXX format) for a
-paper co-authored by AIRI + HSE only — the AIJ format puts the same logos on chips
+paper co-authored by AIRI + HSE only — the AIJ format puts the same logos, in white,
 in its footer instead (see the AIJ section):
 
 ```html
@@ -122,7 +122,7 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
 - **Frame (never move or recolour it):** the gradient background around a white
   panel, the AIJ mark (top right), the green poster number **№**, the title and
   author line (top left), and the footer — numbered affiliations, "Group contact:"
-  line, affiliation-logo chips, QR tiles. Every frame element sits on the `.pptx`
+  line, white affiliation logos, QR tiles. Every frame element sits on the `.pptx`
   coordinates (±1 mm; the tests check this). The title and author boxes are
   widened to 95 mm (the organisers' 83.9 mm box wraps most paper titles to three
   lines) — **keep the title to two lines**, or it runs into the author line.
@@ -130,11 +130,12 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
   Subtitle heading, Body text, figures, tables, equations — with **no card chrome
   or shadows** (a hairline separates sections). Sections carry
   `data-measure-role="card"`, so `measure` / `polish` work unchanged.
-- **Type — SB Sans Display only**, three roles (the organisers' spec):
+- **Type — SB Sans Display only**, three roles (the organisers' spec; the title
+  size follows their template — 13 pt, as the design review confirmed):
 
   | Role | Face | Size | Used for |
   |---|---|---|---|
-  | Title | SB Sans Display **Bold** | 14 pt | poster title, poster number |
+  | Title | SB Sans Display **Bold** | 13 pt | poster title, poster number |
   | Subtitle | SB Sans Display (Regular) | 7 pt | author line, section headings, table heads |
   | Body | SB Sans Display **Light** | 7 pt | text, lists, captions, table cells, footer |
 
@@ -142,9 +143,12 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
   or families.
 - **Poster number:** leave `№TODO` — the organisers assign the number later. Do
   not ask for it; mention it in the final report so it is filled before printing.
-- **Affiliation logos:** only this paper's institutions (same rule as AXXX), each
-  in its **original colours on a white rounded chip** the height of a QR tile, in
-  `.aij-logos`. Chips share the strip, so 1–4 logos fit. No logos → delete the block.
+- **Affiliation logos:** only this paper's institutions (same rule as AXXX), in
+  **white, straight on the gradient** — as the template shows them (no plate behind).
+  Make the white versions with `python aij/white_logo.py images/<logo>.svg …`
+  (`<logo>_white.svg`; white details on coloured shapes become cut-outs) and put
+  each in an `.aij-logo` inside `.aij-logos`; the logos share the template's logo
+  band, so 1–4 fit. No logos → delete the block.
 - **QR codes:** 0, 1 or 2 `.aij-qr` tiles (one QR takes the outer slot), generated
   offline — never a remote QR-service URL. None → delete `.aij-qrs`.
 
@@ -153,7 +157,9 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
 | `templates/portrait_aij.html` | The AIJ scaffold (frame + two-column content area + type roles). |
 | `aij/assets/aij_background.png`, `aij/assets/aij_mark.svg` | The frame graphics, copied into the poster's `images/` by `aij/prepare_assets.py`. The panel is transparent in the background image; the slide/poster background is white. |
 | `aij/assets/aij_template.pptx` | The organisers' template with its **embedded fonts stripped** (no SB Sans file ships here) — the base of the PPTX export. |
-| `aij/fonts.css` | The **only** place the SB Sans Display CDN URLs live (Light/Regular/Bold from Sber's design-system CDN). Font files are **never** vendored — not here, not in a poster repo (`docs/adr/0011`). |
+| `aij/white_logo.py` | Derives the white version of each affiliation logo (SVG via a mask, so knock-outs stay readable; rasters keep their alpha). |
+| `aij/embed_fonts.py` | Embeds SB Sans Display (Light/Regular/Bold, fetched from the CDN at export time) into the `.pptx` (`docs/adr/0013`). |
+| `aij/fonts.css` | The **only** place the SB Sans Display CDN URLs live (Light/Regular/Bold from Sber's design-system CDN). Font files are **never** committed to this repo (`docs/adr/0011`); the exported `.pptx` carries them embedded (`docs/adr/0013`). |
 | `aij/sync_fonts.py` | Copies `aij/fonts.css` into a poster's `/* aij-fonts:begin … end */` block; `--check` reports drift. |
 | `aij/export_pptx.py` | Step 8 — the editable `.pptx` export. |
 
@@ -162,6 +168,7 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
 cp templates/portrait_aij.html poster/poster.html
 python aij/prepare_assets.py --dest poster/images                        # frame graphics
 python axxx/fetch_assets.py --dest poster/images --logos airi hse        # ONLY this paper's logos
+python aij/white_logo.py poster/images/airi_logo.svg poster/images/hse_logo.svg   # -> *_white.svg
 # … fill content, then the gates (Steps 4–7) and the export (Step 8)
 ```
 
@@ -237,7 +244,7 @@ The format is already chosen (Step 0). Don't pick a template, logos, or a QR tar
 
 - **Layout** (AXXX only — skip it for AIJ, which has one fixed scaffold): "Which gallery template fits best? (a) 4-column landscape, (b) hero + supporting column landscape, (c) 2-column portrait." Show them `templates/README.md`'s table.
 - **Palette**: nothing to ask — the chosen format fixes it (AXXX: `axxx/apply_theme.py`; AIJ: the scaffold's tokens). Do not offer color choices.
-- **Affiliation logos**: ask which of the AXXX consortium (AIRI, FusionBrain, HSE, Innopolis) **actually authored this paper**, and fetch **only that subset** (`axxx/fetch_assets.py --logos <subset>`). There is **no default set** — do not place all four on a poster unless all four co-authored it, and for a non-AXXX paper use that paper's own logos. Then ask separately about an extra *venue* mark; don't assume a venue logo is wanted; cross-check the logo policy from Step 0.1 (some venues forbid them; AIJ: its footer has logo chips). Inspect each logo file (aspect ratio, transparency, background — Step 2 item 5) and pick a size class + chip treatment per **Gate E — Header logos** below; don't just drop them in at the default size.
+- **Affiliation logos**: ask which of the AXXX consortium (AIRI, FusionBrain, HSE, Innopolis) **actually authored this paper**, and fetch **only that subset** (`axxx/fetch_assets.py --logos <subset>`). There is **no default set** — do not place all four on a poster unless all four co-authored it, and for a non-AXXX paper use that paper's own logos. Then ask separately about an extra *venue* mark; don't assume a venue logo is wanted; cross-check the logo policy from Step 0.1 (some venues forbid them; AIJ: its footer shows white logos). Inspect each logo file (aspect ratio, transparency, background — Step 2 item 5) and pick a size class + chip treatment per **Gate E — Header logos** below; don't just drop them in at the default size.
 - **QR code**: "Want a QR code? If so, pointing at which link — paper / arXiv / code repo / project page — or none?" Generate it **offline** as a local image (see Customizing in README / `qrencode`); never leave a remote QR-service URL in the poster — it hangs `measure`'s networkidle wait and link-rots in print/archive.
 
 Persist the user's answers as you go — re-reading them later prevents "improvement" loops that revert deliberate decisions.
@@ -322,7 +329,7 @@ For each paper figure you'll use:
 
 ### Step 3 — Scaffold from the gallery
 
-**AIJ format:** `cp templates/portrait_aij.html <work-dir>/poster.html`, then `python aij/prepare_assets.py --dest <work-dir>/images` and `python axxx/fetch_assets.py --dest <work-dir>/images --logos <only-this-paper's-institutions>`. Fill the frame fields (`data-aij-field`: title ≤ 2 lines, authors with affiliation superscripts, numbered affiliations, group contact; leave `№TODO`), put the logos on `.aij-logo-chip`s and the QR in `.aij-qr`, and write the content as flat `.section`s in the two columns. Items 2–6 below apply to AIJ too, except that there is no header logo slot, venue badge, or takeaways strip. **AXXX format:**
+**AIJ format:** `cp templates/portrait_aij.html <work-dir>/poster.html`, then `python aij/prepare_assets.py --dest <work-dir>/images` and `python axxx/fetch_assets.py --dest <work-dir>/images --logos <only-this-paper's-institutions>`. Fill the frame fields (`data-aij-field`: title ≤ 2 lines, authors with affiliation superscripts, numbered affiliations, group contact; leave `№TODO`), put the white logos (`aij/white_logo.py`) in `.aij-logo`s and the QR in `.aij-qr`, and write the content as flat `.section`s in the two columns. Items 2–6 below apply to AIJ too, except that there is no header logo slot, venue badge, or takeaways strip. **AXXX format:**
 
 1. `cp templates/<chosen>_axxx.html <work-dir>/poster.html` (always the **`_axxx`** variant — it ships the AXXX theme). Then fetch this paper's own affiliation logos + the bullet — `python axxx/fetch_assets.py --dest <work-dir>/images --logos <only-this-paper's-institutions>` — and `python axxx/apply_theme.py <work-dir>/poster.html` (idempotent; safe even on an `_axxx` template).
 2. **Do not edit the `:root` palette** — it is the fixed format brand (AXXX: `axxx/theme_tokens.css`; AIJ: the scaffold's tokens). Edit only content, not brand tokens.
@@ -392,7 +399,7 @@ pdftoppm -r 100 poster_preview.pdf poster_check -png -f 1 -l 1
 
 For dense regions, crop with PIL and read the slice — full poster at r=100 is ~6000 px wide; useful regions (header, banner, takeaways, one column) at full res reveal text wrapping issues invisible in the thumbnail.
 
-**AIJ:** crop the header at ≥150 dpi and check the title is at most two lines and clear of the author line, and that the footer logo chips and QR tiles sit level. Run `pdffonts poster_preview.pdf` — it must list `SBSansDisplay-Light/-Regular/-Bold`; if one is missing, the CDN fonts did not load — re-render with network access. (Extra faces such as `DejaVuSans-Bold` come from MathJax's hidden accessibility MathML and are fine.)
+**AIJ:** crop the header at ≥150 dpi and check the title is at most two lines and clear of the author line, and that the white footer logos and QR tiles sit level. Run `pdffonts poster_preview.pdf` — it must list `SBSansDisplay-Light/-Regular/-Bold`; if one is missing, the CDN fonts did not load — re-render with network access. (Extra faces such as `DejaVuSans-Bold` come from MathJax's hidden accessibility MathML and are fine.)
 
 ### Step 6 — Polish
 
@@ -435,7 +442,7 @@ Then report to the user:
 - Final spread (px) and gap-to-footer range
 - Any unresolved Codex feedback
 - Page-fit confirmation
-- AIJ only: the `№TODO` poster number still to be filled, and that the `.pptx` needs SB Sans Display installed to open correctly
+- AIJ only: the `№TODO` poster number still to be filled, and whether the `.pptx` carries the embedded fonts (export summary: `fonts embedded: …`)
 
 ### Step 8 — Export the editable PPTX (AIJ only, always)
 
@@ -445,7 +452,7 @@ re-run it after **every** change to the HTML — the HTML is the single source o
 truth and the export is one-way (edits made in PowerPoint do not flow back).
 
 ```bash
-pip install python-pptx mathml2omml lxml        # the skill's [pptx] extra
+pip install python-pptx mathml2omml lxml fonttools brotli   # the skill's [pptx] extra
 python aij/export_pptx.py poster/poster.html    # -> poster/poster.pptx (+ --report r.json)
 ```
 
@@ -466,10 +473,14 @@ inline graphic (wrap that text in its own `<p>`, move the icon out), a list whos
 item holds a nested list / graphic / block (the whole list, markers included), or
 a table whose cell holds a graphic or block content (the whole table). Nothing is
 dropped silently: every formula is either a native equation or listed there, and
-every such picture is listed with its reason. Fonts are
-referenced **by name and not embedded**: tell the user the machine that opens the
-`.pptx` needs SB Sans Display (incl. Light) installed. PowerPoint breaks lines a
-little differently from Chromium, so the PDF stays the visual reference.
+every such picture is listed with its reason. **Fonts are embedded**: the export
+fetches SB Sans Display Light/Regular/Bold from the CDN and embeds them, as the
+organisers' template does, so the file shows the real typeface on machines without
+SB Sans installed (`docs/adr/0013`); if that fails the summary says so in a `WARN`
+line — then the file shows a substitute font (e.g. Calibri) and must be re-exported
+with network access. `--no-embed-fonts` references them by name only. PowerPoint
+breaks lines a little differently from Chromium, so the PDF stays the visual
+reference.
 
 ## Visual polish gates (Step 6 — soft gate)
 

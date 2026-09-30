@@ -62,7 +62,7 @@ Subtitle role (the organisers' word is *подзаголовок* — Subtitle).
 The fixed, organiser-supplied chrome of the [[aij-format]]: the gradient background
 around the white panel, the AIJ header mark, the green poster number (**№**), and the
 header/footer slots (title, author line, numbered affiliations, group contact,
-affiliation-logo chips, QR tiles). Never recoloured or rearranged.
+white affiliation logos, QR tiles). Never recoloured or rearranged.
 _Avoid:_ "background" for the whole frame (the background is one part of it);
 "border".
 

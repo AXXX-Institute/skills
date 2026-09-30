@@ -17,7 +17,9 @@ formats), `0011` (fonts from the CDN, frame bundled), `0012` (PPTX export).
 | `fonts.css` | The single source of the SB Sans Display (Light 300 / Regular 400 / Bold 700) CDN URLs. No font file is ever vendored. |
 | `sync_fonts.py` | Copies `fonts.css` into a poster's `/* aij-fonts:begin … end */` block (`--check` reports drift). |
 | `prepare_assets.py` | Copies the two frame graphics into a poster's `images/`. |
-| `export_pptx.py` | Renders a finished AIJ poster and writes the editable `.pptx`: native text, native tables, pictures, and formulas as native Office equations with picture fallbacks. Needs the `[pptx]` extra. |
+| `export_pptx.py` | Renders a finished AIJ poster and writes the editable `.pptx`: native text, native tables, pictures, and formulas as native Office equations with picture fallbacks, with SB Sans Display embedded. Needs the `[pptx]` extra. |
+| `embed_fonts.py` | Fetches SB Sans Display Light/Regular/Bold from the CDN at export time and embeds them in the `.pptx` (EOT parts + `<p:embeddedFontLst>`, the structure PowerPoint writes) — `docs/adr/0013`. |
+| `white_logo.py` | Makes the white version of an affiliation logo (`<name>_white.svg`/`.png`) — the template shows logos in white, straight on the gradient. |
 
 The frame assets are the organisers' — see `../NOTICE.md`.
 
@@ -27,6 +29,7 @@ The frame assets are the organisers' — see `../NOTICE.md`.
 cp <skill>/templates/portrait_aij.html poster/poster.html
 python <skill>/aij/prepare_assets.py --dest poster/images
 python <skill>/axxx/fetch_assets.py --dest poster/images --logos airi hse   # ONLY this paper's logos
+python <skill>/aij/white_logo.py poster/images/airi_logo.svg poster/images/hse_logo.svg   # white versions
 # ... fill content, then the posterly gates:
 python <skill>/tools/poster_check.py measure poster/poster.html
 python <skill>/tools/poster_check.py polish  poster/poster.html
@@ -34,7 +37,7 @@ python <skill>/tools/render_preview.py poster/poster.html
 pdffonts poster/poster_preview.pdf        # must list SBSansDisplay-Light/-Regular/-Bold (DejaVu from MathJax is fine)
 python <skill>/tools/poster_check.py verify-final poster/poster_preview.pdf --from-html poster/poster.html
 # ... and the editable PowerPoint file (re-run after every HTML change):
-pip install python-pptx mathml2omml lxml
+pip install python-pptx mathml2omml lxml fonttools brotli
 python <skill>/aij/export_pptx.py poster/poster.html     # -> poster/poster.pptx
 ```
 
@@ -42,13 +45,14 @@ python <skill>/aij/export_pptx.py poster/poster.html     # -> poster/poster.pptx
 
 | Role | Face | Size | Used for |
 |---|---|---|---|
-| Title | SB Sans Display Bold | 14 pt | poster title, poster number |
+| Title | SB Sans Display Bold | 13 pt | poster title, poster number (the template's size) |
 | Subtitle | SB Sans Display (Regular) | 7 pt | author line, section headings, table heads |
 | Body | SB Sans Display Light | 7 pt | text, lists, captions, table cells, footer |
 
-In the `.pptx` the faces are referenced by name — `SB Sans Display` (Regular / Bold)
-and `SB Sans Display Light` — and not embedded, so the machine that opens the file
-needs them installed.
+In the `.pptx` the text uses `SB Sans Display` (Regular / Bold) and `SB Sans Display
+Light`, and those faces are **embedded** in the file (fetched from the CDN at export
+time), so it opens in the real typeface without SB Sans installed. `--no-embed-fonts`
+references them by name only.
 
 ## If the CDN moves
 
