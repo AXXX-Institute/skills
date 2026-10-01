@@ -309,14 +309,17 @@
     width: calc(70.8 * var(--u)); height: calc(12.707 * var(--u));
     display: flex; align-items: center; justify-content: center; gap: calc(3 * var(--u));
   }
-  /* All logos share ONE height (equal heights, not equal cells), widths follow
-     each mark's own proportions. The height is the template slot's 10.853mm,
-     scaled down just enough for the whole row to fit the band — the script at
-     the end of <body> sets --aij-logo-scale from the logos' real proportions. */
-  .aij-logo { flex: 0 0 auto; }
+  /* Wrappers represent the primary marks, so flex centres the marks, not the
+     image boxes. The complete artwork (including anniversary text) may extend
+     below/above its wrapper; fit() keeps it inside the footer. */
+  .aij-logo {
+    flex: 0 0 auto;
+    height: calc(12.707 * var(--u) * var(--aij-logo-scale, 1));
+  }
   .aij-logo img {
-    display: block;
-    height: calc(10.853 * var(--u) * var(--aij-logo-scale, 1));
+    display: block; position: relative;
+    height: calc(12.707 * var(--u) * var(--aij-logo-scale, 1) / var(--aij-mark-height, 1));
+    top: calc(-12.707 * var(--u) * var(--aij-logo-scale, 1) * var(--aij-mark-top, 0) / var(--aij-mark-height, 1));
     width: auto;
   }
   /* pptx rounded tiles "Скругленный прямоугольник 64/66": 457465 EMU squares at
@@ -466,7 +469,7 @@
     <div class="aij-contact" data-aij-field="contact">Group contact: dtarasov@hse.ru</div>
     </div>
     <div class="aij-logos">
-      <div class="aij-logo"><img src="images/airi_5_years_logo_white.svg" alt="AIRI"></div>
+      <div class="aij-logo"><img src="images/airi_5_years_logo_white.svg" alt="AIRI" data-mark-height="0.6267605634"></div>
       <div class="aij-logo"><img src="images/hse_logo_white.png" alt="HSE University"></div>
       <div class="aij-logo"><img src="images/innopolis_logo_white.png" alt="Innopolis University"></div>
     </div>
@@ -478,25 +481,46 @@
 </div>
 
 <script>
-  /* AIJ footer logos: one common height — the largest (<= the template's 10.853mm
-     slot) at which the whole row fits the logo band. Unitless scale, so it holds
-     for screen and print alike. */
+  /* Scale/align primary graphic marks, not complete image boxes. A tagline such
+     as AIRI's "5 лет" stays attached but is excluded from the reference height.
+     data-mark-height / data-mark-top are fractions of the source image height. */
   (function () {
     function fit() {
       var band = document.querySelector('.aij-logos');
       if (!band) return;
       var imgs = [].slice.call(band.querySelectorAll('img'));
-      if (!imgs.length) return;
-      band.style.setProperty('--aij-logo-scale', '1');
+      if (!imgs.length || imgs.some(function (i) { return !i.naturalWidth || !i.naturalHeight; })) return;
+      var B = band.getBoundingClientRect();
+      var F = band.closest('.aij-footer').getBoundingClientRect();
       var gap = parseFloat(getComputedStyle(band).columnGap) || 0;
-      var total = imgs.reduce(function (s, i) { return s + i.getBoundingClientRect().width; }, 0);
-      var room = band.getBoundingClientRect().width - gap * (imgs.length - 1);
-      band.style.setProperty('--aij-logo-scale', String(total > room && total > 0 ? room / total : 1));
+      var centre = B.top + B.height / 2;
+      // Keep the same outer footer margin above/below the complete artwork.
+      var margin = B.top - F.top;
+      var height = B.height;
+      var widthPerHeight = 0;
+      imgs.forEach(function (img) {
+        var h = Number(img.dataset.markHeight || 1);
+        var top = Number(img.dataset.markTop || 0);
+        if (!(h > 0 && h <= 1 && top >= 0 && top + h <= 1)) {
+          throw new Error('Invalid primary-mark bounds for ' + img.src);
+        }
+        img.parentElement.style.setProperty('--aij-mark-height', String(h));
+        img.parentElement.style.setProperty('--aij-mark-top', String(top));
+        widthPerHeight += img.naturalWidth / img.naturalHeight / h;
+        height = Math.min(height,
+          (centre - F.top - margin) / (0.5 + top / h),
+          (F.bottom - margin - centre) / ((1 - top) / h - 0.5));
+      });
+      height = Math.max(0, Math.min(height, (B.width - gap * (imgs.length - 1)) / widthPerHeight));
+      // Unitless scaling remains correct when --u changes between screen/print.
+      band.style.setProperty('--aij-logo-scale', String(height / B.height));
     }
     [].forEach.call(document.querySelectorAll('.aij-logos img'), function (i) {
       if (!i.complete) i.addEventListener('load', fit);
     });
     window.addEventListener('load', fit);
+    window.addEventListener('resize', fit);
+    window.addEventListener('beforeprint', fit);
     fit();
   })();
 </script>

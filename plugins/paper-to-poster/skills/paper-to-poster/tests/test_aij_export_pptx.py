@@ -740,3 +740,18 @@ def test_export_preserves_guides_and_content_shape_bounds(exported):
             x, w, h = (v / EMU_PER_MM for v in (shape.left, shape.width, shape.height))
             assert x >= 13.229167 - .02 and x+w <= 177.270833 + .02, shape.name
             assert y >= 39.599306 - .02 and y+h <= 247.605903 + .02, shape.name
+
+
+
+def test_export_primary_logo_marks_share_qr_axis(exported):
+    out, _ = exported
+    prs = pptx.Presentation(str(out))
+    pictures = [s for s in prs.slides[0].shapes if s.shape_type == 13 and s.top / EMU_PER_MM > 255]
+    logos = sorted([s for s in pictures if 74 < s.left / EMU_PER_MM < 147], key=lambda s: s.left)
+    assert len(logos) == 3
+    mark_heights = [logos[0].height * 89/142, logos[1].height, logos[2].height]
+    assert (max(mark_heights) - min(mark_heights)) / EMU_PER_MM < .05
+    qr = next(s for s in pictures if s.left / EMU_PER_MM > 160)
+    centres = [s.top + h/2 for s,h in zip(logos,mark_heights)] + [qr.top+qr.height/2]
+    assert (max(centres)-min(centres)) / EMU_PER_MM < .05
+    assert logos[0].height > 1.5 * logos[1].height
