@@ -50,8 +50,10 @@ glossary and `docs/adr/` for decisions.
   `aij/embed_fonts.py`; `--no-embed-fonts` opts out; `[pptx]` extra:
   python-pptx, mathml2omml, lxml, fonttools, brotli).
 - AIJ design contract: grey-guide content bounds, Display 14pt/10pt headings,
-  Text 7pt body/tables/captions; AIRI first, horizontal partner logos, centred
-  footer. AXXX rules remain unchanged. Verify through `tests/test_aij_*.py`.
+  Text 7pt body/tables/captions; AIRI first, horizontal partner logos scaled and
+  centred by primary graphic marks (AIRI: exclude the 5-year tagline), sharing
+  the text/QR centre axis. The fitter runs on image load, resize and beforeprint.
+  AXXX rules remain unchanged. Verify through `tests/test_aij_*.py`.
 - `paper-to-poster` gates (both formats): `tools/poster_check.py
   preflight|measure|polish|verify-final <poster.html|pdf>`,
   `tools/render_preview.py`, `tools/run_gates.py` (its `style` gate fails by

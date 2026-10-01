@@ -464,28 +464,79 @@ _LOGOS_JS = """
 () => {
   const band = document.querySelector('.aij-logos').getBoundingClientRect();
   const imgs = [...document.querySelectorAll('.aij-logos img')].map(i => i.getBoundingClientRect());
-  return {band: [band.x, band.y, band.width, band.height], imgs: imgs.map(r => [r.x, r.y, r.width, r.height])};
+  const footer = document.querySelector('.aij-footer').getBoundingClientRect();
+  const refs = ['.aij-footer-text', '.aij-qrs'].map(sel => {
+    const r = document.querySelector(sel).getBoundingClientRect(); return r.y + r.height / 2;
+  });
+  return {band: [band.x, band.y, band.width, band.height], footer: [footer.top,footer.bottom],
+          refs, imgs: imgs.map(r => [r.x, r.y, r.width, r.height])};
 }
 """
 
 
 @needs_render
-def test_footer_logos_share_one_height_and_fit_the_band():
-    """Designer review: logos are scaled to ONE common height (their widths follow
-    their own proportions), not each fitted into an equal cell."""
+def test_footer_primary_marks_share_height_and_text_qr_axis():
+    """Compare real artwork: AIRI's primary circular path spans y=0..89 in the
+    142-high SVG; the cropped HSE/Innopolis signs span their images' height."""
     got = _render(EXAMPLE, _LOGOS_JS)
     band = [v / PX_PER_MM for v in got["band"]]
     imgs = [[v / PX_PER_MM for v in r] for r in got["imgs"]]
     assert len(imgs) == 3
-    heights = [r[3] for r in imgs]
+    heights = [imgs[0][3] * 89 / 142, imgs[1][3], imgs[2][3]]
     assert max(heights) - min(heights) < 0.05, heights
-    assert max(heights) <= 10.853 + 0.01
-    assert imgs[-1][0] + imgs[-1][2] <= band[0] + band[2] + 0.1     # the row fits the band
-    centres = [r[1] + r[3] / 2 for r in imgs]
+    assert imgs[0][3] > 1.5 * imgs[1][3]  # AIRI image must include its extra inscription
+    assert max(heights) <= band[3] + 0.01
+    assert imgs[-1][0] + imgs[-1][2] <= band[0] + band[2] + 0.1
+    centres = [r[1] + h / 2 for r, h in zip(imgs, heights)]
+    centres += [v / PX_PER_MM for v in got['refs']]
+    assert max(centres) - min(centres) < 0.05
     assert abs((imgs[0][0] + imgs[-1][0] + imgs[-1][2]) / 2 - (band[0] + band[2] / 2)) < 0.05
     gaps = [b[0] - a[0] - a[2] for a, b in zip(imgs, imgs[1:])]
     assert max(gaps) - min(gaps) < 0.05
-    assert max(centres) - min(centres) < 0.05                          # and sits on one line
+    top, bottom = [v / PX_PER_MM for v in got['footer']]
+    assert all(y >= top and y + h <= bottom for x, y, w, h in imgs)
+
+
+@needs_render
+@pytest.mark.parametrize('qr_count', [0, 1, 2])
+def test_scaffold_mark_offset_and_print_refit(scaffold_dir, qr_count):
+    import prepare_assets
+    d = scaffold_dir / f'mark-offset-{qr_count}'
+    d.mkdir(exist_ok=True)
+    prepare_assets.prepare(d / 'images')
+    (d / 'images' / 'partner.svg').write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100">'
+        '<rect y="20" width="180" height="40" fill="white"/>'
+        '<rect y="85" width="200" height="15" fill="white"/></svg>')
+    html = TEMPLATE_HTML.read_text().replace(
+        '<!-- <div class="aij-qr"><img src="images/qr.png" alt="Project page QR"></div> -->',
+        '<div class="aij-qr"></div>' * qr_count)
+    # Synthetic partner has genuine artwork above/below its primary sign.
+    needle = 'data-mark-height="0.6267605634"></div>'
+    html = html.replace(needle, needle + '\n<div class="aij-logo"><img src="images/partner.svg" '
+                        'data-mark-height="0.4" data-mark-top="0.2"></div>')
+    (d / 'poster.html').write_text(html)
+    got = _render(d / 'poster.html', """() => {
+      const measure = () => {
+        const b=document.querySelector('.aij-logos').getBoundingClientRect();
+        const f=document.querySelector('.aij-footer').getBoundingClientRect();
+        const imgs=[...document.querySelectorAll('.aij-logos img')].map(i=> {
+          const r=i.getBoundingClientRect(); return [r.top,r.height,r.left,r.width]; });
+        return {imgs,centre:b.top+b.height/2,footer:[f.top,f.bottom]};
+      };
+      const before=measure();
+      window.dispatchEvent(new Event('beforeprint'));
+      window.dispatchEvent(new Event('resize'));
+      return [before,measure()];
+    }""")
+    assert got[0] == got[1]  # repeat fitting never compounds scale or offsets
+    data = got[1]
+    assert len(data['imgs']) == 2
+    airi, partner = data['imgs']
+    assert airi[1] * 89/142 == pytest.approx(partner[1] * .4, abs=.1)
+    assert airi[0] + airi[1] * 89/142/2 == pytest.approx(data['centre'],abs=.1)
+    assert partner[0] + partner[1] * .4 == pytest.approx(data['centre'],abs=.1)
+    assert all(i[0] >= data['footer'][0] and i[0]+i[1] <= data['footer'][1] for i in data['imgs'])
 
 
 _HEADINGS_JS = """

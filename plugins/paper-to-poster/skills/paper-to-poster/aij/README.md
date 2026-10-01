@@ -19,7 +19,7 @@ formats), `0011` (fonts from the CDN, frame bundled), `0012` (PPTX export).
 | `prepare_assets.py` | Copies the two frame graphics and required `airi_5_years_logo_white.svg` into a poster's `images/`. |
 | `export_pptx.py` | Renders a finished AIJ poster and writes the editable `.pptx`: native text, native tables, pictures, and formulas as native Office equations with picture fallbacks, with SB Sans Display and Text embedded. Needs the `[pptx]` extra. |
 | `embed_fonts.py` | Fetches the SB Sans Display and Text faces the text uses from the CDN at export time and embeds them in the `.pptx` (EOT parts + `<p:embeddedFontLst>`, the structure PowerPoint writes) — `docs/adr/0013`. |
-| `white_logo.py` | Makes the white version of an affiliation logo (`<name>_white.png`, high-resolution; `--svg` for a vector) — the template shows logos in white, straight on the gradient, all at one visible height (PNG output trims transparent outer margins). |
+| `white_logo.py` | Makes the white version of an affiliation logo (`<name>_white.png`, high-resolution; `--svg` for a vector) — the template shows logos in white, straight on the gradient, scaled by the primary graphic sign, excluding taglines (PNG output trims transparent outer margins). |
 
 The frame assets are the organisers' — see `../NOTICE.md`.
 
@@ -61,9 +61,16 @@ Display Regular 7pt authors and Display Light 7pt footer.
 
 AIRI's supplied five-year white logo is always first, followed by horizontal
 partner institution logos. No AXXX or internal AIRI laboratory logos. Trim
-transparent margins, preserve proportions, use one visible height and equal gaps.
-Retain the footer order **text left → logos centre → QR right**, with all three
-groups vertically centred. These rules affect AIJ only, not AXXX posters.
+transparent margins and preserve proportions. Scale and centre by **primary graphic
+signs**, excluding taglines: AIRI's circle is 89/142 of the image height, set by
+`data-mark-height="0.6267605634"` on its image. "5 лет" stays attached below.
+For other assets, set `data-mark-height` and `data-mark-top` to the primary sign's
+height and top as fractions of the source image height (defaults 1 and 0).
+Use equal sign heights and equal gaps between complete logo images. The fitter
+maximises sign height within the logo band while keeping all artwork in the footer.
+Retain **text left → logos centre → QR right**: the primary signs' centres share
+the text/QR centre axis; their heights need not equal the QR's height.
+These rules affect AIJ only, not AXXX posters.
 
 The `.pptx` embeds the used Display and Text families, including Semibold as
 weight-specific families, downloaded from the CDN at export time. This is checked

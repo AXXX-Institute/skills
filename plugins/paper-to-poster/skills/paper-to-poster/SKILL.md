@@ -154,14 +154,24 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
   laboratory marks** (including FusionBrain); this restriction is AIJ-only.
   Use **horizontal** logo variants, white on the gradient with no plate. Generate
   white partner assets with `python aij/white_logo.py images/<partner>.svg`.
-  Trim transparent outer margins so equal image heights mean equal visible heights;
-  the PNG path trims automatically. Preserve proportions; never stretch logos.
-  The `.aij-logos` strip centres the group, uses one common height and equal gaps;
-  its fitting script reduces all logos together if needed. AIRI must not be removed.
-- **Footer alignment:** retain **text left → logos centre → QR right**. Centre the
-  logo row vertically with both the whole text block (`.aij-footer-text`) and the
-  QR tile group. Do not align logo tops or text baselines in place of group centres.
-  Check the rendered footer for overlap; shorten affiliation/contact lines if needed.
+  Trim transparent outer margins (the PNG path trims automatically), preserve
+  proportions, and compare **the primary graphic signs**, not full image boxes or
+  wordmark/caption bounds. AIRI's circular sign is 89 units high in a 142-unit-high
+  SVG: keep `data-mark-height="0.6267605634"` on its `<img>` (89/142).
+  The "5 лет" inscription remains attached below, but **never determines scale or
+  vertical alignment**. For partners, inspect the graphic sign: `data-mark-height`
+  is its height/source-image-height; `data-mark-top` is its top/source-image-height
+  (defaults 1 and 0 suit trimmed signs spanning the full height). Do not shrink or
+  detach the anniversary inscription independently or distort the supplied artwork.
+  The fitting script gives the signs one common, largest height that fits the logo
+  band and keeps the complete artwork inside the footer; equal gaps are measured
+  between the complete logo images. AIRI must not be removed.
+- **Footer alignment:** retain **text left → logos centre → QR right**. Put the
+  **centres of the primary graphic signs** on the same horizontal axis as the
+  centre of the whole text block (`.aij-footer-text`) and the QR tile group.
+  This means a shared axis, **not** signs as tall as the QR. Do not centre AIRI by
+  its complete image box: that would shift the main mark upwards because of "5 лет".
+  Keep text/QR sizes and footer slots; shorten text if it overlaps another slot.
 - **QR codes:** 0, 1 or 2 `.aij-qr` tiles (one QR takes the outer slot), generated
   offline — never a remote QR-service URL. None → delete `.aij-qrs`.
 
