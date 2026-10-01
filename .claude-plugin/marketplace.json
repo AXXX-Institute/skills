@@ -10,7 +10,7 @@
     {
       "name": "paper-to-poster",
       "source": "./plugins/paper-to-poster",
-      "description": "Turn a paper into an AXXX-branded, print-ready academic conference poster (single HTML/CSS → PDF), with affiliation logos fetched from this repo's asset releases. AGPL-3.0.",
+      "description": "Turn a paper into a print-ready academic conference poster (single HTML/CSS → PDF) in one of two fixed formats — AXXX (AXXX brand) or AIJ (AI Journey organisers' template, plus an editable .pptx) — with affiliation logos fetched from this repo's asset releases. AGPL-3.0.",
       "version": "0.1.0",
       "author": {
         "name": "AXXX-Institute"

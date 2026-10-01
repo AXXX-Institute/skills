@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  TEMPLATE: portrait_aij  —  the AIJ (AI Journey) poster format
+  Part of the paper-to-poster skill (AGPL-3.0, see ../LICENSE / ../NOTICE.md).
+  The frame graphics (images/aij_background.png, images/aij_mark.svg) come from
+  the AI Journey organisers' poster template (aij/assets/aij_template.pptx);
+  copy them in with `python aij/prepare_assets.py --dest <poster>/images`.
+
+  CANVAS:   190.5mm × 275.2mm PORTRAIT — exactly the organisers' .pptx slide.
+            FIXED: do not retarget. The frame geometry below is transcribed
+            from the .pptx (EMU / 36000 = mm); footer groups share a vertical centre.
+  FRAME:    gradient background + white panel (one image), AIJ mark, green
+            poster number (№), title, author line, footer affiliations, group
+            contact, WHITE affiliation logos, QR tiles. Never recolour the frame.
+  CONTENT:  the white panel holds TWO COLUMNS of FLAT SECTIONS (Display heading,
+            Body text, figures, tables, equations) — no card chrome / shadows.
+  TYPE:     SB Sans Display + Text (aij/fonts.css, Sber CDN):
+              Title    = Semibold 600, 13pt (poster title, poster number — as the template)
+              Headings = Display Bold 14pt; subheadings = Display Semibold 10pt
+              Body = Text Regular/Semibold 7pt; captions/tables = Text Regular 7pt
+  MEASURE:  every layout-critical element keeps its data-measure-role.
+  EXPORT:   after the gates pass, `python aij/export_pptx.py poster.html`
+            writes the editable poster.pptx (docs/adr/0012).
+  ============================================================
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TODO: Poster title — AI Journey</title>
+
+<!-- MathJax v3 (SVG output). The pptx exporter reads each formula's MathML
+     from MathJax and re-emits it as a native Office equation. -->
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      packages: {'[+]': ['ams']}
+    },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+  /* =========================================================
+     CANVAS — the organisers' slide: 6858000 × 9907588 EMU.
+     ========================================================= */
+  @page { size: 190.5mm 275.2mm; margin: 0; }
+
+  /* aij-fonts:begin */
+/* SB Sans Display — AIJ frame and headings (Light 300 / Regular 400 /
+   Semibold 600 / Bold 700). Loaded from Sber's public design-system CDN; the font files are
+   NEVER vendored into this repo, its gallery examples, or a poster repo
+   (docs/adr/0011). This file is the single source of the CDN URLs:
+   aij/sync_fonts.py copies it into the marked block of an AIJ poster. */
+@font-face {
+  font-family: "SB Sans Display";
+  src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansDisplay.0.2.0/SBSansDisplay-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+}
+@font-face {
+  font-family: "SB Sans Display";
+  src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansDisplay.0.2.0/SBSansDisplay-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "SB Sans Display";
+  src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansDisplay.0.2.0/SBSansDisplay-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+}
+@font-face {
+  font-family: "SB Sans Display";
+  src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansDisplay.0.2.0/SBSansDisplay-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* SB Sans Text — white-area body, captions and tables. */
+@font-face {
+  font-family: "SB Sans Text";
+  src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansText.0.2.0/SBSansText-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "SB Sans Text";
+  src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansText.0.2.0/SBSansText-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+}
+/* aij-fonts:end */
+
+  :root {
+    /* ===== DESIGN TOKENS ===== */
+    /* Frame colours (sampled from the organisers' template — do not change). */
+    --aij-number:     #43D374;   /* poster number "№" */
+    --aij-on-frame:   #FFFFFF;   /* header / footer text on the gradient */
+    --aij-chip:       #FFFFFF;   /* QR tiles */
+    --aij-slide:      #FFFFFF;   /* slide background — shows through the panel, which is transparent in the frame image */
+
+    /* Content-area colours (inside the white panel). */
+    --aij-ink:        #000000;   /* Body text */
+    --aij-heading:    #000000;   /* section + table headings: black only, as the template */
+    --aij-ink-soft:   #000000;   /* captions, secondary text */
+    --aij-accent:     #26359A;   /* keywords — frame blue (never headings) */
+    --aij-accent-2:   #1E9E53;   /* "best" table cells — frame green, darkened for white */
+    --aij-alert:      #C0392B;   /* negatives only */
+    --aij-rule:       #D5DAE6;   /* hairlines */
+    --aij-tint:       #F1F4FA;   /* table head / equation tint */
+    --bg-screen:      #2B2B2B;   /* screen preview backdrop only */
+
+    /* Base unit. Print: 1mm. Screen preview: 1mm at 96 dpi. */
+    --u: 3.7795px;
+
+    /* Frame type is unchanged; white-area roles use the designer's scale. */
+    --fs-title:    calc(4.5861 * var(--u));   /* 13pt — as the organisers' template sets title and № */
+    --fs-subtitle: calc(2.4694 * var(--u));   /* 7pt  */
+    --fs-body:     calc(2.4694 * var(--u));   /* 7pt  */
+
+    --fs-heading: calc(4.938889 * var(--u)); /* 14pt */
+    --fs-subheading: calc(3.527778 * var(--u)); /* 10pt */
+    --font-aij-text: "SB Sans Text", Arial, sans-serif;
+
+    --font-aij: "SB Sans Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+    /* ===== END DESIGN TOKENS ===== */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg-screen);
+    font-family: var(--font-aij);
+    font-weight: 300;
+    color: var(--aij-ink);
+    -webkit-font-smoothing: antialiased;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .poster {
+    position: relative;
+    width: calc(190.5 * var(--u));
+    height: calc(275.2 * var(--u));
+    margin: 20px auto;
+    overflow: hidden;
+    background: var(--aij-slide);
+  }
+
+  /* ---------- FRAME: background (gradient frame; the panel is transparent) ----------
+     pptx "Рисунок 10": off (-73005, -61736) ext (7004011, 10031060) EMU. */
+  .aij-bg {
+    position: absolute;
+    left: calc(-2.0279 * var(--u));
+    top: calc(-1.7149 * var(--u));
+    width: calc(194.5559 * var(--u));
+    height: calc(278.6406 * var(--u));
+    display: block;
+    z-index: 0;
+  }
+
+  /* ---------- FRAME: header (above the white panel, y < 33.4mm) ---------- */
+  .aij-header {
+    position: absolute; left: 0; top: 0;
+    width: 100%; height: calc(33.36 * var(--u));
+    z-index: 1;
+  }
+  /* pptx "TextBox 70": off (466490, 85821); +1.27mm top inset. */
+  .aij-number {
+    position: absolute;
+    left: calc(12.958 * var(--u)); top: calc(3.654 * var(--u));
+    font-weight: 600; font-size: var(--fs-title);
+    line-height: 0.96;
+    color: var(--aij-number);
+    white-space: nowrap;
+  }
+  /* pptx "TextBox 2" (title) off (466490, 315868) and "TextBox 9" (authors)
+     off (475076, 782093): two independent boxes, as in the template. Title
+     lines at 80% spacing; keep the title to TWO lines (≈70 characters) or it
+     runs into the author line. The organisers' boxes are 83.9mm wide; we let
+     both run to 5mm short of the AIJ mark (95mm) so typical titles fit. */
+  .aij-title {
+    position: absolute;
+    left: calc(12.958 * var(--u)); top: calc(10.044 * var(--u));
+    width: calc(95 * var(--u));
+    font-weight: 600; font-size: var(--fs-title);
+    line-height: 0.96;
+    color: var(--aij-on-frame);
+  }
+  .aij-authors {
+    position: absolute;
+    left: calc(13.197 * var(--u)); top: calc(22.995 * var(--u));
+    width: calc(95 * var(--u));
+    font-weight: 400; font-size: var(--fs-subtitle);
+    line-height: 1.2;
+    color: var(--aij-on-frame);
+  }
+  .aij-authors sup, .aij-affiliations sup { font-size: 0.7em; line-height: 0; }
+  /* pptx "Рисунок 8" (AIJ mark SVG): off (4079631, 356148) ext (2303117, 388573). */
+  .aij-mark {
+    position: absolute;
+    left: calc(113.323 * var(--u)); top: calc(9.893 * var(--u));
+    width: calc(63.975 * var(--u)); height: calc(10.794 * var(--u));
+    display: block;
+  }
+
+  /* CONTENT AREA: original grey guides (1/8 pt from slide origin):
+     x=300..4020, y=898..5615 => x=13.229167..177.270833mm,
+     y=39.599306..247.605903mm. White panel is larger; never fill to its edges. */
+  .body-grid {
+    position: absolute;
+    left: calc(13.229167 * var(--u)); top: calc(39.599306 * var(--u));
+    width: calc(164.041666 * var(--u)); height: calc(208.006597 * var(--u));
+    font-family: var(--font-aij-text); font-weight: 400;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: calc(7 * var(--u));
+    z-index: 1;
+    min-height: 0;
+  }
+  .column {
+    display: flex; flex-direction: column;
+    gap: calc(4 * var(--u));
+    min-width: 0; min-height: 0;
+  }
+  /* Flat section: no background, border or shadow. A hairline separates
+     consecutive sections of a column. */
+  .section { min-width: 0; }
+  .section + .section { border-top: calc(0.25 * var(--u)) solid var(--aij-rule); padding-top: calc(3 * var(--u)); }
+
+  .section-title {
+    font-family: var(--font-aij);
+    font-weight: 700; font-size: var(--fs-heading);
+    line-height: 1.2;
+    color: var(--aij-heading);
+    letter-spacing: 0;
+    margin-bottom: calc(1.5 * var(--u));
+  }
+  /* Keep a real space between the number and the heading text (not a margin):
+     the pptx export carries text, not inline-box margins. */
+  .section-title .num { color: var(--aij-heading); }
+
+  .section-subtitle {
+    font-family: var(--font-aij); font-size: var(--fs-subheading); font-weight: 600;
+    line-height: 1.2; color: var(--aij-heading);
+    margin: calc(1.5 * var(--u)) 0;
+  }
+  p, li, .caption, td {
+    font-family: var(--font-aij-text);
+    font-weight: 400; font-size: var(--fs-body);
+    line-height: 1.25;
+    color: var(--aij-ink);
+  }
+  p + p, p + ul, ul + p, p + .figure, .figure + p, p + .eqn, .eqn + p,
+  p + table, table + p, ul + .figure, .figure + ul, table + .figure, .figure + table {
+    margin-top: calc(1.5 * var(--u));
+  }
+  ul { padding-left: calc(3.2 * var(--u)); list-style: disc; }
+  li + li { margin-top: calc(0.6 * var(--u)); }
+  strong, b { font-weight: 600; }
+  .caption strong, .caption b, .result-table strong, .result-table b { font-weight: 400; }
+  .keyword { color: var(--aij-accent); font-weight: 400; }
+  .keyword-red { color: var(--aij-alert); font-weight: 400; }
+
+  .figure { text-align: center; }
+  .figure img { display: block; height: auto; margin: 0 auto; }
+  .figure img:not([class*="w-"]) { width: 100%; }
+  .figure .caption { color: var(--aij-ink-soft); margin-top: calc(1 * var(--u)); text-align: left; }
+
+  .eqn {
+    background: var(--aij-tint);
+    padding: calc(1.2 * var(--u)) calc(2 * var(--u));
+    font-size: var(--fs-body);
+    text-align: center;
+  }
+  .eqn mjx-container > svg { max-width: 100%; height: auto; }
+
+  .result-table { width: 100%; border-collapse: collapse; }
+  .result-table th {
+    font-family: var(--font-aij-text);
+    font-weight: 400; font-size: var(--fs-body); line-height: 1.2;
+    color: var(--aij-heading);
+    background: var(--aij-tint);
+    padding: calc(0.8 * var(--u)) calc(1.2 * var(--u));
+    text-align: center;
+  }
+  .result-table td {
+    padding: calc(0.6 * var(--u)) calc(1.2 * var(--u));
+    text-align: center;
+    border-bottom: calc(0.25 * var(--u)) solid var(--aij-rule);
+  }
+  .result-table .method { text-align: left; }
+  .result-table .best { font-weight: 400; color: var(--aij-accent-2); }
+  .result-table .neg { color: var(--aij-alert); }
+
+  /* ---------- FRAME: footer (below the white panel, y ≥ 257.6mm) ---------- */
+  .aij-footer {
+    position: absolute; left: 0; top: calc(257.582 * var(--u));
+    width: 100%; height: calc(17.618 * var(--u));
+    z-index: 1;
+  }
+  /* pptx "Группа 3": affiliations (494841, 9273550) w 2636836; group contact (489698, 9608123). */
+  .aij-affiliations, .aij-contact {
+    position: absolute;
+    width: calc(73.245 * var(--u));
+    font-weight: 300; font-size: var(--fs-body);
+    line-height: 1.2;
+    color: var(--aij-on-frame);
+  }
+  .aij-footer-text {
+    position: absolute; left: calc(13.603 * var(--u)); top: calc(1.089 * var(--u));
+    width: calc(59 * var(--u)); height: calc(12.707 * var(--u));
+    display: flex; flex-direction: column; justify-content: center; gap: calc(1 * var(--u));
+  }
+  .aij-affiliations, .aij-contact { position: static; width: 100%; }
+  /* Affiliation logos, as in the template: WHITE marks straight on the gradient
+     (no plate), in the pptx logo group's band — "Группа 32" at (2705350,
+     9272966) EMU, slots 10.853mm tall — stopping short of the QR tiles. Use the
+     white partner versions from `python aij/white_logo.py images/<logo>.svg`.
+     AIRI first, followed by partner institutions; no internal lab marks. */
+  .aij-logos {
+    position: absolute;
+    left: calc(75.149 * var(--u)); top: calc(1.089 * var(--u));
+    width: calc(70.8 * var(--u)); height: calc(12.707 * var(--u));
+    display: flex; align-items: center; justify-content: center; gap: calc(3 * var(--u));
+  }
+  /* All logos share ONE height (equal heights, not equal cells), widths follow
+     each mark's own proportions. The height is the template slot's 10.853mm,
+     scaled down just enough for the whole row to fit the band — the script at
+     the end of <body> sets --aij-logo-scale from the logos' real proportions. */
+  .aij-logo { flex: 0 0 auto; }
+  .aij-logo img {
+    display: block;
+    height: calc(10.853 * var(--u) * var(--aij-logo-scale, 1));
+    width: auto;
+  }
+  /* pptx rounded tiles "Скругленный прямоугольник 64/66": 457465 EMU squares at
+     x 5359734 / 5930532, y 9312133; QR 360766 EMU centred inside. Right-aligned
+     so a single QR takes the outer slot. */
+  .aij-qrs {
+    position: absolute;
+    right: calc(13.053 * var(--u)); top: calc(1.089 * var(--u));
+    display: flex; gap: calc(3.155 * var(--u));
+  }
+  .aij-qr {
+    width: calc(12.707 * var(--u)); height: calc(12.707 * var(--u));
+    padding: calc(1.343 * var(--u));
+    background: var(--aij-chip);
+    border-radius: calc(1.06 * var(--u));
+  }
+  .aij-qr img { display: block; width: 100%; height: 100%; }
+
+  .w-50 { width: 50%; } .w-55 { width: 55%; } .w-60 { width: 60%; } .w-65 { width: 65%; }
+  .w-70 { width: 70%; } .w-75 { width: 75%; } .w-80 { width: 80%; } .w-85 { width: 85%; }
+  .w-90 { width: 90%; } .w-95 { width: 95%; } .w-100 { width: 100%; }
+  .nowrap { white-space: nowrap; }
+
+  /* PRINT OVERRIDE — KEEP LAST. */
+  @media print {
+    html, body { background: none; }
+    .poster { margin: 0; width: 190.5mm; height: 275.2mm; page-break-after: avoid; }
+    :root { --u: 1mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="poster" data-measure-role="poster">
+
+  <img class="aij-bg" src="images/aij_background.png" alt="">
+
+  <!-- =========================== HEADER (frame) =========================== -->
+  <header class="aij-header" data-measure-role="header">
+    <!-- Default poster number. -->
+    <div class="aij-number" data-aij-field="number">№1</div>
+    <h1 class="aij-title" data-aij-field="title">TODO: Poster title — keep it to two lines at 13pt</h1>
+    <div class="aij-authors" data-aij-field="authors">TODO Author<sup>1</sup>, TODO Author<sup>2</sup>, TODO Author<sup>1,2</sup></div>
+    <img class="aij-mark" src="images/aij_mark.svg" alt="AI Journey">
+  </header>
+
+  <!-- ============================ CONTENT AREA ============================
+       Two columns of flat sections. Balance the columns with CONTENT until
+       `poster_check.py measure` passes (spread < 5 px, gap to footer 30–50 px).
+       ======================================================================= -->
+  <div class="body-grid" data-measure-role="body">
+
+    <div class="column" data-measure-role="column">
+      <div class="section" data-measure-role="card">
+        <div class="section-title"><span class="num">1</span>&ensp;TODO: Motivation</div>
+        <p>TODO: 2–3 sentences on the problem. Use <span class="keyword">keywords</span> sparingly.</p>
+        <ul>
+          <li>TODO: pain point 1.</li>
+          <li>TODO: pain point 2.</li>
+        </ul>
+      </div>
+      <div class="section" data-measure-role="card">
+        <div class="section-title"><span class="num">2</span>&ensp;TODO: Method</div>
+        <div class="section-subtitle">TODO: Approach</div>
+        <p>TODO: how the method works, with inline math such as $x \in \mathbb{R}^d$.</p>
+        <div class="eqn">$$f(x) = \text{TODO}$$</div>
+        <div class="figure">
+          <!-- <img src="images/method.png" alt="Method overview"> -->
+          <div class="caption">TODO: one-line caption.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="column" data-measure-role="column">
+      <div class="section" data-measure-role="card">
+        <div class="section-title"><span class="num">3</span>&ensp;TODO: Results</div>
+        <table class="result-table">
+          <thead><tr><th class="method">Method</th><th>Metric A</th><th>Metric B</th></tr></thead>
+          <tbody>
+            <tr><td class="method">Baseline</td><td>x.xx</td><td>x.xx</td></tr>
+            <tr><td class="method">Ours</td><td class="best">x.xx</td><td class="best">x.xx</td></tr>
+          </tbody>
+        </table>
+        <p>TODO: one-sentence interpretation of the table.</p>
+      </div>
+      <div class="section" data-measure-role="card">
+        <div class="section-title"><span class="num">4</span>&ensp;TODO: Takeaways</div>
+        <ul>
+          <li><strong>Idea.</strong> TODO.</li>
+          <li><strong>Result.</strong> TODO.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================== FOOTER (frame) =========================== -->
+  <footer class="aij-footer" data-measure-role="footer">
+    <div class="aij-footer-text">
+    <div class="aij-affiliations" data-aij-field="affiliations"><sup>1</sup> TODO Institution, <sup>2</sup> TODO Institution</div>
+    <div class="aij-contact" data-aij-field="contact">Group contact: TODO@example.com</div>
+    </div>
+    <!-- AIRI always first. Use horizontal white partner institution logos after it.
+         No AXXX or internal lab marks. Trim transparent margins before fitting. -->
+    <div class="aij-logos">
+      <div class="aij-logo"><img src="images/airi_5_years_logo_white.svg" alt="AIRI"></div>
+    </div>
+    <!-- QR tiles: 0, 1 or 2. Generate QR codes offline (qrencode / python -m qrcode);
+         never a remote QR-service URL. No QR? Delete the whole .aij-qrs block. -->
+    <div class="aij-qrs">
+      <!-- <div class="aij-qr"><img src="images/qr.png" alt="Project page QR"></div> -->
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  /* AIJ footer logos: one common height — the largest (<= the template's 10.853mm
+     slot) at which the whole row fits the logo band. Unitless scale, so it holds
+     for screen and print alike. */
+  (function () {
+    function fit() {
+      var band = document.querySelector('.aij-logos');
+      if (!band) return;
+      var imgs = [].slice.call(band.querySelectorAll('img'));
+      if (!imgs.length) return;
+      band.style.setProperty('--aij-logo-scale', '1');
+      var gap = parseFloat(getComputedStyle(band).columnGap) || 0;
+      var total = imgs.reduce(function (s, i) { return s + i.getBoundingClientRect().width; }, 0);
+      var room = band.getBoundingClientRect().width - gap * (imgs.length - 1);
+      band.style.setProperty('--aij-logo-scale', String(total > room && total > 0 ? room / total : 1));
+    }
+    [].forEach.call(document.querySelectorAll('.aij-logos img'), function (i) {
+      if (!i.complete) i.addEventListener('load', fit);
+    });
+    window.addEventListener('load', fit);
+    fit();
+  })();
+</script>
+
+</body>
+</html>

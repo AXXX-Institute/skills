@@ -36,6 +36,17 @@ figures = [
     "PyMuPDF>=1.23",
     "Pillow>=10",
 ]
+# AIJ format only: the editable .pptx export (aij/export_pptx.py) — native
+# text/tables via python-pptx, formulas as Office equations via mathml2omml,
+# embedded fonts via fontTools; also aij/white_logo.py (lxml).
+pptx = [
+    "python-pptx>=1.0",
+    "mathml2omml>=0.0.2",
+    "lxml>=4.9",
+    # embedding SB Sans Display (aij/embed_fonts.py): woff2 -> TrueType
+    "fonttools>=4.40",
+    "brotli>=1.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/Chenruishuo/posterly"

@@ -22,18 +22,61 @@ several plugins).
 
 ## paper-to-poster
 The skill ported from upstream **posterly** that turns a paper into a print-ready
-conference poster, restyled so it **always** emits the AXXX brand look (no neutral
-fallback). Keeps posterly's measure/polish gates and tooling.
+conference poster in one of its fixed **poster formats** ([[axxx-format]] or
+[[aij-format]]) — never a neutral/unbranded look. Keeps posterly's measure/polish
+gates and tooling.
 _Avoid:_ "posterly" (that names the unmodified upstream skill we ported from).
 
+## Poster format
+A named, fixed visual identity a `paper-to-poster` poster is built in: its canvas,
+layout scaffold(s), typography, palette, and brand assets, taken as a whole. The
+skill ships exactly two — **AXXX** and **AIJ** — and every poster is in exactly
+one of them.
+_Avoid:_ "theme" for the whole thing (a theme is only the colour/type layer of a
+format); "template" (a template is one layout scaffold inside a format); "style".
+
+## AXXX format
+The original [[poster-format]]: the AXXX brand look on posterly's three layout
+scaffolds (4-column landscape, hero landscape, 2-column portrait), with venue-set
+canvas sizes. Its colour/type layer is the [[axxx-theme]].
+_Avoid:_ "the default format", "old format".
+
 ## AXXX theme
-The single, baked-in brand style the `paper-to-poster` skill always applies:
-the AXXX `:root` token block (accent `#0689D4`, deep `#053957`, light-blue tints,
-one semantic red), the **Inter** typeface, the top accent bar, arrow-glyph bullets,
-and the affiliation logo set. There is no neutral/house-style fallback — the skill
-is AXXX-only.
+The colour/type layer of the [[axxx-format]]: the AXXX `:root` token block (accent
+`#0689D4`, deep `#053957`, light-blue tints, one semantic red), the **Inter**
+typeface, the top accent bar, arrow-glyph bullets, and the affiliation logo set.
 _Avoid:_ "neutral theme", "house style" (the upstream concepts we removed);
 "palette derivation" (the upstream step we dropped).
+
+## AIJ format
+The [[poster-format]] for the **AI Journey (AIJ)** conference, with the organisers'
+fixed frame and a content hierarchy of SB Sans Display headings/subheadings and
+SB Sans Text body, captions and tables. Its affiliation strip starts with AIRI,
+followed by partner institutions; internal laboratory marks are excluded.
+_Avoid:_ "AI Journey theme", "Sber template", "AIJ theme".
+
+## AIJ frame
+The fixed, organiser-supplied chrome of the [[aij-format]]: the gradient background
+around the white panel, the AIJ header mark, the green poster number (**№**), and the
+header/footer slots (title, author line, numbered affiliations, group contact,
+white affiliation logos, QR tiles). Never recoloured or rearranged.
+_Avoid:_ "background" for the whole frame (the background is one part of it);
+"border".
+
+## AIJ content area
+The paper-content region inside the grey alignment guides within the white panel
+of an [[aij-format]] poster. Contains flat sections without card chrome or shadows;
+the surrounding white panel extends beyond the usable region.
+_Avoid:_ "card" for an AIJ section; "canvas" for this region; "white panel" when
+referring specifically to the guide-bounded content area.
+
+## PPTX export
+The editable `.pptx` deliverable of an [[aij-format]] poster: the finished HTML
+poster re-expressed inside the organisers' own template file, with native text,
+tables, and Office equations. Always produced for AIJ, never for AXXX. The HTML
+poster stays the **source of truth**; edits made in the `.pptx` do not flow back.
+_Avoid:_ "pptx version" / "pptx source" (it is an export, not a second source);
+"slide" (the deliverable is a one-page poster, not a deck).
 
 ## Affiliation logo
 A brand mark for a contributing institution (AIRI, FusionBrain, HSE, Innopolis, …)
@@ -64,8 +107,9 @@ _Avoid:_ "rolling tag" (a moving tag breaks the pinned-reproducibility contract)
 
 ## Pages gallery
 The static GitHub Pages site of `AXXX-Institute/skills`
-(`axxx-institute.github.io/skills`) that showcases the four posterly examples
-re-rendered in AXXX style, listed by an `index.html`. Distinct from a single
+(`axxx-institute.github.io/skills`) that showcases posters in both
+[[poster-format]]s — the four posterly examples re-rendered in the AXXX format
+and an AIJ-format example — listed by an `index.html`. Distinct from a single
 poster repo's own Pages deploy.
 _Avoid:_ "the demo" (the gallery is the published showcase, not a smoke test).
 

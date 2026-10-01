@@ -39,6 +39,34 @@ glossary and `docs/adr/` for decisions.
   composes the model policy and JSON/verdict helpers around a namespaced skill.
 - Adversarial review: `/adversarial-review` or `$adversarial-review` launches a
   fresh-context reviewer for a committed change; it must be invoked explicitly.
+- `paper-to-poster` runtime: `/paper-to-poster` or `$paper-to-poster` builds a
+  poster in one of two fixed **poster formats** (Step 0 asks which). **AXXX**:
+  `templates/*_axxx.html` + `axxx/fetch_assets.py` + `axxx/apply_theme.py`.
+  **AIJ** (AI Journey): `templates/portrait_aij.html` + `aij/prepare_assets.py`
+  (copies the required AIRI five-year white logo; `axxx/fetch_assets.py` for partner logos, `aij/white_logo.py` for their white
+  versions), fonts from the CDN via `aij/fonts.css` (`aij/sync_fonts.py
+  [--check]`), then the always-on editable export
+  `python aij/export_pptx.py poster/poster.html` (embeds SB Sans Display and Text via
+  `aij/embed_fonts.py`; `--no-embed-fonts` opts out; `[pptx]` extra:
+  python-pptx, mathml2omml, lxml, fonttools, brotli).
+- AIJ design contract: grey-guide content bounds, Display 14pt/10pt headings,
+  Text 7pt body/tables/captions; AIRI first, horizontal partner logos, centred
+  footer. AXXX rules remain unchanged. Verify through `tests/test_aij_*.py`.
+- `paper-to-poster` gates (both formats): `tools/poster_check.py
+  preflight|measure|polish|verify-final <poster.html|pdf>`,
+  `tools/render_preview.py`, `tools/run_gates.py` (its `style` gate fails by
+  design on AIJ — rules 4, 6–8: posterly's two-accent palette and font rules).
+  Run from the skill dir.
+- `paper-to-poster` tests: `python -m pytest tests` inside
+  `plugins/paper-to-poster/skills/paper-to-poster` (needs Playwright/Chromium;
+  `tests/test_aij_*.py` also need network for the SB Sans CDN and MathJax, and
+  the `[pptx]` extra — they skip otherwise). Not run in CI (CI only
+  byte-compiles this plugin).
+- Poster gallery: `plugins/paper-to-poster/skills/paper-to-poster/examples/`
+  (published at `/paper-to-poster/gallery.html`); the AIJ example
+  `compression_horizon_aij/` ships `poster.pdf` + `poster.pptx` — re-render both
+  after changing `templates/portrait_aij.html` or `aij/export_pptx.py` (the public
+  copy embeds SB Sans Display and Text like any export — maintainers' decision, ADR 0013).
 - GitHub Pages catalog: `.github/workflows/pages.yml` publishes
   `site/index.html` after pushes to `main` that affect `site/**`.
 - Per-skill documentation: every `plugins/<plugin>/skills/<skill>/README.md`
