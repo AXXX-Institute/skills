@@ -14,12 +14,12 @@ formats), `0011` (fonts from the CDN, frame bundled), `0012` (PPTX export).
 | `assets/aij_template.pptx` | The organisers' template (190.5×275.2 mm slide) with its **embedded fonts stripped** and its sample/instruction artwork (arrows, the "COMPANY" sample-logo sheet, the sample QR, the package thumbnail) **blanked** — the slide XML, master, background and AIJ mark are byte-identical to the organisers' file. The base of the PPTX export and the geometry reference the tests compare against. |
 | `assets/aij_background.png` | Frame background: the gradient around the white panel (the panel itself is transparent; the slide is white). |
 | `assets/aij_mark.svg` | The AIJ header mark ("Путешествие в мир искусственного интеллекта"). |
-| `fonts.css` | The single source of the SB Sans Display (Light 300 / Regular 400 / Semibold 600 / Bold 700) CDN URLs. No font file is committed to this repo's sources. |
+| `fonts.css` | The single source of the SB Sans Display (Light 300 / Regular 400 / Semibold 600 / Bold 700) and SB Sans Text (Regular 400 / Semibold 600) CDN URLs. No font file is committed to this repo's sources. |
 | `sync_fonts.py` | Copies `fonts.css` into a poster's `/* aij-fonts:begin … end */` block (`--check` reports drift). |
-| `prepare_assets.py` | Copies the two frame graphics into a poster's `images/`. |
-| `export_pptx.py` | Renders a finished AIJ poster and writes the editable `.pptx`: native text, native tables, pictures, and formulas as native Office equations with picture fallbacks, with SB Sans Display embedded. Needs the `[pptx]` extra. |
-| `embed_fonts.py` | Fetches the SB Sans Display faces the text uses (Light/Regular/Semibold/Bold) from the CDN at export time and embeds them in the `.pptx` (EOT parts + `<p:embeddedFontLst>`, the structure PowerPoint writes) — `docs/adr/0013`. |
-| `white_logo.py` | Makes the white version of an affiliation logo (`<name>_white.png`, high-resolution; `--svg` for a vector) — the template shows logos in white, straight on the gradient, all at one height. |
+| `prepare_assets.py` | Copies the two frame graphics and required `airi_5_years_logo_white.svg` into a poster's `images/`. |
+| `export_pptx.py` | Renders a finished AIJ poster and writes the editable `.pptx`: native text, native tables, pictures, and formulas as native Office equations with picture fallbacks, with SB Sans Display and Text embedded. Needs the `[pptx]` extra. |
+| `embed_fonts.py` | Fetches the SB Sans Display and Text faces the text uses from the CDN at export time and embeds them in the `.pptx` (EOT parts + `<p:embeddedFontLst>`, the structure PowerPoint writes) — `docs/adr/0013`. |
+| `white_logo.py` | Makes the white version of an affiliation logo (`<name>_white.png`, high-resolution; `--svg` for a vector) — the template shows logos in white, straight on the gradient, all at one visible height (PNG output trims transparent outer margins). |
 
 The frame assets are the organisers' — see `../NOTICE.md`.
 
@@ -28,32 +28,47 @@ The frame assets are the organisers' — see `../NOTICE.md`.
 ```bash
 cp <skill>/templates/portrait_aij.html poster/poster.html
 python <skill>/aij/prepare_assets.py --dest poster/images
-python <skill>/axxx/fetch_assets.py --dest poster/images --logos airi hse   # ONLY this paper's logos
-python <skill>/aij/white_logo.py poster/images/airi_logo.svg poster/images/hse_logo.svg   # white versions
+python <skill>/axxx/fetch_assets.py --dest poster/images --logos hse   # partner institutions only; AIRI copied above
+python <skill>/aij/white_logo.py poster/images/hse_logo.svg   # white versions
 # ... fill content, then the posterly gates:
 python <skill>/tools/poster_check.py measure poster/poster.html
 python <skill>/tools/poster_check.py polish  poster/poster.html
 python <skill>/tools/render_preview.py poster/poster.html
-pdffonts poster/poster_preview.pdf        # must list SBSansDisplay-Light/-Regular/-Semibold (+ -Bold with <strong>; DejaVu from MathJax is fine)
+pdffonts poster/poster_preview.pdf        # must list all used SBSansDisplay and SBSansText faces (MathJax faces are fine)
 python <skill>/tools/poster_check.py verify-final poster/poster_preview.pdf --from-html poster/poster.html
 # ... and the editable PowerPoint file (re-run after every HTML change):
 pip install python-pptx mathml2omml lxml fonttools brotli
 python <skill>/aij/export_pptx.py poster/poster.html     # -> poster/poster.pptx
 ```
 
-## Type roles
+## AIJ design contract
 
-| Role | Face | Size | Used for |
+Use `№1`. Keep all paper content within the grey guide rectangle inside the white
+panel: x=13.229167..177.270833 mm, y=39.599306..247.605903 mm. Preserve the
+original PPTX guides. Shorten/rebalance content rather than reducing the type sizes.
+
+| White-area role | Family | Size | Weight |
 |---|---|---|---|
-| Title | SB Sans Display Semibold | 13 pt | poster title, poster number (as the template) |
-| Subtitle | SB Sans Display (Regular) | 7 pt | author line, section headings, table heads |
-| Body | SB Sans Display Light | 7 pt | text, lists, captions, table cells, footer |
+| Heading (`.section-title`) | SB Sans Display | 14 pt | Bold |
+| Subheading (`.section-subtitle`) | SB Sans Display | 10 pt | Semibold |
+| Block text and lists | SB Sans Text | 7 pt | Regular / Semibold |
+| Captions and tables, including headers | SB Sans Text | 7 pt | Regular |
 
-In the `.pptx` the text uses `SB Sans Display` (Regular / Bold), `SB Sans Display
-Light` and `SB Sans Display Semibold`, and those faces are **embedded** in the file
-(fetched from the CDN at export time), so PowerPoint can show the real typeface
-without SB Sans installed (the structure PowerPoint writes; checked structurally — schema, font names, EOT headers — not yet by opening the file in PowerPoint). `--no-embed-fonts` references them
-by name only.
+Main text and headings are black; meaningful keyword/result colour highlights
+remain. Equations use the math renderer's font (Cambria Math in native Office
+math) at the 7pt body scale. The frame keeps Display Semibold 13pt title/number,
+Display Regular 7pt authors and Display Light 7pt footer.
+
+AIRI's supplied five-year white logo is always first, followed by horizontal
+partner institution logos. No AXXX or internal AIRI laboratory logos. Trim
+transparent margins, preserve proportions, use one visible height and equal gaps.
+Retain the footer order **text left → logos centre → QR right**, with all three
+groups vertically centred. These rules affect AIJ only, not AXXX posters.
+
+The `.pptx` embeds the used Display and Text families, including Semibold as
+weight-specific families, downloaded from the CDN at export time. This is checked
+structurally (names, EOT headers and geometry), not by opening PowerPoint here.
+`--no-embed-fonts` references them by name only.
 
 ## If the CDN moves
 

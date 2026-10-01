@@ -147,7 +147,7 @@ The **AIJ** format reproduces the AI Journey organisers' poster template
   Regular even inside `<strong>`. Mathematical notation keeps the math renderer's
   font (Cambria Math for native Office equations), at the 7 pt body scale. The frame keeps its existing Display typography:
   title and number Semibold 13 pt, authors Regular 7 pt, footer Light 7 pt.
-- **Poster number:** use **`№1`**, never use `№1`.
+- **Poster number:** use **`№1`**, never leave `№TODO`.
 - **AIJ affiliation logos:** **AIRI always first (leftmost)**, using the supplied
   **`airi_5_years_logo_white.svg`** copied by `aij/prepare_assets.py`. Follow it
   with this paper's partner institutions. **No AXXX mark and no internal AIRI
