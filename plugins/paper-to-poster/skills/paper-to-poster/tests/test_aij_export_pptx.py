@@ -97,14 +97,14 @@ _BLOCKS_JS = """
     const pt = parseFloat(s.paddingTop) + parseFloat(s.borderTopWidth);
     return [b.x - P.x + pl, b.y - P.y + pt]; };
   const sel = '.aij-number, .aij-title, .aij-authors, .aij-affiliations, .aij-contact, '
-            + '.section-title, .section > p, .figure .caption';
+            + '.section-title, .section-subtitle, .section > p, .figure .caption';
   const runs = (el) => { const out = [];
     const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     for (let n = w.nextNode(); n; n = w.nextNode()) {
       if (n.parentElement.closest('mjx-container') || !n.nodeValue.trim()) continue;
       const pe = n.parentElement, s = getComputedStyle(pe);
       const sup = pe.closest('sup, sub');
-      out.push({text: n.nodeValue.replace(/\\s+/g, ' ').trim(), weight: parseInt(s.fontWeight, 10),
+      out.push({text: n.nodeValue.replace(/\\s+/g, ' ').trim(), weight: parseInt(s.fontWeight, 10), family: s.fontFamily,
                 px: parseFloat(getComputedStyle(sup ? sup.parentElement : pe).fontSize)}); }
     return out; };
   const blocks = [...document.querySelectorAll(sel)].map(el => {
@@ -185,7 +185,8 @@ def test_every_run_typeface_is_embedded(exported, slide_xml):
 
     out, report = exported
     used = {r.get("typeface") for r in slide_xml.iter(f"{{{NS['a']}}}latin")} - {"Cambria Math"}
-    assert used == {"SB Sans Display", "SB Sans Display Light", "SB Sans Display Semibold"}
+    assert used == {"SB Sans Display", "SB Sans Display Light", "SB Sans Display Semibold",
+                    "SB Sans Text", "SB Sans Text Semibold"}
     assert set(report.fonts_embedded) == used
     with zipfile.ZipFile(out) as z:
         pres = etree.fromstring(z.read("ppt/presentation.xml"))
@@ -202,14 +203,15 @@ def test_every_run_typeface_is_embedded(exported, slide_xml):
                 assert eot["family"] == face == ttf["name"].getDebugName(1)
                 slots[(face, etree.QName(slot).localname)] = ttf["OS/2"].usWeightClass
     assert slots == {("SB Sans Display Light", "regular"): 300, ("SB Sans Display", "regular"): 400,
-                     ("SB Sans Display Semibold", "regular"): 600, ("SB Sans Display", "bold"): 700}
+                     ("SB Sans Display Semibold", "regular"): 600, ("SB Sans Display", "bold"): 700,
+                     ("SB Sans Text", "regular"): 400, ("SB Sans Text Semibold", "regular"): 600}
 
 
 def test_gallery_pptx_carries_the_fonts():
     """The published example embeds its fonts too (maintainers' decision,
     docs/adr/0013), so it opens in SB Sans Display anywhere."""
     with zipfile.ZipFile(EXAMPLE.with_name("poster.pptx")) as z:
-        assert len([n for n in z.namelist() if n.startswith("ppt/fonts/")]) == 4
+        assert len([n for n in z.namelist() if n.startswith("ppt/fonts/")]) == 6
         assert 'embedTrueTypeFonts="1"' in z.read("ppt/presentation.xml").decode()
 
 
@@ -243,9 +245,9 @@ def test_footer_logos_are_transparent_pictures(exported):
 
     out, _ = exported
     prs = pptx.Presentation(str(out))
-    logos = [s for s in prs.slides[0].shapes if s.shape_type == 13 and 255 < s.top / EMU_PER_MM < 262
+    logos = [s for s in prs.slides[0].shapes if s.shape_type == 13 and 255 < s.top / EMU_PER_MM < 268
              and 74 < s.left / EMU_PER_MM < 147]
-    assert len(logos) == 4
+    assert len(logos) == 3
     for s in logos:
         alpha = Image.open(io.BytesIO(s.image.blob)).convert("RGBA").getchannel("A")
         assert alpha.getextrema()[0] == 0
@@ -279,7 +281,9 @@ def test_every_text_block_is_native_text_at_its_rendered_place(html_facts, slide
             (want[:40], x_mm, y_mm, [(s["x"], s["y"]) for s in match])
 
 
-def _expected_face(weight: int) -> tuple[str, bool]:
+def _expected_face(weight: int, family: str) -> tuple[str, bool]:
+    if "SB Sans Text" in family:
+        return ("SB Sans Text Semibold" if weight >= 550 else "SB Sans Text"), False
     if weight <= 350:
         return "SB Sans Display Light", False
     if 550 <= weight < 650:
@@ -302,7 +306,7 @@ def test_each_block_keeps_its_role_font_size_and_weight(html_facts, slide_xml):
             pptx_runs.append((_norm(r.find("a:t", NS).text or ""), rpr.find("a:latin", NS).get("typeface"),
                               int(rpr.get("sz")), rpr.get("b") == "1"))
         for hr in b["runs"]:
-            want_face, want_bold = _expected_face(hr["weight"])
+            want_face, want_bold = _expected_face(hr["weight"], hr["family"])
             want_sz = int(round(hr["px"] * 0.75 * 100))
             match = [r for r in pptx_runs if r[0] == _norm(hr["text"])]
             assert match, (b["text"][:40], hr["text"])
@@ -322,31 +326,25 @@ def test_lists_are_one_bulleted_frame_each(html_facts, slide_xml):
             assert p.find("a:pPr/a:buChar", NS) is not None
 
 
-def test_fonts_sizes_and_weights_follow_the_three_roles(slide_xml):
-    """Title/№ = SB Sans Display Semibold 13pt (as the template); everything
-    else 7pt in SB Sans Display (Regular: Subtitle role, keywords) or SB Sans
-    Display Light (Body); bold only for <strong> emphasis and 'best' cells."""
+def test_fonts_sizes_and_weights_follow_content_and_frame_roles(slide_xml):
+    allowed = {("SB Sans Display Semibold",1300,False),
+               ("SB Sans Display",700,False), ("SB Sans Display Light",700,False),
+               ("SB Sans Display",1400,True), ("SB Sans Display Semibold",1000,False),
+               ("SB Sans Text",700,False), ("SB Sans Text Semibold",700,False)}
     seen = set()
     for r in slide_xml.iter(f"{{{NS['a']}}}r"):
         rpr = r.find("a:rPr", NS)
-        face = rpr.find("a:latin", NS).get("typeface")
-        size = int(rpr.get("sz"))
-        bold = rpr.get("b") == "1"
-        seen.add((face, size, bold))
-        assert face in ("SB Sans Display", "SB Sans Display Light", "SB Sans Display Semibold"), face
-        assert size in (700, 1300), size
-        if size == 1300:
-            assert face == "SB Sans Display Semibold" and not bold
-        if face == "SB Sans Display Light":
-            assert not bold
-    assert ("SB Sans Display Semibold", 1300, False) in seen   # Title (the template's 13pt Semibold)
-    assert ("SB Sans Display", 700, False) in seen          # Subtitle
-    assert ("SB Sans Display Light", 700, False) in seen    # Body
+        seen.add((rpr.find("a:latin", NS).get("typeface"),int(rpr.get("sz")),rpr.get("b") == "1"))
+    assert seen == allowed
+    # Captions and every table run remain regular, even highlighted cells.
+    for rpr in slide_xml.findall('.//a:tbl//a:rPr', NS):
+        assert rpr.find('a:latin', NS).get('typeface') == 'SB Sans Text'
+        assert rpr.get('sz') == '700' and rpr.get('b') != '1'
 
 
 def test_title_and_number_texts(slide_xml):
     texts = {_norm(s["text"]) for s in _sps(slide_xml)}
-    assert "№TODO" in texts
+    assert "№1" in texts and "№TODO" not in texts
     assert "Progressive Cramming: Reliable Token Compression and What It Reveals" in texts
 
 
@@ -710,16 +708,35 @@ def test_single_lines_do_not_wrap_in_powerpoint(slide_xml):
     """Designer review: '№TODO' broke onto two lines in PowerPoint. Text that is
     one line in the HTML is exported with wrap="none"; multi-line text wraps."""
     frames = {_norm(s["text"]): s["el"].find("p:txBody/a:bodyPr", NS).get("wrap") for s in _sps(slide_xml)}
-    assert frames["№TODO"] == "none"
-    assert frames["1 Progressive cramming"] == "none"
+    assert frames["№1"] == "none"
+    assert frames["1 Method"] == "none"
     title = "Progressive Cramming: Reliable Token Compression and What It Reveals"
     assert frames[title] == "square"                 # two lines in the HTML
 
 
 def test_heading_runs_are_black(slide_xml):
-    headings = [s for s in _sps(slide_xml)          # section titles: the only all-caps runs
-                if any(r.get("cap") == "all" for r in s["el"].iter(f"{{{NS['a']}}}rPr"))]
-    assert len(headings) == 7
+    headings = [s for s in _sps(slide_xml)
+                if any(r.get("sz") == "1400" for r in s["el"].iter(f"{{{NS['a']}}}rPr"))]
+    assert len(headings) == 6
     for s in headings:
         colours = {c.get("val") for c in s["el"].iter(f"{{{NS['a']}}}srgbClr")}
         assert colours == {"000000"}, (s["text"], colours)
+
+
+
+def test_export_preserves_guides_and_content_shape_bounds(exported):
+    out, _ = exported
+    with zipfile.ZipFile(out) as z, zipfile.ZipFile(SKILL / 'aij/assets/aij_template.pptx') as original:
+        for name in ('ppt/viewProps.xml', 'ppt/presentation.xml'):
+            def guides(data):
+                root = etree.fromstring(data)
+                return [dict(e.attrib) for e in root.iter() if etree.QName(e).localname == 'guide']
+            assert guides(z.read(name)) == guides(original.read(name))
+    prs = pptx.Presentation(str(out))
+    # y between header and footer identifies content, including native tables.
+    for shape in prs.slides[0].shapes:
+        y = shape.top / EMU_PER_MM
+        if 35 < y < 250:
+            x, w, h = (v / EMU_PER_MM for v in (shape.left, shape.width, shape.height))
+            assert x >= 13.229167 - .02 and x+w <= 177.270833 + .02, shape.name
+            assert y >= 39.599306 - .02 and y+h <= 247.605903 + .02, shape.name

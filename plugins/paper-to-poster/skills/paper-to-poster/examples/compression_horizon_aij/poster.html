@@ -32,7 +32,7 @@
   @page { size: 190.5mm 275.2mm; margin: 0; }
 
   /* aij-fonts:begin */
-/* SB Sans Display — the AIJ format's only typeface (Light 300 / Regular 400 /
+/* SB Sans Display — AIJ frame and headings (Light 300 / Regular 400 /
    Semibold 600 / Bold 700). Loaded from Sber's public design-system CDN; the font files are
    NEVER vendored into this repo, its gallery examples, or a poster repo
    (docs/adr/0011). This file is the single source of the CDN URLs:
@@ -61,6 +61,20 @@
   font-weight: 700;
   font-style: normal;
 }
+
+/* SB Sans Text — white-area body, captions and tables. */
+@font-face {
+  font-family: "SB Sans Text";
+  src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansText.0.2.0/SBSansText-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "SB Sans Text";
+  src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansText.0.2.0/SBSansText-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+}
 /* aij-fonts:end */
 
   :root {
@@ -72,9 +86,9 @@
     --aij-slide:      #FFFFFF;   /* slide background — shows through the panel, which is transparent in the frame image */
 
     /* Content-area colours (inside the white panel). */
-    --aij-ink:        #1B1F2A;   /* Body text */
+    --aij-ink:        #000000;   /* Body text */
     --aij-heading:    #000000;   /* section + table headings: black only, as the template */
-    --aij-ink-soft:   #5A6275;   /* captions, secondary text */
+    --aij-ink-soft:   #000000;   /* captions, secondary text */
     --aij-accent:     #26359A;   /* keywords — frame blue (never headings) */
     --aij-accent-2:   #1E9E53;   /* "best" table cells — frame green, darkened for white */
     --aij-alert:      #C0392B;   /* negatives only */
@@ -85,10 +99,14 @@
     /* Base unit. Print: 1mm. Screen preview: 1mm at 96 dpi. */
     --u: 3.7795px;
 
-    /* The three AIJ type roles (organisers' spec). 1pt = 0.35278mm. */
+    /* Frame type is unchanged; white-area roles use the designer's scale. */
     --fs-title:    calc(4.5861 * var(--u));   /* 13pt — as the organisers' template sets title and № */
     --fs-subtitle: calc(2.4694 * var(--u));   /* 7pt  */
     --fs-body:     calc(2.4694 * var(--u));   /* 7pt  */
+
+    --fs-heading: calc(4.938889 * var(--u)); /* 14pt */
+    --fs-subheading: calc(3.527778 * var(--u)); /* 10pt */
+    --font-aij-text: "SB Sans Text", Arial, sans-serif;
 
     --font-aij: "SB Sans Display", "Inter", "Helvetica Neue", Arial, sans-serif;
     /* ===== END DESIGN TOKENS ===== */
@@ -171,11 +189,14 @@
     display: block;
   }
 
-  /* ---------- CONTENT AREA (inside the white panel 8.9–181.6 × 33.4–254.0mm) ---------- */
+  /* CONTENT AREA: original grey guides (1/8 pt from slide origin):
+     x=300..4020, y=898..5615 => x=13.229167..177.270833mm,
+     y=39.599306..247.605903mm. White panel is larger; never fill to its edges. */
   .body-grid {
     position: absolute;
-    left: calc(12.958 * var(--u)); top: calc(38 * var(--u));
-    width: calc(164.58 * var(--u)); height: calc(210.5 * var(--u));
+    left: calc(13.229167 * var(--u)); top: calc(39.599306 * var(--u));
+    width: calc(164.041666 * var(--u)); height: calc(208.006597 * var(--u));
+    font-family: var(--font-aij-text); font-weight: 400;
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: calc(7 * var(--u));
@@ -193,19 +214,25 @@
   .section + .section { border-top: calc(0.25 * var(--u)) solid var(--aij-rule); padding-top: calc(3 * var(--u)); }
 
   .section-title {
-    font-weight: 400; font-size: var(--fs-subtitle);
+    font-family: var(--font-aij);
+    font-weight: 700; font-size: var(--fs-heading);
     line-height: 1.2;
     color: var(--aij-heading);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0;
     margin-bottom: calc(1.5 * var(--u));
   }
   /* Keep a real space between the number and the heading text (not a margin):
      the pptx export carries text, not inline-box margins. */
   .section-title .num { color: var(--aij-heading); }
 
+  .section-subtitle {
+    font-family: var(--font-aij); font-size: var(--fs-subheading); font-weight: 600;
+    line-height: 1.2; color: var(--aij-heading);
+    margin: calc(1.5 * var(--u)) 0;
+  }
   p, li, .caption, td {
-    font-weight: 300; font-size: var(--fs-body);
+    font-family: var(--font-aij-text);
+    font-weight: 400; font-size: var(--fs-body);
     line-height: 1.25;
     color: var(--aij-ink);
   }
@@ -215,7 +242,8 @@
   }
   ul { padding-left: calc(3.2 * var(--u)); list-style: disc; }
   li + li { margin-top: calc(0.6 * var(--u)); }
-  strong, b { font-weight: 700; }
+  strong, b { font-weight: 600; }
+  .caption strong, .caption b, .result-table strong, .result-table b { font-weight: 400; }
   .keyword { color: var(--aij-accent); font-weight: 400; }
   .keyword-red { color: var(--aij-alert); font-weight: 400; }
 
@@ -234,7 +262,8 @@
 
   .result-table { width: 100%; border-collapse: collapse; }
   .result-table th {
-    font-weight: 400; font-size: var(--fs-subtitle); line-height: 1.2;
+    font-family: var(--font-aij-text);
+    font-weight: 400; font-size: var(--fs-body); line-height: 1.2;
     color: var(--aij-heading);
     background: var(--aij-tint);
     padding: calc(0.8 * var(--u)) calc(1.2 * var(--u));
@@ -246,7 +275,7 @@
     border-bottom: calc(0.25 * var(--u)) solid var(--aij-rule);
   }
   .result-table .method { text-align: left; }
-  .result-table .best { font-weight: 700; color: var(--aij-accent-2); }
+  .result-table .best { font-weight: 400; color: var(--aij-accent-2); }
   .result-table .neg { color: var(--aij-alert); }
 
   /* ---------- FRAME: footer (below the white panel, y ≥ 257.6mm) ---------- */
@@ -263,18 +292,22 @@
     line-height: 1.2;
     color: var(--aij-on-frame);
   }
-  .aij-affiliations { left: calc(13.746 * var(--u)); top: calc(1.287 * var(--u)); }
-  .aij-contact      { left: calc(13.603 * var(--u)); top: calc(10.58 * var(--u)); }
+  .aij-footer-text {
+    position: absolute; left: calc(13.603 * var(--u)); top: calc(1.089 * var(--u));
+    width: calc(59 * var(--u)); height: calc(12.707 * var(--u));
+    display: flex; flex-direction: column; justify-content: center; gap: calc(1 * var(--u));
+  }
+  .aij-affiliations, .aij-contact { position: static; width: 100%; }
   /* Affiliation logos, as in the template: WHITE marks straight on the gradient
      (no plate), in the pptx logo group's band — "Группа 32" at (2705350,
      9272966) EMU, slots 10.853mm tall — stopping short of the QR tiles. Use the
-     white versions from `python aij/white_logo.py images/<logo>.svg`. Only this
-     paper's own institutions. */
+     white partner versions from `python aij/white_logo.py images/<logo>.svg`.
+     AIRI first, followed by partner institutions; no internal lab marks. */
   .aij-logos {
     position: absolute;
-    left: calc(75.149 * var(--u)); top: 0;
-    width: calc(70.8 * var(--u)); height: calc(10.853 * var(--u));
-    display: flex; align-items: center; gap: calc(3 * var(--u));
+    left: calc(75.149 * var(--u)); top: calc(1.089 * var(--u));
+    width: calc(70.8 * var(--u)); height: calc(12.707 * var(--u));
+    display: flex; align-items: center; justify-content: center; gap: calc(3 * var(--u));
   }
   /* All logos share ONE height (equal heights, not equal cells), widths follow
      each mark's own proportions. The height is the template slot's 10.853mm,
@@ -322,7 +355,7 @@
   <img class="aij-bg" src="images/aij_background.png" alt="">
 
   <header class="aij-header" data-measure-role="header">
-    <div class="aij-number" data-aij-field="number">№TODO</div>
+    <div class="aij-number" data-aij-field="number">№1</div>
     <h1 class="aij-title" data-aij-field="title">Progressive Cramming: Reliable Token Compression and What It Reveals</h1>
     <div class="aij-authors" data-aij-field="authors">Dmitrii Tarasov<sup>1,2</sup>, Timofei Lashukov<sup>2</sup>, Elizaveta Goncharova<sup>1,2</sup>, Andrey Kuznetsov<sup>1,3</sup></div>
     <img class="aij-mark" src="images/aij_mark.svg" alt="AI Journey">
@@ -333,7 +366,7 @@
     <div class="column" data-measure-role="column">
 
       <div class="section" data-measure-role="card">
-        <div class="section-title"><span class="num">1</span>&ensp;Progressive cramming</div>
+        <div class="section-title"><span class="num">1</span>&ensp;Method</div>
         <p>Optimise a <strong>per-sample</strong> input embedding $\mathbf{e}$ so that a <span class="keyword">frozen LM</span> reconstructs a text. The target grows <strong>one token at a time</strong>; the next stage starts only after <strong>perfect</strong> greedy reconstruction of the current prefix.</p>
         <div class="figure">
           <img class="w-75" src="images/figure_progressive_cramming.png" alt="Progressive cramming: frozen LM, trainable embedding, warm start between stages">
@@ -346,7 +379,7 @@
       </div>
 
       <div class="section" data-measure-role="card">
-        <div class="section-title"><span class="num">2</span>&ensp;Across model families</div>
+        <div class="section-title"><span class="num">2</span>&ensp;Capacity</div>
         <p>Longest text a frozen model reconstructs perfectly from a <strong>single</strong> embedding, with and without a low-dimensional projection:</p>
         <table class="result-table">
           <thead><tr><th class="method">Model</th><th>Tokens</th><th>+LowDim</th><th>Boost</th></tr></thead>
@@ -357,21 +390,19 @@
             <tr><td class="method">Gemma-3-4B</td><td>214</td><td>697</td><td class="best">3.3×</td></tr>
           </tbody>
         </table>
-        <p><strong>Low-dim projection.</strong> Optimise $\mathbf{z}$ with a per-sample affine map $W, \mathbf{b}$:</p>
+        <div class="section-subtitle">Low-dim projection</div>
+        <p>Optimise $\mathbf{z}$ with a per-sample affine map $W, \mathbf{b}$:</p>
         <div class="eqn">$$\mathbf{e} = W\mathbf{z} + \mathbf{b} \in \mathbb{R}^d, \qquad \mathbf{z} \in \mathbb{R}^k,\; k \ll d$$</div>
-        <div class="figure">
-          <img class="w-70" src="images/figure_lowdim_projection.png" alt="Low-dim projection: z in R^k mapped through per-sample W, b to the embedding e in R^d">
-        </div>
       </div>
 
       <div class="section" data-measure-role="card">
-        <div class="section-title"><span class="num">3</span>&ensp;Optimisation trajectories</div>
+        <div class="section-title"><span class="num">3</span>&ensp;Trajectories</div>
         <ul>
           <li>Trajectories are <span class="keyword">intrinsically low-dimensional</span>: 30–100 PCA components explain 99% of the variance, although they live in $\mathbb{R}^{4096}$.</li>
           <li>Accuracy basins <span class="keyword">shrink</span> with sequence length — longer texts leave less room for error.</li>
         </ul>
         <div class="figure">
-          <img class="w-90" src="images/visual_abstract_pc1_pc2_joined.png" alt="PCA trajectory visualisation for Llama-3.1-8B">
+          <img class="w-85" src="images/visual_abstract_pc1_pc2_joined.png" alt="PCA trajectory visualisation for Llama-3.1-8B">
           <div class="caption"><strong>Llama-3.1-8B</strong> trajectory on PC1–PC2 (65.7% of variance); coloured regions are local accuracy basins.</div>
         </div>
       </div>
@@ -381,7 +412,7 @@
     <div class="column" data-measure-role="column">
 
       <div class="section" data-measure-role="card">
-        <div class="section-title"><span class="num">4</span>&ensp;Reconstruction ≠ understanding</div>
+        <div class="section-title"><span class="num">4</span>&ensp;Understanding</div>
         <div class="figure">
           <img src="images/evaluation_protocol.png" alt="Likelihood evaluation: compression embedding + prefix + candidate suffixes scored by NLL">
         </div>
@@ -407,10 +438,10 @@
       </div>
 
       <div class="section" data-measure-role="card">
-        <div class="section-title"><span class="num">6</span>&ensp;Why not full cramming?</div>
+        <div class="section-title"><span class="num">6</span>&ensp;Full cramming</div>
         <p>Full cramming fixes the <span class="keyword">number of tokens</span> and optimises them jointly; progressive cramming fixes <span class="keyword">accuracy at 100%</span> and grows the text. Full cramming reaches more tokens, but its residual errors sit at <span class="keyword-red">early positions</span>, and one early miss cascades through greedy generation:</p>
         <div class="figure">
-          <img class="w-80" src="images/figure_full_cramming.png" alt="Full cramming: teacher-forced accuracy near 99% but greedy accuracy collapses due to early-position errors">
+          <img class="w-95" src="images/figure_full_cramming.png" alt="Full cramming: teacher-forced accuracy near 99% but greedy accuracy collapses due to early-position errors">
         </div>
         <table class="result-table">
           <thead><tr><th class="method">Model / type</th><th>Tokens</th><th>TF acc.</th><th>Greedy</th></tr></thead>
@@ -423,24 +454,19 @@
         </table>
       </div>
 
-      <div class="section" data-measure-role="card">
-        <div class="section-title"><span class="num">7</span>&ensp;Takeaways</div>
-        <ul>
-          <li><strong>Brittle steering.</strong> Perfect reconstruction stores nothing the model can use: benchmarks drop and generative MMLU collapses to ≈0%.</li>
-          <li><strong>Early layers.</strong> The embedding's causal influence concentrates in the first layers across all model families.</li>
-        </ul>
-      </div>
+
 
     </div>
 
   </div>
 
   <footer class="aij-footer" data-measure-role="footer">
-    <div class="aij-affiliations" data-aij-field="affiliations"><sup>1</sup> FusionBrain Lab, AIRI, <sup>2</sup> HSE University, Moscow,<br><sup>3</sup> Innopolis University</div>
+    <div class="aij-footer-text">
+    <div class="aij-affiliations" data-aij-field="affiliations"><sup>1</sup> AIRI, <sup>2</sup> HSE University,<br><sup>3</sup> Innopolis University</div>
     <div class="aij-contact" data-aij-field="contact">Group contact: dtarasov@hse.ru</div>
+    </div>
     <div class="aij-logos">
-      <div class="aij-logo"><img src="images/fusionbrain_combined_white.png" alt="FusionBrain Lab"></div>
-      <div class="aij-logo"><img src="images/airi_logo_white.png" alt="AIRI"></div>
+      <div class="aij-logo"><img src="images/airi_5_years_logo_white.svg" alt="AIRI"></div>
       <div class="aij-logo"><img src="images/hse_logo_white.png" alt="HSE University"></div>
       <div class="aij-logo"><img src="images/innopolis_logo_white.png" alt="Innopolis University"></div>
     </div>

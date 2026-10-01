@@ -235,6 +235,20 @@ def render_svg_png(svg_text: str, dst: Path, height_px: int = PNG_HEIGHT_PX) -> 
                 browser.close()
 
 
+def trim_png(path: Path) -> None:
+    """Remove transparent margins so common heights align the visible marks."""
+    from PIL import Image
+
+    with Image.open(path) as image:
+        image = image.convert("RGBA")
+        bbox = image.getchannel("A").getbbox()
+        if bbox and bbox != (0, 0, image.width, image.height):
+            image = image.crop(bbox)
+            width = round(image.width * PNG_HEIGHT_PX / image.height)
+            image = image.resize((max(1, width), PNG_HEIGHT_PX), Image.Resampling.LANCZOS)
+            image.save(path)
+
+
 def make_white(src: Path, svg: bool = False) -> Path:
     """Write the white version beside `src` and return its path.
 
@@ -252,9 +266,11 @@ def make_white(src: Path, svg: bool = False) -> Path:
             dst.write_text(out)
         else:
             render_svg_png(out, dst)
+            trim_png(dst)
         return dst
     dst = white_path(src)
     whiten_raster(src, dst)
+    trim_png(dst)
     return dst
 
 

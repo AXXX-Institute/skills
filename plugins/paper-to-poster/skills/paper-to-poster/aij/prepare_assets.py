@@ -7,7 +7,7 @@ poster references them as images/aij_background.png and images/aij_mark.svg, so
 copy them next to the poster — they are committed with the poster like any
 other image, and the poster renders offline except for its web fonts.
 
-Affiliation logos are NOT handled here: fetch only this paper's institutions
+The required AIRI five-year white logo is copied too. Fetch partner institutions
 with `python axxx/fetch_assets.py --dest <poster>/images --logos <subset>`.
 
 Usage:
@@ -30,6 +30,10 @@ def prepare(dest: Path) -> list[Path]:
         target = dest / name
         shutil.copyfile(HERE / "assets" / name, target)
         out.append(target)
+    logo = HERE.parent / "axxx" / "assets" / "airi_5_years_logo_white.svg"
+    target = dest / logo.name
+    shutil.copyfile(logo, target)
+    out.append(target)
     return out
 
 

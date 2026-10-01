@@ -43,12 +43,15 @@ glossary and `docs/adr/` for decisions.
   poster in one of two fixed **poster formats** (Step 0 asks which). **AXXX**:
   `templates/*_axxx.html` + `axxx/fetch_assets.py` + `axxx/apply_theme.py`.
   **AIJ** (AI Journey): `templates/portrait_aij.html` + `aij/prepare_assets.py`
-  (+ `axxx/fetch_assets.py` for logos, `aij/white_logo.py` for their white
+  (copies the required AIRI five-year white logo; `axxx/fetch_assets.py` for partner logos, `aij/white_logo.py` for their white
   versions), fonts from the CDN via `aij/fonts.css` (`aij/sync_fonts.py
   [--check]`), then the always-on editable export
-  `python aij/export_pptx.py poster/poster.html` (embeds SB Sans Display via
+  `python aij/export_pptx.py poster/poster.html` (embeds SB Sans Display and Text via
   `aij/embed_fonts.py`; `--no-embed-fonts` opts out; `[pptx]` extra:
   python-pptx, mathml2omml, lxml, fonttools, brotli).
+- AIJ design contract: grey-guide content bounds, Display 14pt/10pt headings,
+  Text 7pt body/tables/captions; AIRI first, horizontal partner logos, centred
+  footer. AXXX rules remain unchanged. Verify through `tests/test_aij_*.py`.
 - `paper-to-poster` gates (both formats): `tools/poster_check.py
   preflight|measure|polish|verify-final <poster.html|pdf>`,
   `tools/render_preview.py`, `tools/run_gates.py` (its `style` gate fails by
@@ -63,7 +66,7 @@ glossary and `docs/adr/` for decisions.
   (published at `/paper-to-poster/gallery.html`); the AIJ example
   `compression_horizon_aij/` ships `poster.pdf` + `poster.pptx` — re-render both
   after changing `templates/portrait_aij.html` or `aij/export_pptx.py` (the public
-  copy embeds SB Sans Display like any export — maintainers' decision, ADR 0013).
+  copy embeds SB Sans Display and Text like any export — maintainers' decision, ADR 0013).
 - GitHub Pages catalog: `.github/workflows/pages.yml` publishes
   `site/index.html` after pushes to `main` that affect `site/**`.
 - Per-skill documentation: every `plugins/<plugin>/skills/<skill>/README.md`

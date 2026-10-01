@@ -10,7 +10,7 @@ embedded fonts stripped, docs/adr/0011):
 
   * text (title, № , authors, section headings, paragraphs, lists, captions,
     footer)  -> native, editable text frames at the rendered geometry, typed
-    in SB Sans Display / SB Sans Display Light — and those faces are
+    in SB Sans Display / SB Sans Text — and those faces are
     EMBEDDED in the file (aij/embed_fonts.py, docs/adr/0013), so it shows the
     real typeface on machines without SB Sans installed (--no-embed-fonts
     references them by name only);
@@ -135,7 +135,8 @@ EXTRACT_JS = r"""
     const r = el.getBoundingClientRect(), s = cs(el);
     const l = px(s.borderLeftWidth) + px(s.paddingLeft), t = px(s.borderTopWidth) + px(s.paddingTop);
     const rr = px(s.borderRightWidth) + px(s.paddingRight), b = px(s.borderBottomWidth) + px(s.paddingBottom);
-    return {x: r.x + l - P.x, y: r.y + t - P.y, w: r.width - l - rr, h: r.height - t - b};
+    return {x: r.x + l - P.x, y: r.y + t - P.y, w: r.width - l - rr, h: r.height - t - b,
+      inContent: !!el.closest('[data-measure-role="body"]')};
   };
   const hidden = (el) => { const s = cs(el); return s.display === 'none' || s.visibility === 'hidden' || parseFloat(s.opacity) === 0; };
   const isInline = (el) => { const d = cs(el).display; return d.startsWith('inline') || d === 'contents'; };
@@ -369,7 +370,7 @@ EXTRACT_JS = r"""
         const before = i ? px(ls.marginTop) + (prev ? px(cs(prev).marginBottom) : 0) : 0;
         return paraOf(li, {bullet: ls.listStyleType, spaceBeforePx: before, indentPx: indent, startAt: start});
       });
-      out.texts.push(Object.assign({x: ulBox.x - indent, y: ulBox.y, w: ulBox.w + indent, h: ulBox.h}, {id: tag(el), paragraphs: paras}));
+      out.texts.push(Object.assign({x: ulBox.x - indent, y: ulBox.y, w: ulBox.w + indent, h: ulBox.h, inContent: ulBox.inContent}, {id: tag(el), paragraphs: paras}));
       return;
     }
     if (!isInline(el) && hasContent(el) && inlineOnly(el)) {
@@ -479,11 +480,13 @@ def _emu(v_px: float) -> int:
 
 
 def _typeface(run: dict) -> tuple[str, bool]:
-    """(typeface, bold) for a run, mapping SB Sans Display weights to the
+    """(typeface, bold) for a run, mapping SB Sans families and weights to the
     organisers' font names."""
     fam = run.get("family") or ""
     w = run.get("weight", 400)
-    if "sb sans" in fam.lower() or not fam:
+    if fam.lower() == "sb sans text":
+        return ("SB Sans Text Semibold" if w >= 550 else "SB Sans Text"), False
+    if fam.lower() == "sb sans display" or not fam:
         if w <= 350:
             return TYPEFACE_LIGHT, False
         if 550 <= w < 650:
@@ -748,7 +751,9 @@ class _Exporter:
 
     def _textbox(self, t: dict):
         x, w = t["x"], t["w"]
-        slack = w * WIDTH_SLACK
+        # Content boxes must remain inside the grey guides. Frame text retains
+        # the small width allowance for PowerPoint/Chromium metric differences.
+        slack = 0 if t.get("inContent") else w * WIDTH_SLACK
         align = t["paragraphs"][0].get("align", "left") if t["paragraphs"] else "left"
         if align == "center":
             x -= slack / 2
@@ -988,7 +993,7 @@ class _Exporter:
                 self.report.fonts_embedded = _ef.embed(self.prs, _ef.fetch_faces(weights)) if weights else []
             except Exception as e:  # noqa: BLE001 — never lose the export over fonts; say so loudly
                 self.report.warnings.append(
-                    f"could not embed SB Sans Display ({type(e).__name__}: {e}) — the .pptx references the "
+                    f"could not embed SB Sans Display/Text ({type(e).__name__}: {e}) — the .pptx references the "
                     "fonts by name only and shows a substitute (e.g. Calibri) where they are not installed")
         self.prs.save(str(out_path))
         self.report.pptx = str(out_path)
@@ -1027,14 +1032,20 @@ def export(html_path: Path, out_path: Path, *, mathml_to_omml: Callable[[str], A
             problem = _render.hard_fail_on_settle_problems(settle, mathjax_timeout_ms=mathjax_timeout_ms)
             if problem:
                 raise SystemExit(f"error: {problem}")
-            fonts_ok = page.evaluate(
-                "() => ['300','400','700'].every(w => document.fonts.check(w + ' 10px \"SB Sans Display\"'))")
+            fonts_ok = page.evaluate(r"""() => [...document.querySelectorAll('.poster *')]
+              .filter(el => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()))
+              .every(el => {
+                const s = getComputedStyle(el);
+                const family = s.fontFamily.split(',')[0].replace(/["']/g, '').trim();
+                return !['SB Sans Display', 'SB Sans Text'].includes(family) ||
+                  document.fonts.check(`${s.fontWeight} ${s.fontSize} "${family}"`);
+              })""")
             data = page.evaluate(EXTRACT_JS)
             if data.get("error"):
                 raise SystemExit(f"error: {data['error']}")
             ex = _Exporter(page, data, html_path, mathml_to_omml or _default_mathml_to_omml)
             if not fonts_ok:
-                ex.report.warnings.append("SB Sans Display did not load (CDN unreachable?) — geometry was "
+                ex.report.warnings.append("An SB Sans Display/Text face did not load (CDN unreachable?) — geometry was "
                                           "measured with a fallback font; re-export with network access")
             return ex.run(Path(out_path), embed_fonts=embed_fonts)
         finally:
@@ -1048,8 +1059,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--report", help="also write the export report as JSON here")
     ap.add_argument("--mathjax-timeout-ms", type=int, default=15000)
     ap.add_argument("--no-embed-fonts", action="store_true",
-                    help="reference SB Sans Display by name only (smaller file; shows a substitute font "
-                         "wherever SB Sans Display is not installed)")
+                    help="reference SB Sans fonts by name only (smaller file; shows a substitute font "
+                         "wherever SB Sans is not installed)")
     args = ap.parse_args(argv)
 
     html = Path(args.html)
@@ -1084,7 +1095,7 @@ def main(argv: list[str] | None = None) -> int:
     if rep.fonts_embedded:
         print(f"  fonts embedded: {', '.join(rep.fonts_embedded)}")
     else:
-        print("  NOTE: fonts are referenced by name only (SB Sans Display / SB Sans Display Light) — the file shows"
+        print("  NOTE: fonts are referenced by name only (SB Sans Display / SB Sans Text) — the file shows"
               " a substitute font wherever they are not installed.")
     if args.report:
         Path(args.report).write_text(json.dumps(rep.as_dict(), ensure_ascii=False, indent=2))

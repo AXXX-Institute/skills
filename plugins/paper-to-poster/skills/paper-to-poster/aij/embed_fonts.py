@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Embed SB Sans Display into an exported AIJ .pptx (docs/adr/0013).
+"""Embed SB Sans Display and Text into an exported AIJ .pptx (docs/adr/0013).
 
-PowerPoint only shows SB Sans Display on a machine that has it installed —
+PowerPoint only shows an SB Sans face on a machine that has it installed —
 otherwise it silently substitutes (typically Calibri). The organisers' own
 template avoids that by embedding its fonts; this does the same for the export:
 
   * the faces the poster's text actually uses (of Light 300 / Regular 400 /
-    Semibold 600 / Bold 700) are downloaded at export time from the CDN URLs in
+    Semibold 600 / Bold 700 for Display; Regular 400 / Semibold 600 for Text) are downloaded at export time from the CDN URLs in
     aij/fonts.css (the same files the HTML renders with — nothing is read from,
     or written to, this repo);
   * they are named the way the organisers' desktop fonts are (one family per
     non-RIBBI weight, like the template's "SB Sans Display Semibold"):
     "SB Sans Display" Regular + Bold, "SB Sans Display Light" and
-    "SB Sans Display Semibold" — exactly the typefaces export_pptx.py writes on
+    "SB Sans Display Semibold", "SB Sans Text" and "SB Sans Text Semibold" — exactly the typefaces export_pptx.py writes on
     every text run;
   * each face is wrapped as an Embedded OpenType (EOT 2.2, uncompressed) part
     `ppt/fonts/fontN.fntdata` and listed in presentation.xml's
@@ -41,14 +41,16 @@ FONT_CONTENT_TYPE = "application/x-fontdata"
 P_NS = "http://schemas.openxmlformats.org/presentationml/2006/main"
 R_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 
-#: CSS weight -> (pptx typeface, style slot, EOT/ name-table subfamily)
+#: (CSS family, weight) -> (pptx typeface, style slot, EOT/ name-table subfamily)
 FACES = {
-    300: ("SB Sans Display Light", "regular", "Regular"),
-    400: ("SB Sans Display", "regular", "Regular"),
-    600: ("SB Sans Display Semibold", "regular", "Regular"),
-    700: ("SB Sans Display", "bold", "Bold"),
+    ("SB Sans Display", 300): ("SB Sans Display Light", "regular", "Regular"),
+    ("SB Sans Display", 400): ("SB Sans Display", "regular", "Regular"),
+    ("SB Sans Display", 600): ("SB Sans Display Semibold", "regular", "Regular"),
+    ("SB Sans Display", 700): ("SB Sans Display", "bold", "Bold"),
+    ("SB Sans Text", 400): ("SB Sans Text", "regular", "Regular"),
+    ("SB Sans Text", 600): ("SB Sans Text Semibold", "regular", "Regular"),
 }
-#: (pptx typeface, style slot) -> CSS weight
+#: (pptx typeface, style slot) -> (CSS family, weight)
 SLOT_WEIGHT = {(face, slot): w for w, (face, slot, _sub) in FACES.items()}
 
 
@@ -59,15 +61,16 @@ class Face:
     ttf: bytes
 
 
-def cdn_urls(css: str | None = None) -> dict[int, str]:
-    """weight -> woff2 URL, from aij/fonts.css."""
+def cdn_urls(css: str | None = None) -> dict[tuple[str, int], str]:
+    """(family, weight) -> woff2 URL, from aij/fonts.css."""
     css = css if css is not None else FONTS_CSS.read_text()
     out = {}
     for block in re.findall(r"@font-face\s*{(.*?)}", css, re.DOTALL):
         url = re.search(r'url\("([^"]+)"\)', block)
         weight = re.search(r"font-weight:\s*(\d+)", block)
-        if url and weight:
-            out[int(weight.group(1))] = url.group(1)
+        family = re.search(r'font-family:\s*"([^"]+)"', block)
+        if url and weight and family:
+            out[(family.group(1), int(weight.group(1)))] = url.group(1)
     return out
 
 
@@ -106,8 +109,8 @@ def rename(ttf: bytes, family: str, subfamily: str) -> bytes:
     return buf.getvalue()
 
 
-def used_weights(slide_xml) -> list[int]:
-    """CSS weights of the faces the slide's text runs use ((typeface, b) of
+def used_weights(slide_xml) -> list[tuple[str, int]]:
+    """CSS (family, weight) pairs of the faces the slide's text runs use ((typeface, b) of
     every <a:rPr> with an SB Sans <a:latin>)."""
     a = "http://schemas.openxmlformats.org/drawingml/2006/main"
     out = set()
@@ -122,8 +125,8 @@ def used_weights(slide_xml) -> list[int]:
     return sorted(out)
 
 
-def fetch_faces(weights: list[int] | None = None, timeout: float = 20.0) -> list[Face]:
-    """Download + convert + name the faces for `weights` (default: all four);
+def fetch_faces(weights: list[tuple[str, int]] | None = None, timeout: float = 20.0) -> list[Face]:
+    """Download + convert + name the faces for `weights` (default: all supported faces);
     raises on any failure."""
     urls = cdn_urls()
     weights = sorted(FACES) if weights is None else weights

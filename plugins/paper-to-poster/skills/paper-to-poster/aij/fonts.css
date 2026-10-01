@@ -1,4 +1,4 @@
-/* SB Sans Display — the AIJ format's only typeface (Light 300 / Regular 400 /
+/* SB Sans Display — AIJ frame and headings (Light 300 / Regular 400 /
    Semibold 600 / Bold 700). Loaded from Sber's public design-system CDN; the font files are
    NEVER vendored into this repo, its gallery examples, or a poster repo
    (docs/adr/0011). This file is the single source of the CDN URLs:
@@ -25,5 +25,19 @@
   font-family: "SB Sans Display";
   src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansDisplay.0.2.0/SBSansDisplay-Bold.woff2") format("woff2");
   font-weight: 700;
+  font-style: normal;
+}
+
+/* SB Sans Text — white-area body, captions and tables. */
+@font-face {
+  font-family: "SB Sans Text";
+  src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansText.0.2.0/SBSansText-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "SB Sans Text";
+  src: url("https://cdn-app.sberdevices.ru/shared-static/0.0.0/fonts/SBSansText.0.2.0/SBSansText-Semibold.woff2") format("woff2");
+  font-weight: 600;
   font-style: normal;
 }

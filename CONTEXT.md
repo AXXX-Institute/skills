@@ -49,14 +49,11 @@ _Avoid:_ "neutral theme", "house style" (the upstream concepts we removed);
 "palette derivation" (the upstream step we dropped).
 
 ## AIJ format
-The [[poster-format]] for the **AI Journey (AIJ)** conference, reproducing the
-organisers' poster template: its fixed canvas, gradient-frame background, AIJ
-header mark, and header/footer slots, typeset in **SB Sans Display** with three
-type roles: **Title** (the poster title), **Subtitle** (the author line and section
-headings), and **Body** (everything else — text, captions, footer affiliations and
-contact).
-_Avoid:_ "AI Journey theme", "Sber template", "AIJ theme"; "heading" for the
-Subtitle role (the organisers' word is *подзаголовок* — Subtitle).
+The [[poster-format]] for the **AI Journey (AIJ)** conference, with the organisers'
+fixed frame and a content hierarchy of SB Sans Display headings/subheadings and
+SB Sans Text body, captions and tables. Its affiliation strip starts with AIRI,
+followed by partner institutions; internal laboratory marks are excluded.
+_Avoid:_ "AI Journey theme", "Sber template", "AIJ theme".
 
 ## AIJ frame
 The fixed, organiser-supplied chrome of the [[aij-format]]: the gradient background
@@ -67,12 +64,11 @@ _Avoid:_ "background" for the whole frame (the background is one part of it);
 "border".
 
 ## AIJ content area
-The white rounded panel inside the [[aij-format]]'s gradient frame, between the
-header and footer — the only region a poster's paper content occupies. Filled with
-two columns of **flat sections** (a Subtitle heading, Body text, figures), with no
-card chrome or shadows; the frame itself is never recoloured.
-_Avoid:_ "card" for an AIJ section (cards are the posterly/AXXX boxed unit);
-"canvas" (the canvas is the whole sheet, frame included).
+The paper-content region inside the grey alignment guides within the white panel
+of an [[aij-format]] poster. Contains flat sections without card chrome or shadows;
+the surrounding white panel extends beyond the usable region.
+_Avoid:_ "card" for an AIJ section; "canvas" for this region; "white panel" when
+referring specifically to the guide-bounded content area.
 
 ## PPTX export
 The editable `.pptx` deliverable of an [[aij-format]] poster: the finished HTML

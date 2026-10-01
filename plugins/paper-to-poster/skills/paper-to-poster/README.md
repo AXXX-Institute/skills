@@ -45,7 +45,7 @@ fixed **poster formats**:
   affiliation logos) on 4-column / hero landscape or 2-column portrait layouts,
   at the venue's canvas size.
 - **AIJ** — the AI Journey organisers' poster template (fixed 190.5×275.2 mm
-  frame, SB Sans Display), rendered to PDF **and** exported to an editable `.pptx`
+  frame, SB Sans Display headings and SB Sans Text body), rendered to PDF **and** exported to an editable `.pptx`
   in the organisers' own template (`aij/export_pptx.py`; needs the `[pptx]` extra:
   `pip install python-pptx mathml2omml lxml fonttools brotli`).
 

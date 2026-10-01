@@ -59,7 +59,7 @@ def test_template_font_block_matches_fonts_css():
 def test_fonts_come_from_the_cdn_only():
     css = FONTS_CSS.read_text()
     urls = re.findall(r'url\("([^"]+)"\)', css)
-    assert len(urls) == 4
+    assert len(urls) == 6
     assert all(u.startswith("https://cdn-app.sberdevices.ru/") for u in urls)
     assert {w for w in re.findall(r"font-weight:\s*(\d+)", css)} == {"300", "400", "600", "700"}
 
@@ -94,11 +94,11 @@ def test_bundled_template_carries_no_sample_artwork():
         assert z.getinfo("docProps/thumbnail.jpeg").file_size < 20000
 
 
-def test_template_has_no_pptx_instructions_and_keeps_the_number_placeholder():
+def test_template_has_no_pptx_instructions_and_sets_the_number():
     html = TEMPLATE_HTML.read_text()
     for s in INSTRUCTION_SNIPPETS:
         assert s not in html
-    assert "№TODO" in html
+    assert "№1" in html and "№TODO" not in html
     assert 'data-measure-role="poster"' in html and 'data-measure-role="footer"' in html
 
 
@@ -106,7 +106,7 @@ def test_prepare_assets_copies_the_frame(tmp_path):
     import prepare_assets
 
     out = prepare_assets.prepare(tmp_path / "images")
-    assert sorted(p.name for p in out) == ["aij_background.png", "aij_mark.svg"]
+    assert sorted(p.name for p in out) == ["aij_background.png", "aij_mark.svg", "airi_5_years_logo_white.svg"]
     assert all(p.stat().st_size > 0 for p in out)
 
 
@@ -202,13 +202,14 @@ def test_type_roles_render_in_sb_sans_display(scaffold_dir):
     assert got["fonts"] == [True, True, True], "SB Sans Display Light/Regular/Bold did not load"
     roles = {  # element -> (weight, pt)
         "title": ("600", 13), "number": ("600", 13),   # Semibold 13pt, as the template
-        "authors": ("400", 7), "heading": ("400", 7), "th": ("400", 7),
-        "body": ("300", 7), "li": ("300", 7), "caption": ("300", 7), "td": ("300", 7),
+        "authors": ("400", 7), "heading": ("700", 14), "th": ("400", 7),
+        "body": ("400", 7), "li": ("400", 7), "caption": ("400", 7), "td": ("400", 7),
         "affiliations": ("300", 7), "contact": ("300", 7),
     }
     for key, (weight, pt) in roles.items():
         el = got[key]
-        assert el["family"].startswith('"SB Sans Display"'), (key, el)
+        family = "SB Sans Text" if key in ("body", "li", "caption", "td", "th") else "SB Sans Display"
+        assert el["family"].startswith(f'"{family}"'), (key, el)
         assert el["weight"] == weight, (key, el)
         assert el["size"] == pytest.approx(pt * PT, abs=0.05), (key, el)
 
@@ -262,12 +263,12 @@ def test_frame_sits_on_the_pptx_coordinates(which, scaffold_dir):
 
     assert near(got["bg"], ref["Рисунок 10"]), got["bg"]
     assert near(got["mark"], ref["Рисунок 8"]), got["mark"]
-    for key, name in (("number", "TextBox 70"), ("title", "TextBox 2"), ("authors", "TextBox 9"),
-                      ("affiliations", "TextBox 31"), ("contact", "TextBox 34")):
+    for key, name in (("number", "TextBox 70"), ("title", "TextBox 2"), ("authors", "TextBox 9")):
         x, y, _w, _h = ref[name]
         assert near(got[key][:2], (x, y + INSET_MM)), (key, got[key][:2], (x, y + INSET_MM))
     lx, ly = ref["Рисунок 13"][:2]            # first sample-logo slot: the logo band's corner
-    assert near(got["logos"][:2], (lx, ly)), got["logos"]
+    assert abs(got["logos"][0] - lx) < tol, got["logos"]
+    # Footer vertical positions are intentionally centred with the QR, not top-aligned.
     if which == "example":                    # one QR -> the outer tile
         assert near(got["qr"], ref["Скругленный прямоугольник 66"]), got["qr"]
 
@@ -279,7 +280,7 @@ def test_example_pdf_embeds_sb_sans_display():
     if not shutil.which("pdffonts"):
         pytest.skip("pdffonts (poppler-utils) not installed")
     fonts = subprocess.run(["pdffonts", str(pdf)], capture_output=True, text=True, check=True).stdout
-    for face in ("SBSansDisplay-Light", "SBSansDisplay-Regular", "SBSansDisplay-Semibold", "SBSansDisplay-Bold"):
+    for face in ("SBSansDisplay-Light", "SBSansDisplay-Regular", "SBSansDisplay-Semibold", "SBSansDisplay-Bold", "SBSansText-Regular", "SBSansText-Semibold"):
         assert face in fonts, fonts
 
 
@@ -402,7 +403,9 @@ def test_white_logo_raster_keeps_alpha(tmp_path):
     im.putpixel((1, 1), (0, 47, 135, 255))
     src = tmp_path / "logo.png"
     im.save(src)
-    out = Image.open(white_logo.make_white(src)).convert("RGBA")
+    dst = tmp_path / "white.png"
+    white_logo.whiten_raster(src, dst)  # test colour/alpha conversion before margin trimming
+    out = Image.open(dst).convert("RGBA")
     assert out.getpixel((1, 1)) == (255, 255, 255, 255) and out.getpixel((0, 0))[3] == 0
 
 
@@ -415,7 +418,9 @@ def test_white_logo_opaque_raster_keeps_light_marks_solid(tmp_path):
     ImageDraw.Draw(im).rectangle((10, 5, 50, 25), fill=(255, 210, 0))   # yellow mark on white
     src = tmp_path / "yellow.png"
     im.save(src)
-    out = Image.open(white_logo.make_white(src)).convert("RGBA")
+    dst = tmp_path / "white.png"
+    white_logo.whiten_raster(src, dst)  # test colour/alpha conversion before margin trimming
+    out = Image.open(dst).convert("RGBA")
     assert out.getpixel((30, 15)) == (255, 255, 255, 255) and out.getpixel((2, 2))[3] == 0
 
 
@@ -447,7 +452,9 @@ def test_white_logo_renders_svg_to_a_high_res_png(tmp_path):
 def test_example_uses_white_logos_without_plates():
     html = EXAMPLE.read_text()
     logos = re.findall(r'<div class="aij-logo"><img src="images/([^"]+)"', html)
-    assert logos and all(l.endswith("_white.png") for l in logos)
+    assert logos[0] == "airi_5_years_logo_white.svg"
+    assert all(l.endswith("_white.png") for l in logos[1:])
+    assert not any("fusionbrain" in l or "axxx" in l for l in logos)
     assert all((EXAMPLE.parent / "images" / l).exists() for l in logos)
     assert "aij-logo-chip" not in html and "aij-logo-chip" not in TEMPLATE_HTML.read_text()
 
@@ -469,12 +476,15 @@ def test_footer_logos_share_one_height_and_fit_the_band():
     got = _render(EXAMPLE, _LOGOS_JS)
     band = [v / PX_PER_MM for v in got["band"]]
     imgs = [[v / PX_PER_MM for v in r] for r in got["imgs"]]
-    assert len(imgs) == 4
+    assert len(imgs) == 3
     heights = [r[3] for r in imgs]
     assert max(heights) - min(heights) < 0.05, heights
     assert max(heights) <= 10.853 + 0.01
     assert imgs[-1][0] + imgs[-1][2] <= band[0] + band[2] + 0.1     # the row fits the band
     centres = [r[1] + r[3] / 2 for r in imgs]
+    assert abs((imgs[0][0] + imgs[-1][0] + imgs[-1][2]) / 2 - (band[0] + band[2] / 2)) < 0.05
+    gaps = [b[0] - a[0] - a[2] for a, b in zip(imgs, imgs[1:])]
+    assert max(gaps) - min(gaps) < 0.05
     assert max(centres) - min(centres) < 0.05                          # and sits on one line
 
 
@@ -489,3 +499,46 @@ _HEADINGS_JS = """
 def test_headings_are_black(which, scaffold_dir):
     html = scaffold_dir / "poster.html" if which == "scaffold" else EXAMPLE
     assert _render(html, _HEADINGS_JS) == ["rgb(0, 0, 0)"] * 3
+
+
+@needs_render
+def test_demo_content_inside_original_guides_and_footer_centred():
+    from lxml import etree
+    with zipfile.ZipFile(TEMPLATE_PPTX) as z:
+        xml = etree.fromstring(z.read("ppt/viewProps.xml"))
+    ns = {"p": "http://schemas.openxmlformats.org/presentationml/2006/main"}
+    guides = xml.findall(".//p:guide", ns)
+    # Author-specified content guides, from the original file, in 1/8 point units.
+    vertical = sorted(int(g.get("pos", 0)) for g in guides if g.get("orient") != "horz")
+    horizontal = sorted(int(g.get("pos", 0)) for g in guides if g.get("orient") == "horz")
+    left, right = vertical[1:3]
+    top, bottom = horizontal[2:4]
+    got = _render(EXAMPLE, """() => {
+      const P = document.querySelector('.poster').getBoundingClientRect();
+      const box = el => { const r=el.getBoundingClientRect(); return [r.left-P.left,r.top-P.top,r.right-P.left,r.bottom-P.top]; };
+      const footer = ['.aij-footer-text','.aij-logos','.aij-qrs'].map(s=>box(document.querySelector(s)));
+      const content = [...document.querySelectorAll('.body-grid .section, .body-grid img, .body-grid table')].map(box);
+      const sub = getComputedStyle(document.querySelector('.section-subtitle'));
+      return {content,footer,sub:[sub.fontFamily,sub.fontSize,sub.fontWeight]};
+    }""")
+    for x1, y1, x2, y2 in got['content']:
+        assert x1 >= left / 6 - .1 and x2 <= right / 6 + .1
+        assert y1 >= top / 6 - .1 and y2 <= bottom / 6 + .1
+    centres = [(b[1]+b[3])/2 for b in got['footer']]
+    assert max(centres)-min(centres) < .2
+    assert got['footer'][0][2] < got['footer'][1][0]
+    assert got['footer'][1][2] < got['footer'][2][0]
+    assert got['sub'][0].startswith('"SB Sans Display"')
+    assert float(got['sub'][1][:-2]) == pytest.approx(10*PT,abs=.05)
+    assert got['sub'][2] == '600'
+
+
+def test_white_logo_trim_removes_outer_alpha_margin(tmp_path):
+    from PIL import Image
+    import white_logo
+    p = tmp_path / 'partner.png'
+    im = Image.new('RGBA',(100,50)); im.paste((255,255,255,255),(20,10,80,40)); im.save(p)
+    white_logo.trim_png(p)
+    with Image.open(p) as got:
+        assert got.size == (1200,600)
+        assert got.getchannel('A').getextrema() == (255,255)
