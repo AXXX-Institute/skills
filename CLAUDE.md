@@ -15,67 +15,22 @@ glossary and `docs/adr/` for decisions.
 
 ## Usage arms
 
-- Marketplace validation: `python3 .github/scripts/validate.py` checks both
-  catalogs, dual plugin manifests, skill frontmatter, documentation coverage,
-  and `.agents/skills/` parity.
-- Plugin validation: `python3 <plugin-creator>/scripts/validate_plugin.py
-  plugins/<plugin>` checks Codex manifest ingestion constraints.
-- Skill validation: `python3 <skill-creator>/scripts/quick_validate.py
-  plugins/<plugin>/skills/<skill>` checks each skill entrypoint.
-- Claude Code installation: `/plugin marketplace add AXXX-Institute/skills`
-  then `/plugin install <plugin>@axxx-institute`.
-- Codex installation: `codex plugin marketplace add AXXX-Institute/skills`
-  then `codex plugin add <plugin>@axxx-institute`.
-- `gitlab-ai` setup: `/gitlab-ai:setup-ci` or `$gitlab-ai:setup-ci` safely
-  connects the current repository to the shared CI gates.
-- `gitlab-ai` runtime: `/gitlab-ai:review-mr` or `$gitlab-ai:review-mr` reviews
-  and posts to the current GitLab MR;
-  `/gitlab-ai:repair-pipeline` or `$gitlab-ai:repair-pipeline` diagnoses and
-  repairs failed jobs; `/gitlab-ai:audit-agent-config` or
-  `$gitlab-ai:audit-agent-config` checks and optionally repairs repository-owned
-  agent guidance.
-- Headless Claude CI: install `gitlab-ai`, resolve its `installPath` from
-  `claude plugin list --json`, then invoke `shared/ci/run_claude_gate.sh`; it
-  composes the model policy and JSON/verdict helpers around a namespaced skill.
-- Adversarial review: `/adversarial-review` or `$adversarial-review` launches a
-  fresh-context reviewer for a committed change; it must be invoked explicitly.
-- `paper-to-poster` runtime: `/paper-to-poster` or `$paper-to-poster` builds a
-  poster in one of two fixed **poster formats** (Step 0 asks which). **AXXX**:
-  `templates/*_axxx.html` + `axxx/fetch_assets.py` + `axxx/apply_theme.py`.
-  **AIJ** (AI Journey): `templates/portrait_aij.html` + `aij/prepare_assets.py`
-  (copies the required AIRI five-year white logo; `axxx/fetch_assets.py` for partner logos, `aij/white_logo.py` for their white
-  versions), fonts from the CDN via `aij/fonts.css` (`aij/sync_fonts.py
-  [--check]`), then the always-on editable export
-  `python aij/export_pptx.py poster/poster.html` (embeds SB Sans Display and Text via
-  `aij/embed_fonts.py`; `--no-embed-fonts` opts out; `[pptx]` extra:
-  python-pptx, mathml2omml, lxml, fonttools, brotli).
-- AIJ design contract: grey-guide content bounds, Display 14pt/10pt headings,
-  Text 7pt body/tables/captions; AIRI first, horizontal partner logos scaled and
-  centred by primary graphic marks (AIRI: exclude the 5-year tagline), sharing
-  the text/QR centre axis. The fitter runs on image load, resize and beforeprint.
-  AXXX rules remain unchanged. Verify through `tests/test_aij_*.py`.
-- `paper-to-poster` gates (both formats): `tools/poster_check.py
-  preflight|measure|polish|verify-final <poster.html|pdf>`,
-  `tools/render_preview.py`, `tools/run_gates.py` (its `style` gate fails by
-  design on AIJ — rules 4, 6–8: posterly's two-accent palette and font rules).
-  Run from the skill dir.
-- `paper-to-poster` tests: `python -m pytest tests` inside
-  `plugins/paper-to-poster/skills/paper-to-poster` (needs Playwright/Chromium;
-  `tests/test_aij_*.py` also need network for the SB Sans CDN and MathJax, and
-  the `[pptx]` extra — they skip otherwise). Not run in CI (CI only
-  byte-compiles this plugin).
-- Poster gallery: `plugins/paper-to-poster/skills/paper-to-poster/examples/`
-  (published at `/paper-to-poster/gallery.html`); the AIJ example
-  `compression_horizon_aij/` ships `poster.pdf` + `poster.pptx` — re-render both
-  after changing `templates/portrait_aij.html` or `aij/export_pptx.py` (the public
-  copy embeds SB Sans Display and Text like any export — maintainers' decision, ADR 0013).
-- GitHub Pages catalog: `.github/workflows/pages.yml` publishes
-  `site/index.html` after pushes to `main` that affect `site/**`.
-- Per-skill documentation: every `plugins/<plugin>/skills/<skill>/README.md`
-  documents installation and invocation; `.github/scripts/build_skill_pages.py`
-  turns every `SKILL.md` into the extensionless Pages route `/<skill>/`.
-- Shared site design: hand-written and generated marketplace pages load
-  `site/assets/styles.css`; shared interactions live in `site/assets/site.js`.
+- Marketplace validation → `.github/scripts/validate.py`; run `python3 .github/scripts/validate.py`.
+- Plugin / skill validation → plugin-creator `validate_plugin.py` / skill-creator `quick_validate.py`.
+- Claude installation → `/plugin marketplace add AXXX-Institute/skills`, `/plugin install <plugin>@axxx-institute`.
+- Codex installation → `codex plugin marketplace add AXXX-Institute/skills`, `codex plugin add <plugin>@axxx-institute`.
+- GitLab CI setup → `plugins/gitlab-ai/skills/setup-ci/`; invoke `/gitlab-ai:setup-ci`.
+- GitLab review / repair / audit → `plugins/gitlab-ai/skills/{review-mr,repair-pipeline,audit-agent-config}/`.
+- Headless Claude CI → `plugins/gitlab-ai/shared/ci/run_claude_gate.sh`; checks: `plugins/gitlab-ai/tests/`.
+- Explicit adversarial review (Claude and Codex) → `plugins/adversarial-review/skills/adversarial-review/SKILL.md`.
+- AXXX poster generation → `plugins/paper-to-poster/skills/paper-to-poster/axxx/`, `templates/*_axxx.html`.
+- AIJ poster generation → `plugins/paper-to-poster/skills/paper-to-poster/aij/`, `templates/portrait_aij.html`.
+- Poster editable export → `plugins/paper-to-poster/skills/paper-to-poster/aij/export_pptx.py`.
+- Poster checks / rendering → `plugins/paper-to-poster/skills/paper-to-poster/tools/`; checks: that skill's `tests/`.
+- Poster gallery → `plugins/paper-to-poster/skills/paper-to-poster/examples/`, including AIJ PDF/PPTX artifacts.
+- GitHub Pages catalog → `.github/workflows/pages.yml`, `site/index.html`.
+- Skill pages → `.github/scripts/build_skill_pages.py`, per-skill `README.md` and `SKILL.md`.
+- Shared site presentation → `site/assets/styles.css`, `site/assets/site.js`.
 
 ## When adding, renaming, or removing a skill or plugin — update ALL of these
 

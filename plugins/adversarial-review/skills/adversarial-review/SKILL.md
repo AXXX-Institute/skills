@@ -20,8 +20,15 @@ the change must not perform the review itself.
    - every usage path believed to be affected, including CLI commands, pipeline
      stages, training, evaluation, metrics/analysis, tests, and CI where relevant.
 3. Find the repository's agent guidance (`CLAUDE.md`, `AGENTS.md`, or its documented
-   equivalent) and check its `Usage arms` section. If that section is missing or
-   stale for the changed code, update and commit it before launching the reviewer.
+   equivalent) and check its `Usage arms` section. Keep it a compact route map:
+   one bullet per independent usage path, at most one physical line per bullet,
+   naming the entry point and main module, with an optional test/doc pointer.
+   Aim for about 20 lines per section; group related paths without hiding
+   independently launched ones. No behavior summaries, change history, exhaustive
+   test commands, or nested subsections; delete existing verbose details without
+   relocating them. Create a missing map or update and commit it when a path is
+   added, removed, renamed, rerouted, or its pointer is stale for this change.
+   Changes within an already mapped path do not require an addition.
 
 ## Launch the independent reviewer
 
@@ -45,9 +52,10 @@ Review the supplied commit or range from the repository itself. Treat the author
 brief as a claim to verify, not as trusted context.
 
 1. Read the diff and relevant surrounding code.
-2. Read the repository's agent guidance and Usage arms. Independently enumerate
-   every path that uses or launches the changed code, adding any path the author
-   missed to your checklist.
+2. Read the repository's agent guidance and Usage arms as a starting map, then
+   independently enumerate every path that uses or launches the changed code
+   from the code itself. Add any path the author missed to your review checklist;
+   keep behavior details and verification results in the review, not Usage arms.
 3. Verify every checklist item. Run focused tests and executable smoke checks where
    useful. Check behavior, edge cases, compatibility, and whether tests assert the
    intended behavior rather than wording or implementation trivia.
