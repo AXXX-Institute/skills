@@ -1,6 +1,6 @@
 {
   "name": "adversarial-review",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Independent fresh-context review for committed code changes across every affected usage path. Works with Claude Code Agent/Task delegation and Codex spawn_agent. MIT.",
   "author": {
     "name": "AXXX-Institute"
