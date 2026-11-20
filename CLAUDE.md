@@ -13,25 +13,6 @@ skills), `gitlab-ai` (MIT, four provider-neutral skills), and
 `adversarial-review` (MIT, one explicit-only skill). See `CONTEXT.md` for the
 glossary and `docs/adr/` for decisions.
 
-## Usage arms
-
-- Marketplace validation → `.github/scripts/validate.py`; run `python3 .github/scripts/validate.py`.
-- Plugin / skill validation → plugin-creator `validate_plugin.py` / skill-creator `quick_validate.py`.
-- Claude installation → `/plugin marketplace add AXXX-Institute/skills`, `/plugin install <plugin>@axxx-institute`.
-- Codex installation → `codex plugin marketplace add AXXX-Institute/skills`, `codex plugin add <plugin>@axxx-institute`.
-- GitLab CI setup → `plugins/gitlab-ai/skills/setup-ci/`; invoke `/gitlab-ai:setup-ci`.
-- GitLab review / repair / audit → `plugins/gitlab-ai/skills/{review-mr,repair-pipeline,audit-agent-config}/`.
-- Headless Claude CI → `plugins/gitlab-ai/shared/ci/run_claude_gate.sh`; checks: `plugins/gitlab-ai/tests/`.
-- Explicit adversarial review (Claude and Codex) → `plugins/adversarial-review/skills/adversarial-review/SKILL.md`.
-- AXXX poster generation → `plugins/paper-to-poster/skills/paper-to-poster/axxx/`, `templates/*_axxx.html`.
-- AIJ poster generation → `plugins/paper-to-poster/skills/paper-to-poster/aij/`, `templates/portrait_aij.html`.
-- Poster editable export → `plugins/paper-to-poster/skills/paper-to-poster/aij/export_pptx.py`.
-- Poster checks / rendering → `plugins/paper-to-poster/skills/paper-to-poster/tools/`; checks: that skill's `tests/`.
-- Poster gallery → `plugins/paper-to-poster/skills/paper-to-poster/examples/`, including AIJ PDF/PPTX artifacts.
-- GitHub Pages catalog → `.github/workflows/pages.yml`, `site/index.html`.
-- Skill pages → `.github/scripts/build_skill_pages.py`, per-skill `README.md` and `SKILL.md`.
-- Shared site presentation → `site/assets/styles.css`, `site/assets/site.js`.
-
 ## When adding, renaming, or removing a skill or plugin — update ALL of these
 
 This is a hard requirement. A new skill is not "done" until every item is updated
