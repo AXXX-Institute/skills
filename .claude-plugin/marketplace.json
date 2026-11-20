@@ -47,7 +47,7 @@
       "name": "adversarial-review",
       "source": "./plugins/adversarial-review",
       "description": "Independent fresh-context review for committed code changes across every affected usage path. Uses native delegation in Claude Code and Codex. MIT.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "AXXX-Institute"
       },
